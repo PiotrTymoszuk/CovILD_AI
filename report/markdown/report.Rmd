@@ -1,0 +1,483 @@
+---
+title: "Artificial inteligence-assisted analysis of CT abnormalities during COVID-19 recovery"
+subtitle: "Analysis report"
+author: "Piotr Tymoszuk for the Department of Radiology"
+date: "`r format(Sys.time(), '%Y-%m-%d')`"
+
+output: 
+  bookdown::html_document2:
+    css: "style.css"
+    
+bibliography: ct.bib
+
+csl: frontiers_medical.csl
+
+header-includes:
+  \usepackage{longtable}
+  \usepackage{tabu}
+  \usepackage{caption}
+  \usepackage{makecell}
+  \usepackage{pdflscape}
+  \usepackage{array}
+  \usepackage{booktabs}
+  \usepackage{threeparttable}
+  \usepackage{threeparttablex}
+  \usepackage{wrapfig}
+  \usepackage{multirow}
+  \usepackage[normalem]{ulem}
+  \usepackage{colortbl}
+  \usepackage{xcolor}
+  \usepackage{float} \floatplacement{figure}{H} \floatplacement{table}{H}
+
+---
+
+```{r, setup, include = FALSE}
+
+library(Cairo)
+
+opts_chunk$set(echo = FALSE, 
+                      warning = FALSE, 
+                      message = FALSE, 
+                      dev = "CairoPDF", 
+                      dpi = 600)
+
+set_flextable_defaults(font.family = "Helvetica", 
+                       font.size = 10)
+
+
+```
+
+
+<center>
+
+![](logo_large.png){#id .class width="40mm"}
+
+</center>
+
+<hr style = "border-top: 5px solid DarkGray" />
+
+# Analysis summary
+
+<hr style = "border-top: 5px solid #417a8b" />
+
+# Characteristic of the cohort and exploratory data analysis
+
+## Characteristic of the CovILD cohort
+
+<hr style = "border-top: 1px solid DarkGray" />
+
+```{r tab-cohort, tab.cap = 'Baseline characteristics and COVID-19 course in the CovILD cohort. Numeric variables are presented as medians with interquartile ranges (IQR) and ranges. Categorical variables are presented as percentages and counts within the complete observation set.'}
+
+flextable::flextable(tables$cohort) %>% 
+  width(1, width = 3, unit = 'cm') %>% 
+  width(2:5, width = 3.0, unit = 'cm') %>% 
+  width(6, width = 2.7, unit = 'cm') %>% 
+  width(7, width = 2.5, unit = 'cm') %>% 
+  footnote(1, 1, 
+           value = as_paragraph('BMI: body mass index; COPD: chronic obstructive pulmonary disease; CKD: chronic kidney disease'), 
+           part = 'header', 
+           ref_symbols = 'a') %>% 
+  footnote(1, 6:6, 
+           value = as_paragraph('Comparison between COVID-19 severity groups. Categorical variables: \u03C7\u00B2 test with Cramer V effect size statistic, numeric variables: Kruskal-Wallis test with \u03B7\u00B2 effect size statistic. P values corrected for multiple testing with the false discovery rate method'), 
+           part = 'header', 
+           ref_symbols = 'b') %>% 
+  footnote(4, 1, 
+           value = as_paragraph('young adult: 18 - 30 years; middle aged: 31 - 65 years; elderly: 66 years and more'), 
+           part = 'body', 
+           ref_symbols = 'c') %>% 
+  footnote(8, 1, 
+           value = as_paragraph('normal: BMI < 25 kg/m\u00B2; overweight: BMI 25 - 30 kg/m\u00B2; obesity: BMI > 30 kg/m\u00B2'), 
+           part = 'body', 
+           ref_symbols = 'd') %>% 
+  theme_vanilla
+
+```
+
+<hr style = "border-top: 5px solid DarkGray" />
+
+## Chest computed tomography paramaters and findings
+
+<hr style = "border-top: 1px solid DarkGray" />
+
+```{r tab-cohort-ct, tab.cap = 'Chest computed tomography variables at consecutive follow-ups. Numeric variables are presented as medians with interquartile ranges (IQR) and ranges. Categorical variables are presented as percentages and counts within the complete observation set.'}
+
+flextable::flextable(tables$cohort_ct) %>% 
+  width(1, width = 2.7, unit = 'cm') %>% 
+  width(2, width = 2.7, unit = 'cm') %>% 
+  width(3:6, width = 3.8, unit = 'cm') %>% 
+  merge_v(1) %>% 
+  footnote(1, 2, 
+           value = as_paragraph('CT: chest computed tomography; GGO: ground glass opacity; CTSS: CT severity score; AI: artificial intelligence'), 
+           part = 'header', 
+           ref_symbols = 'a') %>% 
+  theme_vanilla
+
+```
+
+<hr style = "border-top: 5px solid DarkGray" />
+
+## Lung function testing paramaters and abnormalities
+
+<hr style = "border-top: 1px solid DarkGray" />
+
+```{r tab-cohort-lft, tab.cap = 'Lung function testing variables at consecutive follow-ups. Numeric variables are presented as medians with interquartile ranges (IQR) and ranges. Categorical variables are presented as percentages and counts within the complete observation set.'}
+
+flextable::flextable(tables$cohort_lft) %>% 
+  width(1, width = 2.7, unit = 'cm') %>% 
+  width(2, width = 2.7, unit = 'cm') %>% 
+  width(3:6, width = 3.8, unit = 'cm') %>% 
+  merge_v(1) %>% 
+  footnote(1, 2, 
+           value = as_paragraph('LFT: lung function testing; FVC: forced vital capacity; FEV1: forced expiratory volume in 1 second; DLCO: diffusion capacity for CO; FEV1:FVC: FEV1 to FVC ratio'), 
+           part = 'header', 
+           ref_symbols = 'a') %>% 
+  theme_vanilla
+
+```
+
+<hr style = "border-top: 5px solid #417a8b" />
+
+# Detection of radiological lung findings with AI-determined opacity and high opacity
+
+## Optimal cutoff, sensitivity and specificity of AI opacity and high opacity at detection of radiological findings
+
+```{r tab-ai-cutoffs, tab.cap = 'Optimal cutoffs for AI-determined lung opacity and high opacity at detection of chest computed tomography abnormalities. The optimal cutoff was determined by Youden criterion.'}
+
+flextable::flextable(tables$ai_cutoffs) %>% 
+  width(1, width = 2.7, unit = 'cm') %>% 
+  width(2, width = 3, unit = 'cm') %>% 
+  width(3, width = 4.8, unit = 'cm') %>% 
+  width(4:8, width = 2.5, unit = 'cm') %>% 
+  merge_v(1) %>% 
+  footnote(1, 2, 
+           value = as_paragraph('CT: chest computed tomography; GGO: ground glass opacity'), 
+           part = 'header', 
+           ref_symbols = 'a') %>% 
+  footnote(1, 3, 
+           value = as_paragraph('AUC: area under the curve, receiver - operating characteristic with 95% confidence interval.'), 
+           part = 'header', 
+           ref_symbols = 'b') %>% 
+  footnote(1, 7, 
+           value = as_paragraph('J: Youden J statistic'), 
+           part = 'header', 
+           ref_symbols = 'c') %>% 
+  footnote(1, 8, 
+           value = as_paragraph('PPV: positive prediction value'), 
+           part = 'header', 
+           ref_symbols = 'd') %>% 
+   footnote(1, 9, 
+           value = as_paragraph('NPV: negative prediction value'), 
+           part = 'header', 
+           ref_symbols = 'e') %>% 
+  theme_vanilla
+
+```
+
+<hr style = "border-top: 5px solid DarkGray" />
+
+## Performance of AI opacity and high opacity in COVID-19 severity groups and at consecutive follow-ups
+
+<hr style = "border-top: 1px solid DarkGray" />
+
+```{r tab-ai-cutoffs-severity, tab.cap = 'Performance of AI-determined lung opacity and high opacity at detection of chest computed tomography abnormalities in the COVID-19 severity subsets. The opacity and high opacity values were stratified by their optimal cutoffs determined by Youden criterion in the entire CovILD cohort. Statistic values are presented with 95% confidence intervals obtained by bootstrap.'}
+
+flextable::flextable(tables$ai_cutoffs_severity) %>% 
+  width(1, width = 2.7, unit = 'cm') %>% 
+  width(2, width = 3, unit = 'cm') %>% 
+  width(3, width = 3, unit = 'cm') %>% 
+  width(4:7, width = 5.2, unit = 'cm') %>% 
+  merge_v(1:2) %>% 
+  footnote(1, 3, 
+           value = as_paragraph('CT: chest computed tomography; GGO: ground glass opacity'), 
+           part = 'header', 
+           ref_symbols = 'a') %>% 
+  footnote(1, 4, 
+           value = as_paragraph('\u03BA: Cohen \u03BA inter-rater reliability statistic'), 
+           part = 'header', 
+           ref_symbols = 'b') %>% 
+  theme_vanilla
+
+```
+
+<hr style = "border-top: 1px solid DarkGray" />
+
+```{r tab-ai-cutoffs-fup, tab.cap = 'Performance of AI-determined lung opacity and high opacity at detection of chest computed tomography abnormalities at the consecutive follow-ups. The opacity and high opacity values were stratified by their optimal cutoffs determined by Youden criterion in the entire CovILD cohort. Statistic values are presented with 95% confidence intervals obtained by bootstrap.'}
+
+flextable::flextable(tables$ai_cutoffs_fup) %>% 
+  width(1, width = 2.7, unit = 'cm') %>% 
+  width(2, width = 3, unit = 'cm') %>% 
+  width(3, width = 3, unit = 'cm') %>% 
+  width(4:7, width = 5.2, unit = 'cm') %>% 
+  merge_v(1:2) %>% 
+  footnote(1, 3, 
+           value = as_paragraph('CT: chest computed tomography; GGO: ground glass opacity'), 
+           part = 'header', 
+           ref_symbols = 'a') %>% 
+  footnote(1, 4, 
+           value = as_paragraph('\u03BA: Cohen \u03BA inter-rater reliability statistic'), 
+           part = 'header', 
+           ref_symbols = 'b') %>% 
+  theme_vanilla
+
+```
+
+<hr style = "border-top: 5px solid #417a8b" />
+
+# Chest computed tomography severity score, AI-determined opacity and high opacity
+
+## Chest computed tomography severity score and interstitial lung disease
+
+<hr style = "border-top: 1px solid DarkGray" />
+
+```{r tab-ild-cutoff, tab.cap = 'Detecion of interstitial lung disease defined by lung opacity > 5% by chest computed tomography severity score (CTSS). The optimal cutoff for CTSS was determined by Youden criterion.'}
+
+flextable::flextable(tables$ild_cutoff) %>% 
+  width(1, width = 3, unit = 'cm') %>% 
+  width(2, width = 4.8, unit = 'cm') %>% 
+  width(3:8, width = 2.5, unit = 'cm') %>% 
+  footnote(1, 1, 
+           value = as_paragraph('AI: artificial intelligence'), 
+           part = 'header', 
+           ref_symbols = 'a') %>% 
+  footnote(1, 2, 
+           value = as_paragraph('AUC: area under the curve, receiver - operating characteristic with 95% confidence interval.'), 
+           part = 'header', 
+           ref_symbols = 'b') %>% 
+  footnote(1, 6, 
+           value = as_paragraph('J: Youden J statistic'), 
+           part = 'header', 
+           ref_symbols = 'c') %>% 
+  footnote(1, 7, 
+           value = as_paragraph('PPV: positive prediction value'), 
+           part = 'header', 
+           ref_symbols = 'd') %>% 
+   footnote(1, 8, 
+           value = as_paragraph('NPV: negative prediction value'), 
+           part = 'header', 
+           ref_symbols = 'e') %>% 
+  theme_vanilla
+
+```
+
+<hr style = "border-top: 1px solid DarkGray" />
+
+```{r tab-ild-cutoff-severity, tab.cap = 'Detecion of interstitial lung disease defined by lung opacity > 5% by chest computed tomography severity score (CTSS) in the COVID-19 severity subsets. The optimal cutoff for CTSS was determined by Youden criterion in the entire CovILD cohort. Statistic values are presented with 95% confidence intervals obtained by bootstrap.'}
+
+flextable::flextable(tables$ild_cutoff_severity) %>% 
+  width(1, width = 2.7, unit = 'cm') %>% 
+  width(2:5, width = 5, unit = 'cm') %>% 
+  footnote(1, 2, 
+           value = as_paragraph('\u03BA: Cohen \u03BA inter-rater reliability statistic'), 
+           part = 'header', 
+           ref_symbols = 'a') %>% 
+  theme_vanilla
+
+```
+
+<hr style = "border-top: 1px solid DarkGray" />
+
+```{r tab-ild-cutoff-fup, tab.cap = 'Detecion of interstitial lung disease defined by lung opacity > 5% by chest computed tomography severity score (CTSS) at the consecutive follow-ups. The optimal cutoff for CTSS was determined by Youden criterion in the entire CovILD cohort. Statistic values are presented with 95% confidence intervals obtained by bootstrap.'}
+
+flextable::flextable(tables$ild_cutoff_fup) %>% 
+  width(1, width = 2.7, unit = 'cm') %>% 
+  width(2:5, width = 5, unit = 'cm') %>% 
+  footnote(1, 2, 
+           value = as_paragraph('\u03BA: Cohen \u03BA inter-rater reliability statistic'), 
+           part = 'header', 
+           ref_symbols = 'a') %>% 
+  theme_vanilla
+
+```
+
+<hr style = "border-top: 5px solid DarkGray" />
+
+## Mathematical relationship of the severity score, and AI-determined opacity and high opacity
+
+<hr style = "border-top: 5px solid #417a8b" />
+
+# Prediction of lung function with chest computed tomography
+
+## Development of multi-paramater Random Forest models of lung function variables and abnormalities
+
+<hr style = "border-top: 1px solid DarkGray" />
+
+```{r tab-rf-tuning, tab.cap = 'Optimal values of the mtry, splitrule and min.node.size paramaters for Random Forest models of lung function abnormalities and paramaters found by cross-validation tuning.'}
+
+flextable::flextable(tables$rf_tuning) %>% 
+  width(1, width = 2.5, unit = 'cm') %>% 
+  width(2, width = 2.7, unit = 'cm') %>% 
+  width(3, width = 3, unit = 'cm') %>% 
+  width(4:6, width = 2.7, unit = 'cm') %>% 
+  merge_v(1:2) %>% 
+  footnote(1, 2, 
+           value = as_paragraph('LFT: lung function testing; DLCO: diffusion capacity for CO; FVC: forced vital capacity; FEV1: forced expiratory volume in 1 second'), 
+           part = 'header', 
+           ref_symbols = 'a') %>% 
+  theme_vanilla
+
+```
+
+<hr style = "border-top: 5px solid DarkGray" />
+
+## Performance of Random Forest models at prediction of lung function
+
+<hr style = "border-top: 1px solid DarkGray" />
+
+```{r tab-bin-models, tab.cap = 'Performance of Random Forest classifiers at prediction of lung function testing (LFT) abnormalities in the training dataset and cross-validation (CV). CV results for any LFT abnormalities and diffusion capacity for CO (DLCO) < 80% reference are presented. The entire table is available in a supplementary Excel file.'}
+
+tables$bin_models %>% 
+  filter(`LFT variable` %in% c('LFT findings', 'DLCO < 80%'), 
+         `Data type` == 'CV') %>% 
+  select(-`Data type`) %>% 
+  flextable %>% 
+  width(1, width = 2.7, unit = 'cm') %>% 
+  width(2, width = 2.7, unit = 'cm') %>% 
+  width(3, width = 4, unit = 'cm') %>% 
+  width(4, width = 5.5, unit = 'cm') %>% 
+  merge_v(1:2) %>% 
+  footnote(1, 1, 
+           value = as_paragraph('LFT: lung function testing; DLCO: diffusion capacity for CO; FVC: forced vital capacity; FEV1: forced expiratory volume in 1 second'), 
+           part = 'header', 
+           ref_symbols = 'a') %>% 
+  footnote(1, 3, 
+           value = as_paragraph('C-index: concordance index; \u03BA: Cohen \u03BA inter-rater relaibility statistic; AUC, ROC: area under the curve, receiver - operating characteristic'), 
+           part = 'header', 
+           ref_symbols = 'b') %>% 
+  theme_vanilla
+
+```
+
+<hr style = "border-top: 1px solid DarkGray" />
+
+```{r tab-reg-models, tab.cap = 'Performance of Random Forest regression models at prediction of lung function testing (LFT) variables in the training dataset and cross-validation (CV). CV results for diffusion capacity for CO (DLCO), forced vital capacity (FVC) and forced expiratory volume in 1 second (FEV1) are presented. The entire table is available in a supplementary Excel file.'}
+
+tables$reg_models %>% 
+  filter(`Data type` == 'CV') %>% 
+  select(-`Data type`) %>% 
+  flextable %>% 
+  width(1, width = 2.7, unit = 'cm') %>% 
+  width(2, width = 2.7, unit = 'cm') %>% 
+  width(3, width = 4, unit = 'cm') %>% 
+  width(4, width = 5.5, unit = 'cm') %>% 
+  merge_v(1:2) %>% 
+  footnote(1, 1, 
+           value = as_paragraph('LFT: lung function testing; DLCO: diffusion capacity for CO; FVC: forced vital capacity; FEV1: forced expiratory volume in 1 second'), 
+           part = 'header', 
+           ref_symbols = 'a') %>% 
+  footnote(1, 3, 
+           value = as_paragraph('MAE: mean absolute error; RMSE: root mean square error; Pearson r: Pearson correlation coefficient between fitter and observed values'), 
+           part = 'header', 
+           ref_symbols = 'b') %>% 
+  theme_vanilla
+
+```
+
+<hr style = "border-top: 5px solid DarkGray" />
+
+## Severity score, and AI-determined opacity and high opacity are the key predictors of lung function
+
+<hr style = "border-top: 1px solid DarkGray" />
+
+```{r tab-lft-binary-uni, tab.cap = 'Differences in chest computed tomography severity score (CTSS), and AI-determined lung opacity and high opacity in CovILD study participants with and without lung function testing (LFT) abnormalities. Numeric variariables are presented as medians with interquartile ranges (IQR) and ranges.'}
+
+flextable::flextable(tables$lft_binary_uni) %>% 
+  width(1, width = 2.8, unit = 'cm') %>% 
+  width(2, width = 4.5, unit = 'cm') %>% 
+  width(3:4, width = 3.8, unit = 'cm') %>% 
+  width(5, width = 2.7, unit = 'cm') %>% 
+  width(6, width = 2.5, unit = 'cm') %>% 
+  merge_v(1) %>% 
+  footnote(1, 1, 
+           value = as_paragraph('LFT: lung function testing; DLCO: diffusion capacity for CO; FVC: forced vital capacity; FEV1: forced expiratory volume in 1 second'), 
+           part = 'header', 
+           ref_symbols = 'a') %>% 
+  footnote(1, 2, 
+           value = as_paragraph('CTSS: chest computed tomography severity score; AI: artificial intelligence'), 
+           part = 'header', 
+           ref_symbols = 'b') %>% 
+  footnote(1, 5:6, 
+           value = as_paragraph('Mann-Whitney test with r effect size statistic. P values corrected for multiple testing with the false discovery method'), 
+           part = 'header', 
+           ref_symbols = 'c') %>% 
+  theme_vanilla
+
+```
+
+<hr style = "border-top: 1px solid DarkGray" />
+
+```{r tab-lft-correlation-uni, tab.cap = 'Correlation of LFT variables with chest computed tomography severity score, and AI-determined opacity and high opactity.'}
+
+flextable::flextable(tables$lft_correlation_uni) %>% 
+  width(1:2, width = 4.5, unit = 'cm') %>% 
+  width(3, width = 2, unit = 'cm') %>% 
+  width(4, width = 5, unit = 'cm') %>% 
+  width(5, width = 2.7, unit = 'cm') %>% 
+  merge_v(1) %>% 
+  footnote(1, 1, 
+           value = as_paragraph('DLCOP: diffusion capacity for CO; FVC: forced vital capacity; FEV1: forced expiratory volume in 1 second'), 
+           part = 'header', 
+           ref_symbols = 'a') %>% 
+  footnote(1, 2, 
+           value = as_paragraph('CTSS: chest computed tomography severity score; AI: artificial intelligence'), 
+           part = 'header', 
+           ref_symbols = 'b') %>% 
+  footnote(1, 4:5, 
+           value = as_paragraph('Spearman correlation coefficient and Spearman rank test. P values corrected for multiple testing with the false discovery method'), 
+           part = 'header', 
+           ref_symbols = 'c') %>% 
+  theme_vanilla
+
+```
+
+<hr style = "border-top: 1px solid DarkGray" />
+
+```{r tab-lft-roc, tab.cap = 'Detection of lung function testing (LFT) abnormalities by chest computed tomography variables in receiver-operator characteristic (ROC) analysis.'}
+
+flextable::flextable(tables$lft_roc) %>% 
+  width(1:2, width = 2.8, unit = 'cm') %>% 
+  width(3, width = 5, unit = 'cm') %>% 
+  width(4:9, width = 2.5, unit = 'cm') %>% 
+  merge_v(1) %>% 
+  footnote(1, 1, 
+           value = as_paragraph('LFT:: lung function testting; DLCO: diffusion capacity for CO; FVC: forced vital capacity; FEV1: forced expiratory volume in 1 second'), 
+           part = 'header', 
+           ref_symbols = 'a') %>% 
+  footnote(1, 2, 
+           value = as_paragraph('CTSS: chest computed tomography severity score; AI: artificual intelligence'),
+           part = 'header',
+           ref_symbols = 'b') %>% 
+   footnote(1, 3, 
+           value = as_paragraph('AUC: area under the curve, receiver - operating characteristic with 95% confidence interval.'), 
+           part = 'header', 
+           ref_symbols = 'c') %>% 
+  footnote(1, 7, 
+           value = as_paragraph('J: Youden J statistic'), 
+           part = 'header', 
+           ref_symbols = 'd') %>% 
+  footnote(1, 8, 
+           value = as_paragraph('PPV: positive prediction value'), 
+           part = 'header', 
+           ref_symbols = 'e') %>% 
+   footnote(1, 9, 
+           value = as_paragraph('NPV: negative prediction value'), 
+           part = 'header', 
+           ref_symbols = 'f') %>% 
+  theme_vanilla
+
+```
+
+
+<hr style = "border-top: 5px solid #417a8b" />
+
+# Methods
+
+
+<hr style = "border-top: 5px solid #417a8b" />
+
+# Data and code availability
+
+The entire R analysis pipeline is available as a [GitHub repository](https://github.com/PiotrTymoszuk/CovILD_AI).
+
+<hr style = "border-top: 5px solid #417a8b" />
+
+# References
