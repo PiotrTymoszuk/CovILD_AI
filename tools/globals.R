@@ -62,5 +62,40 @@
                          '6-month follow-up' = '6 mo', 
                          '12-month follow-up' = '12 mo', 
                          'cohort' = 'CovILD cohort')
+  
+# Algorithm labels and colors ------
+  
+  globals$algo_labs <- c(ranger = 'Random Forest', 
+                         nnet = 'Neural network', 
+                         svmRadial = 'SVM radial', 
+                         gbm = 'GBM')
+  
+  globals$algo_colors <- c(ranger = 'darkolivegreen', 
+                           nnet = 'steelblue4', 
+                           svmRadial = 'orangered4', 
+                           gbm = 'plum4')
+  
+# Dataset labels and symbols ------
+  
+  globals$dataset_lab <- c(train = 'training', 
+                           cv = 'cross-validation', 
+                           outcome = 'observed')
+  
+  globals$dataset_colors <- c(train = 'steelblue', 
+                              cv = 'orangered3', 
+                              outcome = 'gray50')
+  
+# LFT response lexicon -------
+  
+  globals$lft_lexicon <- 
+    c('LFT_findings' = 'LFT findings', 
+      'DLCO_reduced' = 'DLCO < 80%', 
+      'FVC_reduced' = 'FVC < 80%', 
+      'FEV1_reduced' = 'FEV1 < 80%', 
+      'DLCO_percent' = 'DLCO', 
+      'FVC_percent' = 'FVC', 
+      'FEV1_percent' = 'FEV1') %>% 
+    compress(names_to = 'variable', 
+             values_to = 'label')
 
 # END -----

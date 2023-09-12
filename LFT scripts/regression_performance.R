@@ -13,84 +13,79 @@
   
   plan('multisession')
   
-# analysis globals -----
+# analysis globals ------
   
   insert_msg('Analysis globals')
   
   ## caret models
   
   reg_models$models <- 
-    c(dlco_rf$models, 
-      fvc_rf$models, 
-      fev1_rf$models) %>% 
-    set_names(c('dlco_matched', 
-                'dlco_unmatched', 
-                'fvc_matched', 
-                'fvc_unmatched', 
-                'fev1_matched', 
-                'fev1_unmatched'))
-  
-  ## model name lexicon
-  
-  reg_models$lexicon <- 
-    c('dlco_matched' = 'DLCO, matched', 
-      'dlco_unmatched' = 'DLCO, unmatched', 
-      'fvc_matched' = 'FVC, matched', 
-      'fvc_unmatched' = 'FVC, unmatched', 
-      'fev1_matched' = 'FEV1, matched', 
-      'fev1_unmatched' = 'FEV1, unmatched') %>% 
-    compress(names_to = 'variable', 
-             values_to = 'label') %>% 
-    mutate(label_short = stri_replace(label, regex = ',.*', replacement = ''))
+    list(DLCO_percent = dlco_tune, 
+         FVC_percent = fvc_tune, 
+         FEV1_percent = fev1_tune) %>% 
+    map(~.x$models)
   
 # Predictions ------
   
   insert_msg('Predictions')
   
   reg_models$predictions <- reg_models$models %>% 
-    future_map(predict.caretx, 
-               .options = furrr_options(seed = TRUE)) %>% 
-    map(~.x[c('train', 'cv')]) %>% 
+    map(map, predict) %>% 
+    map(map, compact) %>% 
+    map(transpose) %>% 
     transpose
   
 # Model residuals: plots -----
   
-  insert_msg('Model residuals plots')
+  insert_msg('Diagnostic model residuals plots')
   
   ## working with the cache: this is a time-consuming step
   
-  if(!file.exists('./cache/reg_resid_plots.RData')) {
+  if(!file.exists('./cache/reg_diagnostic_plots.RData')) {
     
-    reg_models$resid_plots <- reg_models$models %>% 
-      future_map(plot.caretx, 
-                 type = 'diagnostic', 
-                 cust_theme = globals$common_theme, 
-                 .options = furrr_options(seed = TRUE)) %>% 
-      transpose
+    reg_models$diagnostic_plots <- reg_models$predictions %>% 
+      map(unlist, recursive = FALSE) %>% 
+      map(future_map, 
+          plot.predx, 
+          type = 'diagnostic', 
+          cust_theme = globals$common_theme, 
+          .options = furrr_options(seed = TRUE))
     
     ## caching
     
-    reg_resid_plots <-  reg_models$resid_plots
+    reg_diagnostic_plots <-  reg_models$dignostic_plots
     
-    save(reg_resid_plots, file = './cache/reg_resid_plots.RData')
+    save(reg_diagnostic_plots, file = './cache/reg_diagnostic_plots.RData')
     
   } else {
     
-    load('./cache/reg_resid_plots.RData')
+    load('./cache/reg_diagnostic_plots.RData')
     
-    reg_models$resid_plots <- reg_resid_plots
+    reg_models$diagnostic_plots <- reg_diagnostic_plots
   
   }
   
-# Model square errors, per observation -------
+# Model residuals: normality --------
   
-  insert_msg('Model square errors, per observation')
+  insert_msg('Normality of model residuals')
   
-  ## normalized errors, normalized MSE and normalized RMSE, 
-  ### in order to compare results easily
+  reg_models$residuals <- reg_models$predictions %>% 
+    map(unlist, recursive = FALSE) %>% 
+    map(map, residuals)
   
-  reg_models$square_errors <- reg_models$predictions %>% 
-    map(map, reg_model_squares)
+  ## Shapiro-Wilk test
+  
+  reg_models$resid_normailty <- reg_models$residuals %>%
+    map(map, ~.x$.resid) %>% 
+    map(map, shapiro_test) %>% 
+    map(compress, names_to = 'response') %>% 
+    map(mutate, 
+        algorithm = stri_split_fixed(response, pattern = '.', simplify = TRUE)[, 2], 
+        response = stri_split_fixed(response, pattern = '.', simplify = TRUE)[, 1],
+        response = factor(response, names(reg_models$models))) %>% 
+    map(select, -variable) %>% 
+    compress(names_to = 'dataset') %>% 
+    blast(response)
 
 # Model stats ------
   
@@ -100,9 +95,9 @@
   
   if(!file.exists('./cache/reg_stats.RData')) {
     
-    reg_models$stats <- reg_models$predictions %>% 
-      map(future_map, summary.predx, 
-          .options = furrr_options(seed = TRUE))
+    reg_models$stats <- reg_models$models %>% 
+      future_map(map, summary.caretx, 
+                 .options = furrr_options(seed = TRUE))
     
     reg_stats <- reg_models$stats
     
@@ -111,160 +106,117 @@
   } else {
     
     load('./cache/reg_stats.RData')
-    
-    reg_models$stats <- reg_stats
+
+    reg_models$stats <- reg_stats  
     
   }
   
+  ## formatting the summary stats
+  
   reg_models$stats <- reg_models$stats %>% 
-    map(compress, names_to = 'model')
+    format_ml_summary
   
-  ## appending with the normalized MSE and normalized RMSE
+# CV stats for the subsets --------
   
-  reg_models$stats <- 
-    map2(reg_models$stats, 
-         reg_models$square_errors %>% 
-           map(map, ~.x$stats) %>% 
-           map(compress, names_to = 'model'), 
-         rbind) %>%
+  insert_msg('CV performance stats for the severity subsets and FUP')
+  
+  ## secverity strata results
+  
+  reg_models$stats_dlco_severity <- reg_models$models$DLCO_percent %>% 
+    map(split, severity_class) %>% 
+    map(~.x[stri_detect(names(.x), fixed = 'cv')]) %>% 
+    map(future_map, summary.predx, 
+        .options = furrr_options(seed = TRUE)) %>% 
+    map(format_strata_summary, 'severity_class') %>% 
     map(mutate, 
-        model_name = exchange(model, reg_models$lexicon), 
-        model_type = stri_extract(model, regex = 'matched|unmatched'))
+        severity_class = stri_replace(severity_class, fixed = 'cv.', replacement = '')) %>% 
+    compress(names_to = 'algorithm') %>% 
+    mutate(severity_class = factor(severity_class, 
+                                   levels(model.frame(bin_models$models[[1]][[1]])$severity_class)))
   
-  ## removal of the redundant information from the square error list
+  ## follow-up
   
-  reg_models$square_errors <- reg_models$square_errors %>% 
-    map(map, ~.x$square_errors)
+  reg_models$stats_dlco_fup <- reg_models$models$DLCO_percent %>% 
+    map(split, follow_up) %>% 
+    map(~.x[stri_detect(names(.x), fixed = 'cv')]) %>% 
+    map(future_map, summary.predx, 
+        .options = furrr_options(seed = TRUE)) %>% 
+    map(format_strata_summary, 'follow_up') %>% 
+    map(mutate, 
+        follow_up = stri_replace(follow_up, fixed = 'cv.', replacement = '')) %>% 
+    compress(names_to = 'algorithm') %>% 
+    mutate(follow_up = factor(follow_up, 
+                              levels(model.frame(bin_models$models[[1]][[1]])$follow_up)))
+  
 
-# Plotting of the squared errors ------
+# Plotting the general performance ------
   
-  insert_msg('Plotting of square errors')
+  insert_msg('Plots of general performance stats')
   
-  reg_models$sqare_error_plots <- 
-    list(train_errors = reg_models$square_errors$train, 
-         cv_errors = reg_models$square_errors$cv, 
-         plot_title = exchange(names(reg_models$square_errors[[1]]), 
-                               reg_models$lexicon)) %>% 
-    pmap(plot_bin_error, 
-         sort = TRUE, 
-         y_lab = 'Square normalized error', 
-         point_shape = 16, 
-         point_alpha = 0.25, 
-         point_size = 1)
+  ## MAE and R-squared
+  ## setting common scales
   
-  ## adding the 2\times SD line
-  
-  reg_models$sqare_error_plots <- reg_models$sqare_error_plots %>% 
+  reg_models$performance_plots <- 
+    list(stats = reg_models$stats, 
+         model = map(reg_models$models, ~.x[[1]]), 
+         plot_title = exchange(names(reg_models$stats), 
+                               globals$lft_lexicon)) %>%
+    pmap(plot_reg_performance,
+         box.padding = 0.4) %>% 
     map(~.x + 
-          geom_hline(yintercept = qnorm(0.975)^2, 
-                     linetype = 'dashed'))
+          geom_vline(xintercept = 0,
+                     linetype = 'dashed') + 
+          scale_radius(limits = c(0, 1), 
+                       range = c(1, 5), 
+                       name = expression("Spearman's " * rho)) + 
+          scale_x_continuous(limits = c(0, 1)) + 
+          scale_y_continuous(limits = c(0.05, 0.23)))
   
-# Plotting the model stats -----
+# Plotting fitted vs observed values --------
   
-  insert_msg('Plotting the model stats')
-  
-  reg_models$stat_plots <- 
-    list(data = reg_models$stats, 
-         plot_subtitle = c('Training', 'CV')) %>% 
-    pmap(plot_regression_stats, 
-         fill_var = 'model_type', 
-         point_shape = 21, 
-         color = 'black') %>% 
-    map(map, 
-        ~.x + 
-          scale_color_manual(values = c(matched = 'orangered4', 
-                                        unmatched = 'darkolivegreen4'), 
-                             label = c(matched = 'participant-matched', 
-                                       unmatched = 'unmatched'), 
-                             name = 'Model training type') + 
-          scale_fill_manual(values = c(matched = 'orangered4', 
-                                       unmatched = 'darkolivegreen4'), 
-                            label = c(matched = 'participant-matched', 
-                                      unmatched = 'unmatched'), 
-                            name = 'Model training type'))
-  
-# Captions for calibration plots -------
-  
-  insert_msg('Captions for calibration plots')
-  
-  ## with the R-squared and Pearson's r
-  
-  reg_models$scatter_caps  <- reg_models$stats %>% 
-    map(blast, model) %>%
-    map(map, make_scatter_caps)
-    
-# Visualizing model calibration with scatter plots -------
-  
-  insert_msg('Calibration scatter plots')
-  
+  insert_msg('Plots of fitted vs observed values')
+
   reg_models$scatter_plots <- 
-    list(x = reg_models$predictions, 
-         y = c('training', 'CV'), 
-         z = reg_models$scatter_caps,
-         v = c('steelblue', 'coral3')) %>% 
-    pmap(function(x, y, z, v) list(x = x, 
-                                   plot_title = exchange(names(x), 
-                                                         reg_models$lexicon) %>% 
-                                     paste(y, sep = ', '), 
-                                   plot_subtitle = z) %>% 
-           pmap(plot, 
-                type = 'regression', 
-                point_color = v, 
-                cust_theme = globals$common_theme, 
-                show_trend = FALSE) %>% 
-           map(same_scale_calib) %>% 
-           map(~.x + 
-                 labs(subtitle = paste(.x$labels$subtitle, 
-                                       .x$labels$tag, 
-                                       sep = ', ')) + 
-                 geom_smooth(method = 'gam', 
-                             formula = y ~ s(x, bs = "cs")) + 
-                 theme(plot.tag = element_blank())))
-
-# Result table ------
+    list(train_predictions = reg_models$predictions$train, 
+         cv_predictions = reg_models$predictions$cv, 
+         stats = reg_models$stats, 
+         title_prefix = exchange(names(reg_models$predictions$train), 
+                                 globals$lft_lexicon)) %>% 
+    pmap(plot_fit_observed)
   
-  insert_msg('Result table')
+# Performance of the models in the severity strata and at FUP ------
   
-  reg_models$result_tbl <- reg_models$stats %>% 
-    map(filter, 
-        statistic %in% c('MAE', 'RMSE', 'RMSE_normalized', 
-                         'rsq', 'pearson')) %>% 
-    compress(names_to = 'data_type') %>% 
-    mutate(statistic = car::recode(statistic, 
-                                   "'RMSE_normalized' = 'normalized RMSE'; 
-                                   'rsq' = 'R\u00B2'; 
-                                   'pearson' = 'Pearson r'"), 
-           data_type = car::recode(data_type, 
-                                   "'train' = 'training'; 'cv' = 'CV'"), 
-           data_type = factor(data_type, c('training', 'CV')), 
-           estimate = ifelse(data_type == 'training', 
-                             signif(estimate, 2), 
-                             paste0(signif(estimate, 2), 
-                                    ' [95% CI: ', signif(lower_ci, 2), 
-                                    ' - ', signif(upper_ci, 2), ']')), 
-           model_name = stri_replace(model_name, 
-                                     regex = ',.*', 
-                                     replacement = ''))
+  insert_msg('Predictive performance in the severity stats and FUPs')
   
-  reg_models$result_tbl <- reg_models$result_tbl %>% 
-    arrange(model_name, 
-            model_type, 
-            data_type) %>% 
-    select(model_name, 
-           model_type, 
-           data_type, 
-           statistic, 
-           estimate) %>% 
-    set_names(c('Response', 
-                'Participant matching', 
-                'Data type', 
-                'Statistic name', 
-                'Statistic value'))
-
+  ## done only for DLCO and cross-validation
+  
+  reg_models[c('performance_plots_severity', 
+               'performance_plots_fup')] <- 
+    list(stats = reg_models[c("stats_dlco_severity", "stats_dlco_fup")], 
+         strata = c('severity_class', 'follow_up'), 
+         plot_title = paste('DLCO and', 
+                            c('COVID-19 severity', 
+                              'follow-up')), 
+         x_lab = c('COVID-19 severity', 
+                   'post-COVID-19 follow-up')) %>% 
+    pmap(plot_reg_strata_stats, 
+         invert_mae = FALSE) %>% 
+    map2(., globals[c("sev_labels", "fup_labels")], 
+         function(x, y) map(x, ~.x + scale_x_discrete(labels = y)))
+  
+# Time course of DLCO --------
+  
+  insert_msg('Time course of DLCO')
+  
+  reg_models$DLCO_course_plots <- 
+    list(caretx_model = reg_models$models$DLCO_percent, 
+         title_prefix = globals$algo_labs[names(bin_models$models$DLCO_reduced)]) %>% 
+    pmap(plot_reg_course)
+  
 # END -----
   
   plan('sequential')
   
-  rm(reg_resid_plots, reg_stats)
+  rm(reg_diagnostic_plots, reg_stats)
   
   insert_tail()

@@ -350,7 +350,7 @@
       
       n_table <- data %>% 
         filter(.data[[outcome]] == levels(data[[outcome]])[1]) %>% 
-        mutate(n_lab = paste('n =', n), 
+        mutate(n_lab = paste('n =', n_complete), 
                percent = 100 * (1 + n_offset))
       
       plot <- plot + 
@@ -741,7 +741,7 @@
                                plot_title = exchange(response, 
                                                      dict = covild$ct_lexicon) %>% 
                                  capitalize_first_char %>% 
-                                 paste(c("Cohen's kapps", 'Sensitivity', 
+                                 paste(c("Cohen's \u03BA", 'Sensitivity', 
                                          'Specificity', 'Accuracy'), 
                                        sep = ', '), 
                                plot_subtitle = 'Bootstrapped metrics, B = 2000', 
@@ -779,7 +779,7 @@
           axis_lab = split_labels[as.character(split_factor)], 
           axis_lab = paste0(axis_lab, 
                             '\ntotal: n = ', n, 
-                            ', events: n = ', n_disease), 
+                            '\nevents: n = ', n_disease), 
           split_factor := factor(split_factor, rev(levels(split_factor))))
     
     axis_labs <- data %>% 
@@ -965,440 +965,1134 @@
     
   }
   
+# Tuning functions -------
+  
+  youden_tuner <- function(data, lev = NULL, model = NULL) {
+    
+    ## allows for using the Youden's J criterion as a tuning metric
+    
+    multi_sum <- multiClassSummary(data, lev, model)
+    
+    multi_sum['J'] <- multi_sum['Sensitivity'] + multi_sum['Specificity']
+    
+    multi_sum
+    
+  }
+  
 # Tuning plots ------
   
-  plot_binary_tuning <- function(data, 
-                                 plot_title = 'Random Forest', 
-                                 plot_subtitle = '5-times repeated 10-fold CV', 
-                                 plot_tag = NULL, 
-                                 show_sd = FALSE, ...) {
+  plot_ranger_tuning <- function(model, 
+                                 plot_title = NULL) {
     
-    data <- data %>% 
-      mutate(node_lab = paste('min.node.size = ', min.node.size))
+    ## tuning results ------
     
-    plots <- c('Accuracy', 'Kappa') %>% 
-      map(~ggplot(data, 
-                  aes(x = mtry, 
-                      y = .data[[.x]], 
-                      color = splitrule, 
-                      fill = splitrule)) + 
-            facet_grid(. ~ node_lab, 
-                       space = 'free', 
-                       scales = 'free'))
+    tune_res <- as_tibble(model$results)
     
-    if(show_sd) {
+    if('J' %in% names(tune_res)) {
       
-      plots <- 
-        list(x = plots, 
-             y = c('Accuracy', 'Kappa'), 
-             z = c('AccuracySD', 'KappaSD'), 
-             v = c("Accuracy, SD", 
-                   "Cohen's \u03BA, SD")) %>% 
-        pmap(function(x, y, z) x + 
-               geom_ribbon(aes(ymin = .data[[y]] - .data[[z]], 
-                               ymax = .data[[y]] + .data[[z]]), 
-                           alpha = 0.3, 
-                           color = NA) + 
-               labs(y = v))
+      plot_var <- 'J'
+      y_lab <- "Youden's J, Se + Sp"
+      
+    } else if('Kappa' %in% names(tune_res)) {
+      
+      plot_var <- 'Kappa'
+      y_lab <- expression("Cohen's " * kappa)
       
     } else {
       
-      plots <- 
-        map2(plots, 
-             c("Accuracy", 
-               "Cohen's \u03BA"), 
-             ~.x + 
-               labs(y = .y))
+      plot_var <- 'MAE'
+      y_lab <- 'Mean absolute error, MAE'
       
     }
     
-    map2(plots, 
-         paste(plot_title, c('accuracy', 'reliability')), 
-         ~.x + 
-           geom_line() + 
-           labs(title = .y, 
-                subtitle = plot_subtitle, 
-                tag = plot_tag) + 
-           globals$common_theme) %>% 
-      set_names(c('accuracy', 'kappa'))
+    ## tuning plot -------
     
-  }
-  
-  plot_regression_tuning <- function(data, 
-                                 plot_title = 'Random Forest', 
-                                 plot_subtitle = '5-times repeated 10-fold CV', 
-                                 plot_tag = NULL, 
-                                 show_sd = FALSE, ...) {
+    tune_labeller <- unique(tune_res$min.node.size)
     
-    data <- data %>% 
-      mutate(node_lab = paste('min.node.size = ', min.node.size))
+    tune_labeller <- paste('min.node size =', tune_labeller) %>% 
+      set_names(tune_labeller) %>% 
+      as_labeller
     
-    plots <- c('RMSE', 'Rsquared') %>% 
-      map(~ggplot(data, 
-                  aes(x = mtry, 
-                      y = .data[[.x]], 
-                      color = splitrule, 
-                      fill = splitrule)) + 
-            facet_grid(. ~ node_lab, 
-                       space = 'free', 
-                       scales = 'free'))
+    best_tune <- model$bestTune
     
-    if(show_sd) {
-      
-      plots <- 
-        list(x = plots, 
-             y = c('RMSE', 'Rsquared'), 
-             z = c('RMSESD', 'RsquaredSD'), 
-             v = c("RMSE, SD", 
-                   "R\u00B2, SD")) %>% 
-        pmap(function(x, y, z) x + 
-               geom_ribbon(aes(ymin = .data[[y]] - .data[[z]], 
-                               ymax = .data[[y]] + .data[[z]]), 
-                           alpha = 0.3, 
-                           color = NA) + 
-               labs(y = v))
-      
-    } else {
-      
-      plots <- 
-        map2(plots, 
-             c("RMSE", 
-               "R\u00B2"), 
-             ~.x + 
-               labs(y = .y))
-      
-    }
+    plot_subtitle <- map2_chr(names(best_tune), best_tune, 
+                              paste, sep = ' = ') %>% 
+      paste(collapse = ', ')
     
-    map2(plots, 
-         paste(plot_title, c('fit error', 'explanatory value')), 
-         ~.x + 
-           geom_line() + 
-           labs(title = .y, 
-                subtitle = plot_subtitle, 
-                tag = plot_tag) + 
-           globals$common_theme) %>% 
-      set_names(c('rmse', 'rsq'))
-    
-  }
-  
-# Binary model performance and variable importance ------
-  
-  bin_model_squares <- function(predx_object) {
-    
-    ## computes square errors for a binary model
-    
-    data <- predx_object$data
-    
-    data <- data %>% 
-      mutate(.outcome_numeric = as.numeric(.outcome) - 1, 
-             square_error = (.data[[levels(data[['.outcome']])[2]]] - .outcome_numeric)^2)
-    
-    ## Brier score: for CV, BS is computed in a resample-manner
-    
-    if('.resample' %in% names(data)) {
-      
-      bs <- data %>% 
-        summarise(BS = mean(square_error), 
-                  .by = .resample)
-      
-      bs <- 
-        tibble(statistic = 'BS', 
-               estimate = mean(bs$BS), 
-               lower_ci = quantile(bs$BS, probs = 0.025), 
-               upper_ci = quantile(bs$BS, probs = 0.975))
-      
-    } else {
-      
-      bs <- tibble(statistic = 'BS', 
-                   estimate = mean(data$square_error), 
-                   lower_ci = quantile(data$square_error, 0.025), 
-                   upper_ci = quantile(data$square_error, 0.975))
-      
-    }
-    
-    list(square_errors = data, 
-         stats = bs)
-    
-  }
-  
-  reg_model_squares <- function(predx_object, normalize = TRUE) {
-    
-    ## squared errors
-    
-    if(normalize) {
-      
-      data <- predx_object$data %>% 
-        mutate(square_error = scale(.outcome - .fitted)[, 1]^2)
-      
-    } else {
-      
-      data <- predx_object$data %>% 
-        mutate(square_error = (.outcome - .fitted)^2)
-      
-    }
-    
-    ## summary stats: MSE and RMSE
-    ## in CV, means and CI are computed in a fold-wise manner
-    
-    if(normalize) {
-      
-      stat_names <- paste0(c('MSE', 'RMSE'), 
-                           '_normalized')
-      
-    } else {
-      
-      stat_names <- c('MSE', 'RMSE')
-      
-    }
-    
-    if('.resample' %in% names(data)) {
-      
-      stats <- data %>% 
-        summarise(MSE = mean(square_error), 
-                  RMSE = sqrt(mean(square_error)), 
-                  .by = .resample)
-      
-      stats <- 
-        tibble(statistic = stat_names, 
-               estimate = c(mean(stats$MSE), 
-                            mean(stats$RMSE)), 
-               lower_ci = map_dbl(stats[c('MSE', 'RMSE')], 
-                                  quantile, 
-                                  probs = 0.025), 
-               upper_ci = map_dbl(stats[c('MSE', 'RMSE')], 
-                                  quantile, 
-                                  probs = 0.975))
-    
-    } else {
-      
-      stats <- 
-        tibble(statistic = stat_names, 
-               estimate = c(mean(data$square_error), 
-                            sqrt(mean(data$square_error))), 
-               lower_ci = c(NA, NA), 
-               upper_ci = c(NA, NA))
-      
-    }
-    
-    list(square_errors = data, 
-         stats = stats)
-    
-  }
-  
-  plot_bin_error <- function(train_errors, 
-                             cv_errors, 
-                             plot_title = NULL, 
-                             plot_subtitle = 'Square error for observations', 
-                             x_lab = if(sort) 'Fraction of observations' else 'Observation number', 
-                             y_lab = 'Square error', 
-                             sort = FALSE, ...) {
-    
-    ## plots sorted or unsorted square errors
-    
-    data <- list(training = train_errors, 
-                 CV = cv_errors)
-    
-    if(sort) {
-      
-      data <- data %>% 
-        map(arrange, square_error) %>% 
-        map(~mutate(.x, 
-                    .observation = (1:nrow(.x))/nrow(.x)))
-      
-    }
-    
-    data <- data %>% 
-      compress(names_to = 'model_type')
-    
-    scatter_plot(data, 
-                 x_var = '.observation', 
-                 y_var = 'square_error', 
-                 fill_var = 'model_type', 
-                 plot_title = plot_title, 
-                 plot_subtitle = plot_subtitle, 
-                 x_lab = x_lab, 
-                 y_lab = y_lab, ...) + 
-      scale_fill_manual(values = c(training = 'steelblue', 
-                                   CV = 'coral3'), 
-                        name = '') + 
-      scale_color_manual(values = c(training = 'steelblue', 
-                                    CV = 'coral3'), 
-                         name = '')
-    
-  }
-  
-  plot_binary_stats <- function(data, 
-                                plot_subtitle = 'Training', ...) {
-    
-    ## generates the following scatter plots:
-    ## 1) Se vs Sp
-    ## 2) 1-BS vs C-index
-    ## 3) Kappa vs Accuracy 
-    ## 4) Kappa vs AUC 
-    
-    ## plotting data
-    
-    plot_vars <- 
-      list(Se_Sp = c('Sp', 'Se'), 
-           BS_C = c('c_index', 'BS'), 
-           kappa_accuracy = c('correct_rate', 'kappa'), 
-           kappa_auc = c('AUC', 'kappa'))
-
-    data <- plot_vars %>% 
-      map(~filter(data, 
-                  statistic %in% .x))
-    
-    data <- data %>% 
-      map(pivot_wider, 
-          id_cols = c('model', 'model_name', 'model_type'), 
-          names_from = 'statistic', 
-          values_from = 'estimate')
-    
-    data[['BS_C']] <- data[['BS_C']] %>% 
-      mutate(BS = 1 - BS)
-    
-    ## plots
-    
-    x_var <- c('Sp', 'c_index', 'correct_rate', 'AUC')
-    y_var <- c('Se', 'BS', 'kappa', 'kappa')
-    
-    plot_title <- c('Sensitivity and specificity', 
-                    'Model error and concordance', 
-                    'Reliability and accuracy', 
-                    'Reliability and accuracy')
-    
-    x_lab <- c('Sp', 'C-index', 'Accuracy', 'AUC')
-    y_lab <- c('Se', '1 - Brier Score', '\u03BA', '\u03BA')
-    
-    list(data = data, 
-         x_var = x_var, 
-         y_var = y_var, 
-         plot_title = plot_title, 
-         x_lab = x_lab, 
-         y_lab = y_lab) %>% 
-      pmap(scatter_plot, 
-           plot_subtitle = plot_subtitle, ...) %>% 
-      map(~.x + 
-            geom_text_repel(aes(label = model_name), 
-                            size = 2.75, 
-                            show.legend = FALSE))
-    
-  }
-  
-  plot_regression_stats <- function(data, 
-                                    plot_subtitle = 'Training', ...) {
-    
-    ## generates the following scatter plots:
-    ## 1) Normalized RMSE vs R-squared
-    ## 2) Pearson's r vs R-squared
-    ## 3) Spearman's rho vs R-squared
-    ## 4) Kendall's tau vs R-squared
-    
-    ## plotting data
-    
-    plot_vars <- 
-      list(RMSE_Rsq = c('RMSE_normalized', 'rsq'), 
-           r_rsq = c('pearson', 'rsq'), 
-           rho_rsq = c('spearman', 'rsq'), 
-           tau_rsq = c('kendall', 'rsq'))
-    
-    data <- plot_vars %>% 
-      map(~filter(data, 
-                  statistic %in% .x))
-    
-    data <- data %>% 
-      map(pivot_wider, 
-          id_cols = c('model', 'model_name', 'model_type'), 
-          names_from = 'statistic', 
-          values_from = 'estimate')
-    
-    ## plots
-    
-    y_var <- c('RMSE_normalized', 'pearson', 'spearman', 'kendall')
-    
-    plot_title <- c('Model error and explanatory value', 
-                    rep('Model calibration and explanatory value', 3))
-    
-    y_lab <- c('Normalized RMSE', "Pearson's r", 
-               "Spearman's \u03C1", "Kendall's \u03C4")
-    
-    list(data = data, 
-         x_var = 'rsq', 
-         y_var = y_var, 
-         plot_title = plot_title, 
-         x_lab = 'R\u00B2', 
-         y_lab = y_lab) %>% 
-      pmap(scatter_plot, 
-           plot_subtitle = plot_subtitle, ...) %>% 
-      map(~.x + 
-            geom_text_repel(aes(label = model_name), 
-                            size = 2.75, 
-                            show.legend = FALSE))
-    
-  }
-  
-  make_scatter_caps <- function(data) {
-    
-    ## generates captions for the scatter plots
-    ## of the fitted and outcome values of a regression model
-    ## will contain: R-squared, Pearson's r and number of complete observations
-    
-    data <- data %>% 
-      filter(statistic %in% c('rsq', 'pearson')) %>% 
-      mutate(statistic = factor(statistic, c('rsq', 'pearson'))) %>% 
-      arrange(statistic)
-    
-    paste0("R\u00B2 = ", signif(data$estimate[1], 2), 
-           ", Pearson's r = ", signif(data$estimate[2], 2))
-    
-  }
-  
-  plot_importance <- function(data, 
-                              top_n = 100, 
-                              fill_color = c(significant = 'steelblue', 
-                                             ns = 'gray60'), 
-                              plot_title = NULL, 
-                              plot_subtitle = NULL, 
-                              x_lab = 'Importance', 
-                              adj_method = 'BH', 
-                              significant_only = FALSE) {
-    
-    ## plots variable importance stats and p values obtained by Altmann's test
-    
-    ## plotting data
-    
-    data <- data %>% 
-      mutate(p_adjusted = p.adjust(pvalue, method = adj_method), 
-             significant = ifelse(p_adjusted < 0.05, 'significant', 'ns'), 
-             significant = factor(significant, c('ns', 'significant')))
-    
-    if(significant_only) {
-      
-      data <- data %>% 
-        filter(significant == 'significant')
-      
-    }
-    
-    data <- data %>% 
-      top_n(n = top_n, importance)
-    
-    ## plot
-    
-    data %>% 
-      ggplot(aes(x = importance, 
-                 y = reorder(variable, importance), 
-                 fill = significant)) + 
-      geom_bar(stat = 'identity', 
-               color = 'black') +
-      scale_fill_manual(values = fill_color, 
-                        name = 'Altmann permutation test') + 
+    tune_res %>% 
+      mutate(min.node.size = factor(min.node.size)) %>% 
+      ggplot(aes(x = mtry, 
+                 y = .data[[plot_var]], 
+                 color = splitrule)) + 
+      facet_grid(. ~ min.node.size, 
+                 labeller = tune_labeller) + 
+      geom_path() + 
+      geom_point(shape = 16, 
+                 size = 2) + 
+      scale_color_manual(values = c(gini = 'steelblue', 
+                                    extratrees = 'firebrick4', 
+                                    variance = 'steelblue'), 
+                         labels = c(gini = 'Gini', 
+                                    extratrees = 'Extra trees'), 
+                         name = 'Splitting rule') +
       globals$common_theme + 
-      theme(axis.title.y = element_blank()) + 
       labs(title = plot_title, 
            subtitle = plot_subtitle, 
-           x = x_lab)
+           x = 'Number of variable per tree, mtry', 
+           y = y_lab)
     
   }
+  
+  plot_nnet_tuning <- function(model, 
+                               plot_title = NULL) {
+    
+    ## tuning results -----
+    
+    tune_res <- as_tibble(model$results)
+    
+    if('J' %in% names(tune_res)) {
+      
+      plot_var <- 'J'
+      y_lab <- "Youden's J, Se + Sp"
+      
+    } else if('Kappa' %in% names(tune_res)) {
+      
+      plot_var <- 'Kappa'
+      y_lab <- expression("Cohen's " * kappa)
+      
+    } else {
+      
+      plot_var <- 'MAE'
+      y_lab <- 'Mean absolute error, MAE'
+      
+    }
+    
+    ## plot -------
+    
+    tune_labeller <- unique(tune_res$size)
+    
+    tune_labeller <- paste('Size =', tune_labeller) %>% 
+      set_names(tune_labeller) %>% 
+      as_labeller
+    
+    best_tune <- model$bestTune
+    
+    plot_subtitle <- map2_chr(names(best_tune), best_tune, 
+                              paste, sep = ' = ') %>% 
+      paste(collapse = ', ')
+    
+    tune_res %>% 
+      mutate(size = factor(size, sort(unique(size)))) %>%
+      ggplot(aes(x = decay, 
+                 y = .data[[plot_var]], 
+                 color = size)) + 
+      facet_grid(size ~ ., 
+                 labeller = tune_labeller) + 
+      geom_path() +
+      geom_point(shape = 16,
+                 size = 2) + 
+      scale_color_viridis_d() + 
+      scale_x_continuous(trans = 'log10') + 
+      globals$common_theme + 
+      labs(title = plot_title, 
+           subtitle = plot_subtitle, 
+           y = y_lab,
+           x = 'Decay')
+    
+  }
+  
+  plot_svm_tuning <- function(model, 
+                              plot_title = NULL) {
+    
+    ## tuning results ------
+    
+    tune_res <- as_tibble(model$results)
+    
+    if('J' %in% names(tune_res)) {
+      
+      plot_var <- 'J'
+      y_lab <- "Youden's J, Se + Sp"
+      
+    } else if('Kappa' %in% names(tune_res)) {
+      
+      plot_var <- 'Kappa'
+      y_lab <- expression("Cohen's " * kappa)
+      
+    } else {
+      
+      plot_var <- 'MAE'
+      y_lab <- 'Mean absolute error, MAE'
+      
+    }
+    
+    ## plot -------
+    
+    best_tune <- model$bestTune
+    
+    plot_subtitle <- map2_chr(names(best_tune), best_tune, 
+                              paste, sep = ' = ') %>% 
+      paste(collapse = ', ')
+    
+    tune_res %>% 
+      ggplot(aes(x = C, 
+                 y = .data[[plot_var]])) + 
+      geom_path(color = 'steelblue') + 
+      geom_point(shape = 16, 
+                 size = 2, 
+                 color = 'steelblue') + 
+      globals$common_theme + 
+      labs(title = plot_title, 
+           subtitle = plot_subtitle, 
+           x = 'Cost paramater, C', 
+           y = y_lab)
+    
+  }
+  
+  plot_gbm_tuning <- function(model, 
+                              plot_title = NULL) {
+    
+    ## tuning results ------
+    
+    tune_res <- as_tibble(model$results)
+    
+    if('J' %in% names(tune_res)) {
+      
+      plot_var <- 'J'
+      y_lab <- "Youden's J, Se + Sp"
+      
+    } else if('Kappa' %in% names(tune_res)) {
+      
+      plot_var <- 'Kappa'
+      y_lab <- expression("Cohen's " * kappa)
+      
+    } else {
+      
+      plot_var <- 'MAE'
+      y_lab <- 'Mean absolute error, MAE'
+      
+    }
+    
+    ## plot -------
+    
+    best_tune <- model$bestTune
+    
+    plot_subtitle <- map2_chr(names(best_tune), best_tune, 
+                              paste, sep = ' = ') %>% 
+      paste(collapse = ', ')
+    
+    y_labs <- unique(tune_res$shrinkage)
+    
+    y_labs <- paste('shrinkage =', y_labs) %>% 
+      set_names(y_labs)
+    
+    x_labs <- unique(tune_res$interaction.depth)
+    
+    x_labs <- paste('int =', x_labs) %>% 
+      set_names(x_labs)
+    
+    tune_res %>% 
+      ggplot(aes(x = n.trees, 
+                 y = .data[[plot_var]],
+                 color = factor(n.minobsinnode))) + 
+      facet_grid(shrinkage ~ interaction.depth, 
+                 labeller = labeller(.rows = as_labeller(y_labs), 
+                                     .cols = as_labeller(x_labs))) + 
+      geom_path() + 
+      geom_point(shape = 16, 
+                 size = 2) + 
+      scale_color_manual(values = c('5' = 'steelblue', 
+                                    '10' = 'indianred2', 
+                                    '15' = 'orangered4'), 
+                         name = 'Minimal observations per node') + 
+      globals$common_theme + 
+      labs(title = plot_title, 
+           subtitle = plot_subtitle, 
+           x = 'Number of trees, n.trees', 
+           y = y_lab)
+    
+  }
+  
+  plot_resample_kappa <- function(model, 
+                                  plot_title = NULL, 
+                                  color = 'steelblue') {
+    
+    ## plots Cohen's kappa or MAE in the resamples
+    
+    resamp_data <- as_tibble(model$resample)
+    
+    if('J' %in% names(resamp_data)) {
+      
+      plot_var <- 'J'
+      x_lab <- 'Data resample, sorted by J'
+      y_lab <- "Youden's J, Se + Sp"
+      
+    } else if('Kappa' %in% names(resamp_data)) {
+      
+      plot_var <- 'Kappa'
+      x_lab <- expression('Data resample, sorted by ' * kappa)
+      y_lab <- expression("Cohen's " * kappa)
+  
+    } else {
+      
+      plot_var <- 'MAE'
+      x_lab <- 'Data resample, sorted by MAE'
+      y_lab <- 'Mean absolute error, MAE'
+      
+    }
+    
+    resamp_data <- resamp_data %>% 
+      arrange(.data[[plot_var]]) %>% 
+      mutate(order = 1:nrow(.))
+    
+    resamp_data %>% 
+      ggplot(aes(x = order, 
+                 y = .data[[plot_var]])) + 
+      geom_path(color = color) + 
+      geom_point(shape = 16, 
+                 size = 2, 
+                 color = color) + 
+      globals$common_theme + 
+      labs(title = plot_title, 
+           subtitle = '10-repeats 10-fold cross-validation', 
+           x = x_lab,
+           y = y_lab)
+    
+  }
+  
+# Model performance ------
+
+  format_ml_summary <- function(summary_lst) {
+    
+   summary_lst %>% 
+      map(transpose) %>% 
+      map(map, map, select, statistic, estimate) %>% 
+      map(map, map, column_to_rownames, 'statistic') %>% 
+      map(map, map, t) %>% 
+      map(map, map, as.data.frame) %>% 
+      map(map, compress, names_to = 'algorithm') %>% 
+      map(compress, names_to = 'dataset') %>% 
+      map(as_tibble) %>% 
+      map(relocate, algorithm) %>% 
+      map(relocate, dataset)
+    
+  }
+  
+  format_strata_summary <- function(summary_lst, strata_name = 'strata') {
+    
+    summary_lst %>% 
+      map(~.x[c('statistic', 'estimate')]) %>% 
+      map(column_to_rownames, 'statistic') %>% 
+      map(t) %>% 
+      map(as.data.frame) %>% 
+      compress(names_to = strata_name) %>% 
+      relocate(.data[[strata_name]]) %>% 
+      as_tibble
+    
+  }
+  
+  plot_binary_performance <- function(stats, 
+                                      model, 
+                                      plot_title = NULL, 
+                                      label_accuracy = TRUE, ...) {
+    
+    ## plots Brier score versus Cohen's kappa
+    ## total and number of events in the training dataset 
+    ## are displayed in the plot captions
+    
+    n_numbers <- ngroups(model)$train
+    
+    plot_subtitle <- paste0('total: n = ', sum(n_numbers$n_outcome), 
+                            ', events: n = ', n_numbers$n_outcome[2])
+    
+    ## plotting 
+    
+    stat_plot <- stats %>% 
+      ggplot(aes(x = kappa, 
+                 y = 1 - brier_score, 
+                 color = algorithm, 
+                 fill = algorithm, 
+                 shape = dataset, 
+                 size = correct_rate)) + 
+      geom_hline(yintercept = 0.75,
+                 linetype = 'dashed') + 
+      geom_vline(xintercept = 0, 
+                 linetype = 'dashed') + 
+      geom_point() + 
+      scale_color_manual(values = globals$algo_colors, 
+                         labels = globals$algo_labs, 
+                         name = 'Algorithm') + 
+      scale_fill_manual(values = globals$algo_colors, 
+                        labels = globals$algo_labs, 
+                        name = 'Algorithm') + 
+      scale_shape_manual(values = c(train = 1, 
+                                    cv = 21), 
+                         labels = globals$dataset_lab, 
+                         name = 'Data set') + 
+      scale_radius(name = 'Overalll accuracy') + 
+      globals$common_theme + 
+      labs(title = plot_title, 
+           subtitle = plot_subtitle,
+           x = expression("Cohen's " * kappa), 
+           y = '1 - Brier score')
+    
+    if(!label_accuracy) return(stat_plot)
+    
+    stat_plot + 
+      geom_text_repel(aes(label = signif(correct_rate, 2)),
+                      size = 2.75, 
+                      show.legend = FALSE, ...)
+    
+  }
+  
+  plot_confusion_hm <- function(train_predictions, 
+                                cv_predictions, 
+                                title_prefix, ...) {
+    
+    ## draws a heat map representation of the confusion matrices
+    
+    ## determining the fill scale limits and n numbers
+    
+    train_limits <- train_predictions %>% 
+      map(confusion, scale = 'percent') %>% 
+      unlist %>% 
+      range
+    
+    train_n <- stats::nobs(train_predictions[[1]])
+    
+    ## training plots 
+    
+    train_plots <- 
+      list(x = train_predictions, 
+           plot_title = paste(title_prefix, 
+                              globals$algo_labs[names(train_predictions)], 
+                              'training', 
+                              sep = ', ')) %>% 
+      pmap(plot, 
+           type = 'confusion', 
+           scale = 'percent', 
+           cust_theme = globals$common_theme)
+    
+    ## CV plots
+    
+    cv_plots <- 
+      list(x = cv_predictions, 
+           plot_title = paste(title_prefix, 
+                              globals$algo_labs[names(cv_predictions)], 
+                              'CV', 
+                              sep = ', ')) %>% 
+      pmap(plot, 
+           type = 'confusion', 
+           scale = 'percent', 
+           cust_theme = globals$common_theme)
+    
+    ## common formats
+    
+    out_lst <- list(train = train_plots, 
+                    cv = cv_plots)
+    
+    for(i in names(out_lst)) {
+      
+      out_lst[[i]] <- out_lst[[i]] %>% 
+        map(~.x + 
+              scale_fill_gradient2(low = 'steelblue', 
+                                   mid = 'white', 
+                                   high = 'firebrick', 
+                                   limits = train_limits, 
+                                   midpoint = mean(train_limits), 
+                                   name = '% of observations') + 
+              labs(subtitle = paste(.x$labels$subtitle, 
+                                    train_n, 
+                                    sep = ', n = '), 
+                   x = 'Observed percentage', 
+                   y = 'Predicted percentage'))
+      
+    }
+    
+    out_lst
+    
+  }
+  
+  plot_ml_roc <- function(train_predictions, 
+                          cv_predictions, 
+                          stats, 
+                          title_prefix, 
+                          annot_y = 0.1, 
+                          annot_x = 0.4, 
+                          increment = 0.05, 
+                          txt_size = 2.75) {
+    
+    ## ROC curves for algorithms in the training and test data
+    
+    ## prediction data
+    
+    pred_data <- list(train = train_predictions, 
+                      cv = cv_predictions) %>% 
+      map(map, model.frame) %>% 
+      map(compress, names_to = 'algorithm') %>% 
+      map(mutate, algorithm = factor(algorithm, names(globals$algo_labs)))
+    
+    ## number of events in the training data
+    
+    n_numbers <- ngroups(train_predictions[[1]])[['n_outcome']]
+    
+    plot_subtitle <- paste0('total: n = ', sum(n_numbers), 
+                            ', events: n = ', n_numbers[2])
+    
+    ## ROC stats to be displayed in the plot: AUC, Se and Sp
+    
+    stats <- stats %>% 
+      mutate(dataset = factor(dataset, c('train', 'cv')), 
+             algorithm = factor(algorithm, names(globals$algo_labs)), 
+             plot_lab = paste0('AUC = ', signif(AUC, 2), 
+                               ', Se = ', signif(Se, 2),
+                               ', Sp = ', signif(Sp, 2), 
+                               ', J = ', signif(J, 2))) %>% 
+      arrange(dataset, algorithm) %>% 
+      blast(dataset) %>% 
+      map(~set_names(.x$plot_lab, .x$algorithm))
+    
+    ## ROC plots 
+    
+    roc_plots <- 
+      list(x = pred_data, 
+           y = paste(title_prefix, 
+                     c('training', 'CV'), 
+                     sep = ', ')) %>% 
+      pmap(function(x, y) x %>% 
+             ggplot(aes(d = .outcome, 
+                        m = yes, 
+                        color = algorithm)) + 
+             geom_roc(cutoffs.at = 0.5, 
+                      labels = FALSE, 
+                      pointsize = 1) + 
+             scale_color_manual(values = globals$algo_colors, 
+                                labels = globals$algo_labs, 
+                                name = 'Algorithm') + 
+             style_roc(xlab = '1 - Sp', 
+                       ylab = 'Se', 
+                       guide = TRUE) + 
+             geom_abline(slope = 1, 
+                         intercept = 0, 
+                         color = 'gray90') + 
+             globals$common_theme + 
+             labs(title = y, 
+                  subtitle = plot_subtitle))
+    
+    for(i in names(roc_plots)) {
+      
+      y_pos <- annot_y
+      
+      for(j in rev(names(stats[[i]]))) {
+        
+        roc_plots[[i]] <- roc_plots[[i]] + 
+          annotate('text', 
+                   label = stats[[i]][[j]], 
+                   x = annot_x, 
+                   y = y_pos, 
+                   color = globals$algo_colors[[j]], 
+                   hjust = 0, 
+                   vjust = 0, 
+                   size = txt_size)
+        
+        y_pos <- y_pos + increment
+        
+      }
+      
+    }
+    
+    roc_plots
+    
+  } 
+  
+  plot_binary_strata_stats <- function(stats, 
+                                       strata = 'severity_class', 
+                                       plot_title = 'DLCO < 80%, COVID-19 severity', 
+                                       x_lab = 'COVID-19 severity') {
+    
+    stats <- stats %>% 
+      mutate(brier_score = 1 - brier_score)
+    
+    metrics <- c('AUC', 'Se', 'Sp', 'J', 
+                 'kappa', 'brier_score')
+    
+    list(x = metrics, 
+         y = list('AUC', 'Se', 'Sp', "Youden's J", 
+                  expression("Cohen's " * kappa), '1 - Brier score')) %>% 
+      pmap(function(x, y) stats %>% 
+             ggplot(aes(x = .data[[strata]], 
+                        y = .data[[x]], 
+                        color = algorithm)) + 
+             geom_path(aes(group = algorithm)) + 
+             geom_point(size = 2, 
+                        shape = 16) + 
+             scale_color_manual(values = globals$algo_colors, 
+                                labels = globals$algo_labs, 
+                                name = 'Algorithm') + 
+             globals$common_theme + 
+             labs(title = plot_title,
+                  subtitle = 'Performance in cross-validation', 
+                  x = x_lab,
+                  y = y)) %>% 
+      set_names(metrics)
+    
+  }
+  
+  plot_binary_course <- function(caretx_model, 
+                                 title_prefix = 'Random Forest', 
+                                 y_lab = 'DLCO < 80%, % of cohort strata', 
+                                 se_multiplier = 1, 
+                                 hide_training = TRUE, 
+                                 line_width = 1) {
+    
+    ## plots the actual and fitted (training and CV) frequency
+    ## of a LFT finding in the entire cohort and the CoV severity strata
+    
+    ## plotting data -------
+    
+    plot_data <- caretx_model %>% 
+      augment
+    
+    plot_data$train <- plot_data$train %>% 
+      mutate(outcome = as.numeric(.outcome) - 1,
+             train = as.numeric(.fitted) - 1) %>%
+      select(.observation, outcome, train, 
+             follow_up, severity_class)
+    
+    plot_data$cv <- plot_data$cv %>% 
+      mutate(cv = as.numeric(.fitted) - 1) %>% 
+      select(.observation, cv) %>% 
+      summarise(cv = mean(cv), .by = .observation)
+    
+    plot_data <- plot_data %>% 
+      reduce(left_join, by = '.observation')
+    
+    plot_data <- rbind(mutate(plot_data, 
+                              severity_class = 'cohort'), 
+                       plot_data) %>% 
+      mutate(severity_class = factor(severity_class, 
+                                     c('cohort', levels(plot_data$severity_class))))
+    
+    plot_data <- blast(plot_data, severity_class) %>% 
+      map(select, -severity_class)
+    
+    n_numbers <- map_dbl(plot_data, nrow)
+    
+    ## summarising the data: mean with n times SEM --------
+    
+    plot_data <- plot_data %>% 
+      map(pivot_longer, 
+          cols = all_of(c('outcome', 'train', 'cv')), 
+          names_to = 'dataset', 
+          values_to = 'positive')
+    
+    plot_data <- plot_data %>% 
+      map(group_by, follow_up, dataset) %>% 
+      map(~summarise(.x, 
+                     mean_pos = mean(positive), 
+                     lower_lim = mean_pos - se_multiplier * se(positive), 
+                     upper_lim = mean_pos + se_multiplier * se(positive))) %>% 
+      map(ungroup) %>% 
+      map(mutate, 
+          lower_lim = ifelse(lower_lim < 0, 0, lower_lim), 
+          dataset = factor(dataset, 
+                           c('outcome', 'train', 'cv')))
+    
+    if(hide_training) {
+      
+      plot_data <- plot_data %>% 
+        map(filter, dataset != 'train') %>% 
+        map(mutate, dataset = droplevels(dataset))
+      
+    }
+    
+    ## plots -------
+    
+    title_suff <- globals$sev_labels[names(plot_data)]
+    
+    title_suff <- ifelse(stri_detect(title_suff, fixed = 'cohort'), 
+                         title_suff, paste(title_suff, 'COVID-19'))
+    
+    list(x = plot_data, 
+         y = paste(title_prefix, title_suff, sep = ', '), 
+         z = paste('n =', n_numbers)) %>% 
+      pmap(function(x, y, z) x %>% 
+             ggplot(aes(x = follow_up, 
+                        y = mean_pos * 100, 
+                        color = dataset, 
+                        fill = dataset)) + 
+             geom_ribbon(aes(group = dataset, 
+                             ymin = lower_lim * 100, 
+                             ymax = upper_lim * 100), 
+                         alpha = 0.25, 
+                         color = NA) + 
+             geom_path(aes(group = dataset), 
+                       linewidth = line_width) + 
+             scale_color_manual(values = globals$dataset_colors, 
+                                labels = globals$dataset_lab, 
+                                name = 'Dataset') + 
+             scale_fill_manual(values = globals$dataset_colors, 
+                               labels = globals$dataset_lab, 
+                               name = 'Dataset') + 
+             scale_x_discrete(labels = globals$fup_labels) + 
+             globals$common_theme + 
+             labs(title = y, 
+                  subtitle = z, 
+                  x = 'Follow-up post COVID-19', 
+                  y = y_lab))
+    
+  }
+  
+  plot_reg_performance <- function(stats, 
+                                   model, 
+                                   rsq_type = c('pseudo', 'caret'), 
+                                   plot_title = NULL, 
+                                   invert_mae = TRUE, 
+                                   label_correlation = TRUE, ...) {
+    
+    ## plots MAE and pseudo R-square for the training and CV datasets
+    
+    rsq_type <- match.arg(rsq_type[1], c('pseudo', 'caret'))
+    
+    ## n numbers to be presented in the plot caption
+    
+    plot_subtitle <- paste('n =', stats::nobs(model))
+    
+    ## plotting
+    
+    r_var <- switch(rsq_type, 
+                    pseudo = 'rsq', 
+                    caret = 'caret_rsq')
+    
+    stats <- stats %>% 
+      mutate(rsq = ifelse(rsq < 0, 0, rsq), 
+             caret_rsq = ifelse(is.na(caret_rsq), 0, caret_rsq))
+    
+    stats[c('caret_rsq', 'pearson', 'spearman', 'kendall')] <- 
+      stats[c('caret_rsq', 'pearson', 'spearman', 'kendall')] %>% 
+      map(~ifelse(is.na(.x), 0, .x))
+    
+    if(!invert_mae) {
+      
+      stat_plot <- stats %>% 
+        ggplot(aes(x = .data[[r_var]], 
+                   y = MAE, 
+                   size = spearman, 
+                   color = algorithm, 
+                   fill = algorithm, 
+                   shape = dataset))
+      
+    } else {
+      
+      stat_plot <- stats %>% 
+        ggplot(aes(x = .data[[r_var]], 
+                   y = 1/MAE, 
+                   size = spearman, 
+                   color = algorithm, 
+                   fill = algorithm, 
+                   shape = dataset))
+      
+    }
+    
+    stat_plot <- stat_plot + 
+      geom_point() + 
+      scale_color_manual(values = globals$algo_colors, 
+                         labels = globals$algo_labs, 
+                         name = 'Algorithm') + 
+      scale_fill_manual(values = globals$algo_colors, 
+                        labels = globals$algo_labs, 
+                        name = 'Algorithm') + 
+      scale_shape_manual(values = c(train = 1, 
+                                    cv = 21), 
+                         labels = globals$dataset_lab, 
+                         name = 'Data set') + 
+      scale_radius(name = 'Overall accuracy') + 
+      globals$common_theme + 
+      labs(title = plot_title, 
+           subtitle = plot_subtitle,
+           x = expression('R'^2), 
+           y = if(invert_mae) expression('MAE'^{-1}) else 'MAE')
+    
+    if(!label_correlation) return(stat_plot)
+    
+    stat_plot + 
+      geom_text_repel(aes(label = signif(spearman, 2)),
+                      size = 2.75, 
+                      show.legend = FALSE, ...)
+    
+  }
+  
+  plot_fit_observed <- function(train_predictions, 
+                                cv_predictions, 
+                                stats, 
+                                title_prefix, 
+                                show_trend = TRUE, ...) {
+    
+    ## plots fitted and observed values
+    ## displays Spearman's rho and the number of complete observations
+    ## in the plot caption
+    
+    ## plot meta -------
+    
+    train_n <- stats::nobs(train_predictions[[1]])
+    
+    stats <- stats %>% 
+      mutate(dataset = factor(dataset, c('train', 'cv')), 
+             algorithm = factor(algorithm, names(train_predictions)), 
+             plot_subtitle = paste0("Spearman's \u03C1 = ", 
+                                    signif(spearman, 2), 
+                                    ', n = ', train_n))
+    
+    plot_subtitles <- stats %>% 
+      blast(dataset) %>% 
+      map(~.x$plot_subtitle)
+    
+    ## plotting data -------
+    
+    plot_data <- list(train = train_predictions, 
+                      cv = cv_predictions) %>% 
+      map(map, model.frame)
+    
+    ## training plots -------
+    
+    train_plots <- 
+      list(x = plot_data$train, 
+           y = paste(title_prefix, 
+                     globals$algo_labs[names(train_predictions)], 
+                     'training', 
+                     sep = ', '), 
+           z = plot_subtitles$train) %>% 
+      pmap(function(x, y, z) x %>% 
+             ggplot(aes(x = .outcome, 
+                        y = .fitted)) + 
+             geom_abline(slope = 1, 
+                         intercept = 0, 
+                         linetype = 'dashed') + 
+             geom_point(size = 2, 
+                        shape = 21, 
+                        alpha = 0.5, 
+                        fill = globals$dataset_colors["train"]) + 
+             labs(title = y, 
+                  subtitle = z))
+    
+    ## CV plots -------
+    
+    cv_plots <- 
+      list(x = plot_data$cv, 
+           y = paste(title_prefix, 
+                     globals$algo_labs[names(train_predictions)], 
+                     'CV', 
+                     sep = ', '), 
+           z = plot_subtitles$cv) %>% 
+      pmap(function(x, y, z) x %>% 
+             ggplot(aes(x = .outcome, 
+                        y = .fitted)) + 
+             geom_abline(slope = 1, 
+                         intercept = 0, 
+                         linetype = 'dashed') + 
+             geom_point(size = 2, 
+                        shape = 21, 
+                        alpha = 0.5, 
+                        fill = globals$dataset_colors["cv"]) + 
+             labs(title = y, 
+                  subtitle = z))
+    
+    ## common formats ------
+    
+    out_lst <- list(train = train_plots, 
+                    cv = cv_plots)
+    
+    for(i in names(out_lst)) {
+      
+      out_lst[[i]] <- out_lst[[i]] %>% 
+        map(~.x + 
+              globals$common_theme + 
+              labs(x = 'Observed % of reference value', 
+                   y = 'Predicted % of reference value'))
+      
+      if(show_trend) {
+        
+        out_lst[[i]] <- out_lst[[i]] %>% 
+          map(~.x + 
+                geom_smooth(method = 'gam', 
+                            formula = y ~ s(x, bs = "tp")))
+        
+      }
+      
+    }
+    
+    out_lst
+
+  }
+  
+  plot_reg_strata_stats <-  function(stats, 
+                                     strata = 'severity_class', 
+                                     plot_title = 'DLCO, COVID-19 severity', 
+                                     x_lab = 'COVID-19 severity', 
+                                     invert_mae = TRUE) {
+    
+    ## Plots MAE, pseudo R-squared, caret's R-squared and Spearman's rho
+    ## in the subsets of the dataset
+    
+    metrics <- c('MAE', 'rsq', 'caret_rsq', 'spearman')
+    
+    if(invert_mae) {
+      
+      stats <- stats %>% 
+        mutate(MAE = 1/MAE)
+      
+      metric_labs <- list(expression('MAE'^{-1}), 
+                          expression('R'^2), 
+                          expression('corr R'^2), 
+                          expression("Spearman's " * rho))
+      
+    } else {
+      
+      metric_labs <- list('MAE', 
+                          expression('R'^2), 
+                          expression('corr R'^2), 
+                          expression("Spearman's " * rho))
+      
+    }
+    
+    list(x = metrics, 
+         y = metric_labs) %>% 
+      pmap(function(x, y) stats %>% 
+             ggplot(aes(x = .data[[strata]], 
+                        y = .data[[x]], 
+                        color = algorithm)) + 
+             geom_path(aes(group = algorithm)) + 
+             geom_point(size = 2, 
+                        shape = 16) + 
+             scale_color_manual(values = globals$algo_colors, 
+                                labels = globals$algo_labs, 
+                                name = 'Algorithm') + 
+             globals$common_theme + 
+             labs(title = plot_title,
+                  subtitle = 'Performance in cross-validation', 
+                  x = x_lab,
+                  y = y)) %>% 
+      set_names(metrics)
+    
+  }
+  
+  plot_reg_course <- function(caretx_model, 
+                              title_prefix = 'Random Forest', 
+                              y_lab = 'DLCO < 80%, % of cohort strata', 
+                              se_multiplier = 1, 
+                              hide_training = TRUE, 
+                              line_width = 1) {
+    
+    ## plotting data -----
+    
+    plot_data <- caretx_model %>% 
+      augment
+    
+    plot_data$train <- plot_data$train %>% 
+      transmute(.observation = .observation, 
+                outcome = .outcome, 
+                train = .fitted, 
+                severity_class = severity_class, 
+                follow_up = follow_up)
+    
+    plot_data$cv <- plot_data$cv %>%
+      group_by(.observation) %>% 
+      summarise(cv = mean(.fitted)) %>% 
+      ungroup
+    
+    plot_data <- reduce(plot_data, left_join, by = '.observation')
+    
+    plot_data <- rbind(mutate(plot_data, 
+                              severity_class = 'cohort'), 
+                       plot_data) %>% 
+      mutate(severity_class = factor(severity_class, 
+                                     c('cohort', levels(plot_data$severity_class))))
+    
+    plot_data <- blast(plot_data, severity_class) %>% 
+      map(select, -severity_class)
+    
+    n_numbers <- map_dbl(plot_data, nrow)
+    
+    ## summarising the data: mean with n times SEM --------
+    
+    plot_data <- plot_data %>% 
+      map(pivot_longer, 
+          cols = all_of(c('outcome', 'train', 'cv')), 
+          names_to = 'dataset', 
+          values_to = 'percent')
+    
+    plot_data <- plot_data %>% 
+      map(group_by, follow_up, dataset) %>% 
+      map(~summarise(.x, 
+                     mean_percent = mean(percent), 
+                     lower_lim = mean_percent - se_multiplier * se(percent), 
+                     upper_lim = mean_percent + se_multiplier * se(percent))) %>% 
+      map(ungroup) %>% 
+      map(mutate, 
+          lower_lim = ifelse(lower_lim < 0, 0, lower_lim), 
+          dataset = factor(dataset, 
+                           c('outcome', 'train', 'cv')))
+    
+    if(hide_training) {
+      
+      plot_data <- plot_data %>% 
+        map(filter, dataset != 'train') %>% 
+        map(mutate, dataset = droplevels(dataset))
+      
+    }
+    
+    ## plotting --------
+    
+    title_suff <- globals$sev_labels[names(plot_data)]
+    
+    title_suff <- ifelse(stri_detect(title_suff, fixed = 'cohort'), 
+                         title_suff, paste(title_suff, 'COVID-19'))
+    
+    list(x = plot_data, 
+         y = paste(title_prefix, title_suff, sep = ', '), 
+         z = paste('n =', n_numbers)) %>% 
+      pmap(function(x, y, z) x %>% 
+             ggplot(aes(x = follow_up, 
+                        y = mean_percent, 
+                        color = dataset, 
+                        fill = dataset)) + 
+             geom_ribbon(aes(group = dataset, 
+                             ymin = lower_lim, 
+                             ymax = upper_lim), 
+                         alpha = 0.25, 
+                         color = NA) + 
+             geom_path(aes(group = dataset), 
+                       linewidth = line_width) + 
+             scale_color_manual(values = globals$dataset_colors, 
+                                labels = globals$dataset_lab, 
+                                name = 'Data set') + 
+             scale_fill_manual(values = globals$dataset_colors, 
+                               labels = globals$dataset_lab, 
+                               name = 'Data set') + 
+             scale_x_discrete(labels = globals$fup_labels) + 
+             globals$common_theme + 
+             labs(title = y, 
+                  subtitle = z, 
+                  x = 'Follow-up post COVID-19', 
+                  y = y_lab))
+    
+  }
+  
+# Variable importance -------
+  
+  refit_ranger <- function(model, 
+                           train_control = model$control) {
+    
+    ## re-fits a Ranger model to obtain permutation variance importance
+    
+    caret::train(form = formula(model), 
+                 data = model.frame(model), 
+                 method = 'ranger', 
+                 metric = model$metric, 
+                 tuneGrid = model$bestTune, 
+                 importance = 'permutation', 
+                 trControl = train_control, 
+                 num.trees = 1000)
+    
+  }
+  
+  format_importance <- function(stats, 
+                                dict = lft_globals$lexicon) {
+    
+    ## formats the output of the varImp function
+    ## to extract the variable name and the variable level
+    
+    ext_regex <- sort(dict$variable, decreasing = TRUE) %>% 
+      paste(collapse = '|')
+    
+    stats <- stats$importance %>% 
+      as.data.frame %>% 
+      rownames_to_column('parameter') %>% 
+      as_tibble
+    
+    if(!'Overall' %in% names(stats)) {
+      
+      stats <- stats %>% 
+        mutate(Overall = yes)
+      
+    }
+    
+    stats %>% 
+      mutate(variable = stri_extract(parameter, regex = ext_regex), 
+             level = stri_replace(parameter, 
+                                  regex = ext_regex, 
+                                  replacement = ''), 
+             var_label = exchange(variable, 
+                                  dict = dict), 
+             plot_lab = ifelse(level == '', 
+                               var_label, 
+                               ifelse(level == 'yes', 
+                                      var_label, 
+                                      paste(var_label, level, sep = ': '))))
+    
+    
+  }
+  
+  plot_caret_importance <- function(stat_lst, 
+                                    title_prefix, 
+                                    top_vars = 10) {
+    
+    ## plots the algorithm-specific feature importance metric 
+    ## as a list of bar plots, each for the Ranger, NNet and SVM model
+    
+    metric_names <- 
+      c(ranger = 'Permutation importance', 
+        nnet = 'Weight importance', 
+        svmRadial = 'ROC importance', 
+        gbm = 'Tree importance')
+    
+    plot_titles <- paste(title_prefix, 
+                         globals$algo_labs[names(stat_lst)], 
+                         sep = ', ')
+    
+    stat_lst <- stat_lst %>% 
+      map(top_n, n = top_vars, Overall)
+    
+    list(x = stat_lst, 
+         y = plot_titles, 
+         v = globals$algo_colors[names(stat_lst)], 
+         z = metric_names[names(stat_lst)]) %>% 
+      pmap(function(x, y, v, z) x %>% 
+             ggplot(aes(x = Overall, 
+                        y = reorder(plot_lab, Overall))) + 
+             geom_bar(stat = 'identity', 
+                      color = 'black', 
+                      fill  = v) + 
+             globals$common_theme +
+             theme(axis.title.y = element_blank()) + 
+             labs(title = y, 
+                  x = z))
+    
+  }
+  
+# SHAP -----
+  
+  shap_background <- function(data, quant = 0.25) {
+    
+    ## generates a synthetic 'background' observation with 
+    ## all explanatory variables set to their minimum (numeric) or 
+    ## the baseline levels (factors)
+    
+    num_ex <- function(x) quantile(x, quant, na.rm = TRUE)
+    
+    fct_ex <- function(x) factor(levels(x)[1], levels(x))
+    
+    map_dfc(data, function(x) if(is.numeric(x)) num_ex(x) else fct_ex(x)) %>%
+      as.data.frame
+    
+  }
+  
+  pred_binary <- function(object, X) {
+    
+    caret::predict.train(object, newdata = X, type = 'prob')[['yes']]
+        
+  }
+  
+  pred_reg <- function(object, X) caret::predict.train(object, newdata = X)
   
 # General plotting tools ----
   

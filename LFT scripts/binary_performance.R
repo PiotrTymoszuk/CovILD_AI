@@ -1,4 +1,4 @@
-# Checking performance of Random Forest models for the binary responses: 
+# Checking performance of ML models for the binary responses: 
 # any CT findings, reduced DLCO, reduced FVC and reduced FEV1
 
   insert_head()
@@ -20,243 +20,158 @@
   ## caret models
   
   bin_models$models <- 
-    c(lft_rf$models, 
-      dlco_red_rf$models, 
-      fvc_red_rf$models, 
-      fev1_red_rf$models) %>% 
-    set_names(c('lft_matched', 
-                'lft_unmatched', 
-                'dlco_matched', 
-                'dlco_unmatched', 
-                'fvc_matched', 
-                'fvc_unmatched', 
-                'fev1_matched', 
-                'fev1_unmatched'))
-  
-  ## model name lexicon
-  
-  bin_models$lexicon <- 
-    c('lft_matched' = 'LFT findings, matched', 
-      'lft_unmatched' = 'LFT findings, unmatched', 
-      'dlco_matched' = 'DLCO < 80%, matched', 
-      'dlco_unmatched' = 'DLCO < 80%, unmatched', 
-      'fvc_matched' = 'FVC < 80%, matched', 
-      'fvc_unmatched' = 'FVC < 80%, unmatched', 
-      'fev1_matched' = 'FEV1 < 80%, matched', 
-      'fev1_unmatched' = 'FEV1 < 80%, unmatched') %>% 
-    compress(names_to = 'variable', 
-             values_to = 'label') %>% 
-    mutate(label_short = stri_replace(label, regex = ',.*', replacement = ''))
-  
+    list(LFT_findings = lft_tune, 
+         DLCO_reduced = dlco_red_tune, 
+         FVC_reduced = fvc_red_tune, 
+         FEV1_reduced = fev1_red_tune) %>% 
+    map(~.x$models)
+
 # Predictions ------
   
   insert_msg('Predictions')
   
   bin_models$predictions <- bin_models$models %>% 
-    future_map(predict.caretx, 
-               .options = furrr_options(seed = TRUE)) %>% 
-    map(~.x[c('train', 'cv')]) %>% 
+    map(map, predict) %>% 
+    map(map, compact) %>% 
+    map(transpose) %>% 
     transpose
-  
-# Model residuals: plots -----
-  
-  insert_msg('Model residuals plots')
-  
-  bin_models$resid_plots <- bin_models$models %>% 
-    future_map(plot.caretx, 
-               type = 'diagnostic', 
-               cust_theme = globals$common_theme, 
-               .options = furrr_options(seed = TRUE)) %>% 
-    transpose
-  
-# Model square errors ------
-  
-  insert_msg('Model square errors and Brier scores')
-  
-  bin_models$square_errors <- bin_models$predictions %>% 
-    map(map, bin_model_squares)
-  
+
 # Model stats ------
   
   insert_msg('Model stats')
   
-  bin_models$stats <- bin_models$predictions %>% 
-    map(future_map, summary.predx, 
-        .options = furrr_options(seed = TRUE)) %>% 
-    map(compress, names_to = 'model')
+  ## for the entire cohort
   
-  ## appending with Brier scores
-  
-  bin_models$stats <- 
-    map2(bin_models$stats, 
-         bin_models$square_errors %>% 
-           map(map, ~.x$stats) %>% 
-           map(compress, names_to = 'model'), 
-         rbind) %>%
+  bin_models$stats <- bin_models$models %>% 
+    future_map(map, summary.caretx, 
+               .options = furrr_options(seed = TRUE)) %>% 
+    format_ml_summary %>% 
     map(mutate, 
-        model_name = exchange(model, bin_models$lexicon), 
-        model_type = stri_extract(model, regex = 'matched|unmatched'))
+        J = Se + Sp)
   
-  ## removal of the redundant information from the square error list
+  ## CV stats for severity strata for the best performing DLCO models
+  
+  bin_models$stats_dlco_severity <- bin_models$models$DLCO_reduced %>% 
+    map(split, severity_class) %>% 
+    map(~.x[stri_detect(names(.x), fixed = 'cv')]) %>% 
+    future_map(map, summary.predx, 
+               .options = furrr_options(seed = TRUE)) %>% 
+    map(format_strata_summary, 'severity_class') %>% 
+    map(mutate, 
+        severity_class = stri_replace(severity_class, fixed = 'cv.', replacement = '')) %>% 
+    compress(names_to = 'algorithm') %>% 
+    mutate(severity_class = factor(severity_class, 
+                                   levels(model.frame(bin_models$models[[1]][[1]])$severity_class)))
+  
+  ## for the time points
+  
+  bin_models$stats_dlco_fup <- bin_models$models$DLCO_reduced %>% 
+    map(split, follow_up) %>% 
+    map(~.x[stri_detect(names(.x), fixed = 'cv')]) %>% 
+    future_map(map, summary.predx, 
+               .options = furrr_options(seed = TRUE)) %>% 
+    map(format_strata_summary, 'follow_up') %>% 
+    map(mutate, 
+        follow_up = stri_replace(follow_up, fixed = 'cv.', replacement = '')) %>% 
+    compress(names_to = 'algorithm') %>% 
+    mutate(follow_up = factor(follow_up, 
+                              levels(model.frame(bin_models$models[[1]][[1]])$follow_up)))
+  
+  ## Youden's J for the subsets
+  
+  bin_models[c("stats_dlco_severity", "stats_dlco_fup")] <- 
+    bin_models[c("stats_dlco_severity", "stats_dlco_fup")] %>% 
+    map(mutate, J = Se + Sp - 1)
 
-  bin_models$square_errors <- bin_models$square_errors %>% 
-    map(map, ~.x$square_errors)
+# Diagnostic plots: squared errors and class assignment p ------
   
-# Plotting of the squared errors ------
+  insert_msg('Plotting of square errors and class assignment, CV')
   
-  insert_msg('Plotting of square errors')
+  ## done for the CV only
   
-  bin_models$sqare_error_plots <- 
-    list(train_errors = bin_models$square_errors$train, 
-         cv_errors = bin_models$square_errors$cv, 
-         plot_title = exchange(names(bin_models$square_errors[[1]]), 
-                               bin_models$lexicon)) %>% 
-    pmap(plot_bin_error, 
-         sort = TRUE, 
-         point_shape = 16, 
-         point_alpha = 0.25, 
-         point_size = 1)
+  bin_models$diagnostic_plots <- bin_models$predictions$cv %>%
+    future_map(map, 
+               plot, 
+               type = 'class_p', 
+               cust_theme = globals$common_theme, 
+               label_misclassified = FALSE, 
+               .options = furrr_options(seed = TRUE))
   
-  ## adding the 'fence-sitter' line
+# Performance plots: Brier score and Kappa -------
   
-  bin_models$sqare_error_plots <- bin_models$sqare_error_plots %>% 
+  insert_msg('Performance plots')
+  
+  ## setting common scales
+  
+  bin_models$performance_plots <- 
+    list(stats = bin_models$stats, 
+         model = map(bin_models$models, ~.x[[1]]), 
+         plot_title = exchange(names(bin_models$stats), 
+                               globals$lft_lexicon)) %>%
+    pmap(plot_binary_performance,
+         box.padding = 0.4) %>% 
     map(~.x + 
-          geom_hline(yintercept = 0.25, 
-                     linetype = 'dashed'))
+          scale_radius(limits = c(0.5, 1), 
+                       range = c(2, 5), 
+                       name = 'Overall accuracy'))
   
-# Plotting model stats: training and CV ------
-  
-  insert_msg('Plotting the model stats')
-  
-  bin_models$stat_plots <- 
-    list(data = bin_models$stats, 
-         plot_subtitle = c('Training', 'CV')) %>% 
-    pmap(plot_binary_stats, 
-         fill_var = 'model_type', 
-         point_shape = 21, 
-         color = 'black') %>% 
-    map(map, 
-        ~.x + 
-          scale_color_manual(values = c(matched = 'orangered4', 
-                                        unmatched = 'darkolivegreen4'), 
-                             label = c(matched = 'participant-matched', 
-                                       unmatched = 'unmatched'), 
-                             name = 'Model training type') + 
-          scale_fill_manual(values = c(matched = 'orangered4', 
-                                       unmatched = 'darkolivegreen4'), 
-                            label = c(matched = 'participant-matched', 
-                                      unmatched = 'unmatched'), 
-                            name = 'Model training type'))
-  
-# ROC plots ------
-  
-  insert_msg('ROC plots')
-  
-  bin_models$roc_plots <- 
-    list(x = bin_models$predictions, 
-         y = c('training', 'CV'), 
-         z = c('steelblue', 'coral3')) %>% 
-    pmap(function(x, y, z) list(x = x, 
-                                plot_title = names(x) %>% 
-                                  exchange(bin_models$lexicon) %>% 
-                                  paste(y, sep = ', ')) %>% 
-           future_pmap(plot.predx, 
-                       type = 'roc', 
-                       cust_theme = globals$common_theme, 
-                       line_color = z, 
-                       .options = furrr_options(seed = TRUE)))
-  
-  ## extra styling
-  
-  bin_models$roc_plots <- bin_models$roc_plots %>% 
-    map(function(x) x %>% 
-          map(~.x + 
-                labs(subtitle = .x$labels$subtitle %>% 
-                       stri_replace(fixed = 'Rsq', replacement = 'R\u00B2') %>% 
-                       paste(.x$labels$tag, sep = ', ')) + 
-                theme(plot.tag = element_blank())))
-  
-# Confusion matrices ------
+# Confusion matrices -------
   
   insert_msg('Confusion matrices')
   
   bin_models$confusion_plots <- 
-    list(x = bin_models$predictions, 
-         y = c('training', 'CV')) %>% 
-    pmap(function(x, y) list(x = x, 
-                             plot_title = names(x) %>% 
-                               exchange(bin_models$lexicon) %>% 
-                               paste(y, sep = ', '), 
-                             plot_subtitle = paste('% of total, n =', 
-                                                   map_dbl(x, ~nrow(.x$data))), 
-                             x_lab = names(x) %>% 
-                               exchange(bin_models$lexicon, 
-                                        value = 'label_short') %>% 
-                               paste0(', outcome'), 
-                             y_lab = names(x) %>% 
-                               exchange(bin_models$lexicon, 
-                                        value = 'label_short') %>% 
-                               paste0(', predicted')) %>% 
-           future_pmap(plot.predx, 
-                       type = 'confusion', 
-                       scale = 'percent', 
-                       cust_theme = globals$common_theme, 
-                       .options = furrr_options(seed = TRUE)) %>% 
-           map(~.x + 
-                 scale_fill_gradient(low = 'white', 
-                                     high = 'firebrick', 
-                                     limits = c(0, 100)) + 
-                 scale_x_discrete(labels = c(no = 'absent', yes = 'present')) + 
-                 scale_y_discrete(labels = c(no = 'absent', yes = 'present')) + 
-                 theme(plot.tag = element_blank())))
+    list(train_predictions = bin_models$predictions$train, 
+         cv_predictions = bin_models$predictions$cv, 
+         title_prefix = exchange(names(bin_models$predictions$train), 
+                                 globals$lft_lexicon)) %>% 
+    future_pmap(plot_confusion_hm,
+                .options = furrr_options(seed = TRUE))
+
+# ROC curves ---------
   
-# Table with model stats ------
+  insert_msg('ROC curves')
   
-  insert_msg('Result table')
+  ## separate training and CV plots. Algorithm is coded by color.
+  ## AUC, sensitivity and specificity are indicated in the plot
   
-  bin_models$result_tbl <- bin_models$stats %>% 
-    map(filter, 
-        statistic %in% c('class_error', 'correct_rate', 
-                         'kappa', 'Se', 'Sp', 
-                         'AUC', 'c_index', 'BS', 'rsq')) %>% 
-    compress(names_to = 'data_type') %>% 
-    mutate(statistic = car::recode(statistic, 
-                                   "'class_error' = 'classification error'; 
-                                    'correct_rate' = 'accuracy'; 
-                                    'kappa' = '\u03BA'; 
-                                    'Se' = 'sensitivity'; 
-                                    'Sp' = 'specificity'; 
-                                    'AUC' = 'AUC, ROC'; 
-                                    'c_index' = 'C-index'; 
-                                    'BS' = 'Brier score'; 
-                                   'rsq' = 'R\u00B2'"), 
-           data_type = car::recode(data_type, 
-                                   "'train' = 'training'; 'cv' = 'CV'"), 
-           data_type = factor(data_type, c('training', 'CV')), 
-           estimate = ifelse(data_type == 'training', 
-                             signif(estimate, 2), 
-                             paste0(signif(estimate, 2), 
-                                    ' [95% CI: ', signif(lower_ci, 2), 
-                                    ' - ', signif(upper_ci, 2), ']')), 
-           model_name = stri_replace(model_name, 
-                                     regex = ',.*', 
-                                     replacement = ''))
+  bin_models$roc_plots <- 
+    list(train_predictions = bin_models$predictions$train, 
+         cv_predictions = bin_models$predictions$cv, 
+         stats = bin_models$stats, 
+         title_prefix = exchange(names(bin_models$predictions$train), 
+                                 globals$lft_lexicon)) %>% 
+    future_pmap(plot_ml_roc,
+                annot_x = 0.2, 
+                .options = furrr_options(seed = TRUE))
+
+# Predictive performance in the severity strata and follow-ups ------
   
-  bin_models$result_tbl <- bin_models$result_tbl %>% 
-    arrange(model_name, 
-            model_type, 
-            data_type) %>% 
-    select(model_name, 
-           model_type, 
-           data_type, 
-           statistic, 
-           estimate) %>% 
-    set_names(c('Response', 
-                'Participant matching', 
-                'Data type', 
-                'Statistic name', 
-                'Statistic value'))
+  insert_msg('Predictive performance in the severity stats and FUPs')
   
+  ## done only for DLCO and cross-validation
+  
+  bin_models[c('performance_plots_severity', 
+               'performance_plots_fup')] <- 
+    list(stats = bin_models[c("stats_dlco_severity", "stats_dlco_fup")], 
+         strata = c('severity_class', 'follow_up'), 
+         plot_title = paste('DLCO < 80% and', 
+                            c('COVID-19 severity', 
+                              'follow-up')), 
+         x_lab = c('COVID-19 severity', 
+                   'post-COVID-19 follow-up')) %>% 
+    pmap(plot_binary_strata_stats) %>% 
+    map2(., globals[c("sev_labels", "fup_labels")], 
+         function(x, y) map(x, ~.x + scale_x_discrete(labels = y)))
+    
+# Time course plots for DLCO findings ------
+  
+  insert_msg('Time course plots for DLCO findings')
+
+  bin_models$DLCO_frequency_plots <- 
+    list(caretx_model = bin_models$models$DLCO_reduced, 
+         title_prefix = globals$algo_labs[names(bin_models$models$DLCO_reduced)]) %>% 
+    pmap(plot_binary_course)
+
 # END -----
   
   plan('sequential')

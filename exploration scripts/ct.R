@@ -17,6 +17,10 @@
   
   cohort_ct$lexicon <- covild$ct_lexicon
   
+  cohort_ct$short_fup_labs <- globals$fup_labels %>% 
+    stri_replace(fixed = ' mo', replacement = '') %>% 
+    set_names(names(globals$fup_labels))
+  
   ## numeric and categorical variables
   
   cohort_ct$variables <- cohort_ct$lexicon %>% 
@@ -111,15 +115,16 @@
          data = cohort_ct$analysis_tbl, 
          time_variable = 'follow_up', 
          severity_variable = 'cohort_split', 
+         x_lab = 'Follow-up, months after COVID-19', 
          show_n = TRUE) %>% 
     map(~.x + 
           scale_fill_manual(values = globals$sev_colors) + 
           scale_color_manual(values = globals$sev_colors) + 
-          scale_x_discrete(labels = globals$fup_labels) + 
+          scale_x_discrete(labels = cohort_ct$short_fup_labs) + 
           theme(legend.position = 'none')) %>% 
     set_names(cohort_ct$variables$numeric)
   
-  ## categorical numeric variables
+  ## categorical variables
   
   cohort_ct$plots$factor <- 
     list(outcome = cohort_ct$variables$factor, 
@@ -132,11 +137,13 @@
          severity_variable = 'cohort_split', 
          show_n = TRUE, 
          y_lab = '% of strata', 
+         x_lab = 'Follow-up, months after COVID-19', 
          txt_form = 'text', 
+         txt_size = 2.4, 
          txt_color = 'white') %>% 
     map(~.x + 
           scale_fill_manual(values = c('steelblue', 'coral3')) + 
-          scale_x_discrete(labels = globals$fup_labels)) %>% 
+          scale_x_discrete(labels = cohort_ct$short_fup_labs)) %>% 
     set_names(cohort_ct$variables$factor)
 
 # END -----

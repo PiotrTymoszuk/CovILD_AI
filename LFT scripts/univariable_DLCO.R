@@ -206,11 +206,3 @@ insert_msg('Analysis globals')
   rm(i)
   
   insert_tail()
-  
-  
-  
-  
-    
-
-  
-  

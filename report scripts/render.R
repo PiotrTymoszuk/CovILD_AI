@@ -22,7 +22,7 @@
                                   thumbnails = TRUE, 
                                   gallery = TRUE, 
                                   css = 'styles.css'), 
-         output_dir = './report')
+           output_dir = './report')
   
 # END ----
   

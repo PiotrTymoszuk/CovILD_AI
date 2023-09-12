@@ -34,6 +34,7 @@
   c('./report scripts/links.R', 
     './report scripts/html.R', 
     './report scripts/tables.R', 
+    './report scripts/figures.R', 
     './report scripts/render.R') %>% 
     source_all(message = TRUE, crash = TRUE)
   

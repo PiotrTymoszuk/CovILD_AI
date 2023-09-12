@@ -10,5 +10,3 @@
                      'lft.R', 
                      'report.R'), 
                    message = TRUE, crash = TRUE))
-  
-  save.image()

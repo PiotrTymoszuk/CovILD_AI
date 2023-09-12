@@ -203,89 +203,88 @@
                             'with 95% confidence intervals obtained', 
                             'by bootstrap.'))
   
-# Table 10: Random forest, tuning parameters -------
+# Table 10: machine learning tuning parameters -----  
   
-  insert_msg('Table 10: Random Forest tuning paramaters')
+  insert_msg('Table 10: machine learining, tuning')
   
-  tables$rf_tuning <- 
-    list(binary = bin_importance, 
-         regression = reg_importance) %>% 
-    map(~.x$optima) %>% 
-    map2(., list(bin_importance$lexicon, 
-                 reg_importance$lexicon), 
-         ~mutate(.x, 
-                 response = exchange(model, 
-                                     dict = .y, 
-                                     value = 'label_short'))) %>% 
-    compress(names_to = 'model_type') %>% 
-    mutate(participant_matching = stri_extract(model, 
-                                               regex = 'unmatched|matched')) %>% 
-    select(model_type, 
-           response, 
-           participant_matching, 
-           mtry, 
-           splitrule, 
-           min.node.size) %>% 
-    set_names(c('Model type', 
-                'LFT variable', 
-                'Participant matching', 
-                'mtry', 
-                'splitrule', 
-                'min.node.size'))
-
-  tables$rf_tuning <- tables$rf_tuning %>% 
-    mdtable(label = 'table_10_rf_tuning', 
-            ref_name = 'rf_tuning', 
-            caption = paste('Optimal values of the mtry, splitrule', 
-                            'and min.node.size paramaters for Random Forest', 
-                            'models of lung function abnormalities', 
-                            'and paramaters found by cross-validation tuning.'))
+  tables$tuning <- c(bin_models$models, 
+                     reg_models$models) %>% 
+    map(map, ~.x$bestTune) %>% 
+    map(map, ~map2_chr(names(.x), .x, paste, sep = ' = ')) %>% 
+    map(map_chr, paste, collapse = '\n') %>% 
+    map(compress, names_to = 'algorithm', values_to = 'parameter') %>% 
+    compress(names_to = 'response') %>% 
+    mutate(response = exchange(response, lft_globals$lexicon), 
+           algorithm = globals$algo_labs[algorithm], 
+           algorithm = stri_replace(algorithm, 
+                                    fixed = 'SVM radial', 
+                                    replacement = 'Support vector machines, radial kernel'), 
+           algorithm = stri_replace(algorithm, 
+                                    fixed = 'GBM', 
+                                    replacement = 'Gradiant boosted machines')) %>% 
+    select(response, algorithm, parameter) %>% 
+    set_names(c('Response', 'Algorithm', 'Parameters')) %>% 
+    mdtable(label = 'table_10_ml_tuning',
+            ref_name = 'tuning', 
+            caption = paste('Selection of machine learning algorithm', 
+                            'paramaters by cross-validation-mediated tuning.'))
   
-# Table 11: performance of the binary RF classifiers ------
+# Table 11: performance of binary classifiers -------
   
-  insert_msg('Table 11: performance of binary RF classifiers')
+  insert_msg('Table 11: performance of the binary classifiers')
   
-  tables$bin_models <- bin_models$result_tbl %>%
-    set_names(c('LFT variable', 
-                'Participant matching', 
-                'Data type', 
-                'Statistic name', 
-                'Statistic value')) %>% 
-    mdtable(label = 'table_11_random_forest_binary',
-            ref_name = 'bin_models', 
-            caption = paste('Performance of Random Forest classifiers', 
-                            'at prediction of lung function testing (LFT)', 
-                            'abnormalities in the training dataset', 
-                            'and cross-validation (CV).', 
-                            'CV results for any LFT abnormalities and diffusion', 
-                            'capacity for CO (DLCO) < 80% reference', 
-                            'are presented.', 
-                            'The entire table is available in a supplementary', 
-                            'Excel file.'))
+  tables$bin_classifiers <- bin_models$stats %>% 
+    compress(names_to = 'response') %>% 
+    mutate(response = exchange(response, lft_globals$lexicon), 
+           response = factor(response, 
+                             exchange(names(bin_models$stats), 
+                                      lft_globals$lexicon)), 
+           algorithm = globals$algo_labs[algorithm], 
+           algorithm = factor(algorithm, globals$algo_labs), 
+           dataset = globals$dataset_lab[dataset]) %>% 
+    select(response, algorithm, dataset,  
+           correct_rate, kappa, brier_score, 
+           AUC, Se, Sp, J) %>% 
+    arrange(response, algorithm) %>% 
+    set_names(c('Response', 'Algorithm', 'Data set', 
+                'Overall accuracy', "\u03BA", 
+                'Brier score', 'AUC', 
+                'Sensitivity', 'Specificity', "J")) %>% 
+    map_dfc(function(x) if(is.numeric(x)) signif(x, 2) else x) %>%
+    mdtable(label = 'table_11_binary_classifier_performance', 
+            ref_name = 'bin_classifiers', 
+            caption = paste('Performance of binary machine learining', 
+                            'classifiers at predicting lung function testing', 
+                            '(LFT) abnormalities in the CovILD study', 
+                            'participants.'))
   
-# Table 12: performance of the regression RF models ------
+# Table 12: performance of regression models -----
   
-  insert_msg('Table 12: performance of regression RF models')
+  insert_msg('Table 12: performance of the regression models')
   
-  tables$reg_models <- reg_models$result_tbl %>%
-    set_names(c('LFT variable', 
-                'Participant matching', 
-                'Data type', 
-                'Statistic name', 
-                'Statistic value')) %>% 
-    mdtable(label = 'table_12_random_forest_regression',
+  tables$reg_models <- reg_models$stats %>% 
+    compress(names_to = 'response') %>% 
+    mutate(response = exchange(response, lft_globals$lexicon), 
+           response = factor(response, 
+                             exchange(names(reg_models$stats), 
+                                      lft_globals$lexicon)), 
+           algorithm = globals$algo_labs[algorithm], 
+           algorithm = factor(algorithm, globals$algo_labs), 
+           dataset = globals$dataset_lab[dataset]) %>% 
+    select(response, algorithm, dataset, 
+           rsq, MAE, spearman) %>% 
+    arrange(response, algorithm) %>% 
+    set_names(c('Response', 'Algorithm', 'Data set', 
+                'pseudo-R\u00B2', 'MAE', 
+                "\u03C1")) %>% 
+    map_dfc(function(x) if(is.numeric(x)) signif(x, 2) else x) %>% 
+    mdtable(label = 'table_12_regression_model_performance', 
             ref_name = 'reg_models', 
-            caption = paste('Performance of Random Forest regression models', 
-                            'at prediction of lung function testing (LFT)', 
-                            'variables in the training dataset', 
-                            'and cross-validation (CV).', 
-                            'CV results for diffusion capacity for CO (DLCO),', 
-                            'forced vital capacity (FVC) and', 
-                            'forced expiratory volume in 1 second (FEV1)', 
-                            'are presented.', 
-                            'The entire table is available in a supplementary', 
-                            'Excel file.'))
-  
+            caption = paste('Performance of regression machine', 
+                            'learning models at predicting lung function', 
+                            'testing parameters in the CovILD study', 
+                            'participants.'))
+
 # Table 13: AI and CTSS differences for LFT abnormalities -------
   
   insert_msg('Table 13: CT opacity and CTSS in LFT abnormalities')

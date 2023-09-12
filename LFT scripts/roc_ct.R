@@ -18,21 +18,17 @@
   
   lft_roc$variables <- 
     c('opacity_percent', 'high_opacity_percent', 'CTSS')
-  
-  lft_roc$variables <- 
-    set_names(lft_roc$variables, 
-              lft_roc$variables)
-  
+
   lft_roc$responses <- 
     c('LFT_findings', 
       'DLCO_reduced', 
       'FVC_reduced', 
       'FEV1_reduced')
   
-  lft_roc$responses <- 
-    set_names(lft_roc$responses, 
-              lft_roc$responses)
-  
+  lft_roc[c("variables", "responses")] <- 
+    lft_roc[c("variables", "responses")] %>% 
+    map(~set_names(.x, .x))
+
   ## analysis table
   
   lft_roc$analysis_tbl <- lft_globals$analysis_tbl %>% 
@@ -55,7 +51,7 @@
   
   lft_roc$n_caps <- lft_roc$n_numbers %>% 
     map(~paste0('total: n = ', sum(.x$n), 
-                ', findings: n = ', .x$n[2]))
+                ', events: n = ', .x$n[2]))
   
 # Optimal cutpoint objects ------
   
@@ -139,7 +135,7 @@
     
   }
   
-# Summary ROC plots for aeach LFT abnormality ------
+# Summary ROC plots for each LFT abnormality ------
   
   insert_msg('Summary ROC plots')
   

@@ -148,7 +148,8 @@
                                           labels = c(no = 'absent', 
                                                      yes = 'present'), 
                                           name = '') +
-                        theme(plot.tag = element_blank())))
+                        theme(plot.tag = element_blank())), 
+                .options = furrr_options(seed = TRUE))
   
   
   kin_factor$plots <- kin_factor$plots %>% 

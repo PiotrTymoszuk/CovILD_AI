@@ -18,6 +18,10 @@
   cohort_lft$lexicon <- covild$lft_lexicon %>% 
     filter(!stri_detect(variable, regex = '(volume|DLCO)$'))
 
+  cohort_lft$short_fup_labs <- globals$fup_labels %>% 
+    stri_replace(fixed = ' mo', replacement = '') %>% 
+    set_names(names(globals$fup_labels))
+  
   ## numeric and categorical variables
 
   cohort_lft$variables <- cohort_lft$lexicon %>% 
@@ -112,11 +116,12 @@
          data = cohort_lft$analysis_tbl, 
          time_variable = 'follow_up', 
          severity_variable = 'cohort_split', 
+         x_lab = 'Follow-up, months after COVID-19', 
          show_n = TRUE) %>% 
     map(~.x + 
           scale_fill_manual(values = globals$sev_colors) + 
           scale_color_manual(values = globals$sev_colors) + 
-          scale_x_discrete(labels = globals$fup_labels) + 
+          scale_x_discrete(labels = cohort_lft$short_fup_labs) + 
           theme(legend.position = 'none')) %>% 
     set_names(cohort_lft$variables$numeric)
   
@@ -133,11 +138,13 @@
          severity_variable = 'cohort_split', 
          show_n = TRUE, 
          y_lab = '% of strata', 
+         x_lab = 'Follow-up, months after COVID-19', 
+         txt_size = 2.5, 
          txt_form = 'text', 
          txt_color = 'white') %>% 
     map(~.x + 
           scale_fill_manual(values = c('steelblue', 'coral3')) + 
-          scale_x_discrete(labels = globals$fup_labels)) %>% 
+          scale_x_discrete(labels = cohort_lft$short_fup_labs)) %>% 
     set_names(cohort_lft$variables$factor)
 
 # END -----

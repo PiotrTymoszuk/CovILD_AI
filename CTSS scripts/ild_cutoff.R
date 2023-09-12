@@ -97,7 +97,7 @@
     map_dfc(function(x) if(is.numeric(x)) signif(x, 2) else x) %>% 
     set_names(c('CT abnormality', 
                 'AUC', 
-                'Cutoff', 
+                'CTSS cutoff', 
                 'Sensitivity', 
                 'Specificity',
                 'J', 
