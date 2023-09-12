@@ -5,6 +5,10 @@ Assessment of radiological abnormalities and prediction of lung function with AI
 
 ## Summary
 
+<p align = "center"> 
+<img src = "https://github.com/PiotrTymoszuk/CovILD_AI/assets/80723424/ca6b16bc-fa19-4676-9163-cf889ef829ab" width = "65%">
+</p>
+
 You can follow the analysis progress [here](https://github.com/PiotrTymoszuk/CovILD_AI/tree/main/report). 
 Note: please download [the analysis report in HTML format](https://github.com/PiotrTymoszuk/CovILD_AI/blob/main/report/report.html) and open in in your web browser.
 
