@@ -38,7 +38,7 @@ library(Cairo)
 opts_chunk$set(echo = FALSE, 
                       warning = FALSE, 
                       message = FALSE, 
-                      dev = "CairoPDF", 
+                      dev = "CairoPNG", 
                       dpi = 600)
 
 set_flextable_defaults(font.family = "Helvetica", 
@@ -69,10 +69,7 @@ set_flextable_defaults(font.family = "Helvetica",
 ```{r tab-cohort, tab.cap = 'Baseline characteristics and COVID-19 course in the CovILD cohort. Numeric variables are presented as medians with interquartile ranges (IQR) and ranges. Categorical variables are presented as percentages and counts within the complete observation set.'}
 
 flextable::flextable(tables$cohort) %>% 
-  width(1, width = 3, unit = 'cm') %>% 
-  width(2:5, width = 3.0, unit = 'cm') %>% 
-  width(6, width = 2.7, unit = 'cm') %>% 
-  width(7, width = 2.5, unit = 'cm') %>% 
+  set_widths(c(3, rep(3.5, 4), 2.7, 2.5)) %>% 
   footnote(1, 1, 
            value = as_paragraph('BMI: body mass index; COPD: chronic obstructive pulmonary disease; CKD: chronic kidney disease'), 
            part = 'header', 
@@ -95,16 +92,42 @@ flextable::flextable(tables$cohort) %>%
 
 <hr style = "border-top: 5px solid DarkGray" />
 
-## Chest computed tomography paramaters and findings
+## Chest computed tomography abnormalities
+
+<hr style = "border-top: 1px solid DarkGray" />
+
+```{r fig-ct-finding-course, fig.width = figur::convert(figures$ct_finding_course, to = 'in')$w, fig.height = figur::convert(figures$ct_finding_course, to = 'in')$h, fig.cap = 'Frequency of computed tomography abnormalities at the consecutive follow-ups in the CovILD participants stratified by severity of acute COVID-19.'}
+
+figures$ct_finding_course$plot
+
+```
+
+<p class = "legend">
+<b>Figure \@ref(fig:fig-ct-finding-course). Frequency of computed tomography abnormalities at the consecutive follow-ups in the CovILD participants stratified by severity of acute COVID-19.</b>
+<br>
+Frequencies of any chest computed tomography (CT) abnormalities, ground glass opacities (GGO), reticulations and consolidations at the consecutive follow-ups after COVID-19 in the CovILD study patients stratified by the severity of acute COVID-19 were presented in stacked bar plots. Numbers of complete observations at the follow-up examinations are displayed above the data bars.
+</p>
+
+<hr style = "border-top: 1px solid DarkGray" />
+
+```{r fig-ct-numeric-course, fig.width = figur::convert(figures$ct_numeric_course, to = 'in')$w, fig.height = figur::convert(figures$ct_numeric_course, to = 'in')$h, fig.cap = 'Time course of numeric computed tomography readouts at the consecutive follow-ups in the CovILD participants stratified by severity of acute COVID-19.'}
+
+figures$ct_numeric_course$plot
+
+```
+
+<p class = "legend">
+<b>Figure \@ref(fig:fig-ct-numeric-course). Time course of numeric computed tomography readouts at the consecutive follow-ups in the CovILD participants stratified by severity of acute COVID-19.</b>
+<br>
+Severity of chest computed tomography (CT) abnormalities was assessed by a human-determined CT severity score (CTSS), and AI-determined percentages of the lung tissue with opacity and high opacity. Time courses of these parameters are visualized in box plots. Boxes represent medians with interquartile ranges, whiskers span over 150% of the interquartile range. Single observations are depicted as points. Numbers of complete observations at the follow-up examinations are displayed above the data points.
+</p>
 
 <hr style = "border-top: 1px solid DarkGray" />
 
 ```{r tab-cohort-ct, tab.cap = 'Chest computed tomography variables at consecutive follow-ups. Numeric variables are presented as medians with interquartile ranges (IQR) and ranges. Categorical variables are presented as percentages and counts within the complete observation set.'}
 
 flextable::flextable(tables$cohort_ct) %>% 
-  width(1, width = 2.7, unit = 'cm') %>% 
-  width(2, width = 2.7, unit = 'cm') %>% 
-  width(3:6, width = 3.8, unit = 'cm') %>% 
+  set_widths(c(2.7, 2.7, rep(3.8, 4))) %>% 
   merge_v(1) %>% 
   footnote(1, 2, 
            value = as_paragraph('CT: chest computed tomography; GGO: ground glass opacity; CTSS: CT severity score; AI: artificial intelligence'), 
@@ -120,15 +143,49 @@ flextable::flextable(tables$cohort_ct) %>%
 
 <hr style = "border-top: 1px solid DarkGray" />
 
+```{r fig-lft-finding-course, fig.width = figur::convert(figures$lft_finding_course, to = 'in')$w, fig.height = figur::convert(figures$lft_finding_course, to = 'in')$h, fig.cap = 'Frequency of lung function testing abnormalities at the consecutive follow-ups in the CovILD participants stratified by severity of acute COVID-19.'}
+
+figures$lft_finding_course$plot
+
+```
+
+<p class = "legend">
+<b>Figure \@ref(fig:fig-lft-finding-course). Frequency of lung function testing abnormalities at the consecutive follow-ups in the CovILD participants stratified by severity of acute COVID-19.</b>
+<br>
+Frequency of any lung function testing (LFT) abnormalities, as well as percentage of patients with DLCO, FVC and FEV1 values below 80% of the reference values at the consecutive follow-ups after COVID-19 in the CovILD cohort stratified by the severity of acute COVID-19 was presented in stacked bar plots. Numbers of complete observations at the follow-up examinations are displayed above the data bars.
+<br>
+LFT: lung function testing; DLCO: diffusion capacity for carbon monoxide; FVC: forced vital capacity; FEV1: forced expiratory volume in one second. 
+</p>
+
+<hr style = "border-top: 1px solid DarkGray" />
+
+```{r fig-lft-numeric-course, fig.width = figur::convert(figures$lft_numeric_course, to = 'in')$w, fig.height = figur::convert(figures$lft_numeric_course, to = 'in')$h, fig.cap = 'Time course of numeric lung function testing readouts at the consecutive follow-ups in the CovILD participants stratified by severity of acute COVID-19.'}
+
+figures$lft_numeric_course$plot
+
+```
+
+<p class = "legend">
+<b>Figure \@ref(fig:fig-lft-numeric-course). Time course of numeric lung function testing readouts at the consecutive follow-ups in the CovILD participants stratified by severity of acute COVID-19.</b>
+<br>
+Lung function was assessed by measurement of DLCO, FVC and FEV1 expressed as percentage of the age-, weight- and sex-specific reference. Time courses of these parameters are visualized in box plots. Boxes represent medians with interquartile ranges, whiskers span over 150% of the interquartile range. Single observations are depicted as points. Numbers of complete observations at the follow-up examinations are displayed above the data points.
+<br>
+LFT: lung function testing; DLCO: diffusion capacity for carbon monoxide; FVC: forced vital capacity; FEV1: forced expiratory volume in one second.
+</p>
+
+
+
+
+
+<hr style = "border-top: 1px solid DarkGray" />
+
 ```{r tab-cohort-lft, tab.cap = 'Lung function testing variables at consecutive follow-ups. Numeric variables are presented as medians with interquartile ranges (IQR) and ranges. Categorical variables are presented as percentages and counts within the complete observation set.'}
 
 flextable::flextable(tables$cohort_lft) %>% 
-  width(1, width = 2.7, unit = 'cm') %>% 
-  width(2, width = 2.7, unit = 'cm') %>% 
-  width(3:6, width = 3.8, unit = 'cm') %>% 
+  set_widths(c(2.7, 2.7, rep(3.8, 4))) %>% 
   merge_v(1) %>% 
   footnote(1, 2, 
-           value = as_paragraph('LFT: lung function testing; FVC: forced vital capacity; FEV1: forced expiratory volume in 1 second; DLCO: diffusion capacity for CO; FEV1:FVC: FEV1 to FVC ratio'), 
+           value = as_paragraph('LFT: lung function testing; FVC: forced vital capacity; FEV1: forced expiratory volume in one second; DLCO: diffusion capacity for carbon monoxide; FEV1:FVC: FEV1 to FVC ratio'), 
            part = 'header', 
            ref_symbols = 'a') %>% 
   theme_vanilla
@@ -141,13 +198,41 @@ flextable::flextable(tables$cohort_lft) %>%
 
 ## Optimal cutoff, sensitivity and specificity of AI opacity and high opacity at detection of radiological findings
 
+<hr style = "border-top: 1px solid DarkGray" />
+
+```{r fig-ai-opacity-roc, fig.width = figur::convert(figures$ai_opacity_roc, to = 'in')$w, fig.height = figur::convert(figures$ai_opacity_roc, to = 'in')$h, fig.cap = 'Detection of human-recognizable abnormalities of chest computed tomography by artificial intelligence-measured lung opacity.'}
+
+figures$ai_opacity_roc$plot
+
+```
+
+<p class = "legend">
+<b>Figure \@ref(fig:fig-ai-opacity-roc). Detection of human-recognizable abnormalities of chest computed tomography by artificial intelligence-measured lung opacity.</b>
+<br>
+The optimal cutoffs of the artificial intelligence (AI) determined lung opacity for detection of the human-recognizable chest computed tomography (CT) abnormalities, ground glass opacities (GGO), reticulation, and consolidations were found by maximizing the Youden's J statistic (i.e. sensitivity + specificity - 1). Results of the optimal opacity cutoff finding are presented as receiver-operating characteristic (ROC) curves. The optimal opacity cutoffs are labeled with points and the corresponding opacity values. Sensitivity, specificity, Youden's J and area under the ROC curve (AUC) are displayed in the plots. 
+</p>
+
+<hr style = "border-top: 1px solid DarkGray" />
+
+```{r fig-ai-high-opacity-roc, fig.width = figur::convert(figures$ai_high_opacity_roc, to = 'in')$w, fig.height = figur::convert(figures$ai_high_opacity_roc, to = 'in')$h, fig.cap = 'Detection of human-recognizable abnormalities of chest computed tomography by artificial intelligence-measured lung high opacity.'}
+
+figures$ai_high_opacity_roc$plot
+
+```
+
+<p class = "legend">
+<b>Figure \@ref(fig:fig-ai-high-opacity-roc). Detection of human-recognizable abnormalities of chest computed tomography by artificial intelligence-measured lung high opacity.</b>
+<br>
+The optimal cutoffs of the artificial intelligence (AI) determined lung high opacity for detection of the human-recognizable chest computed tomography (CT) abnormalities, ground glass opacities (GGO), reticulation, and consolidations were found by maximizing the Youden's J statistic (i.e. sensitivity + specificity - 1). Results of the optimal high opacity cutoff finding are presented as receiver-operating characteristic (ROC) curves. The optimal high opacity cutoffs are labeled with points and the corresponding opacity values. Sensitivity, specificity, Youden's J and area under the ROC curve (AUC) are displayed in the plots. 
+</p>
+
+<hr style = "border-top: 1px solid DarkGray" />
+
+
 ```{r tab-ai-cutoffs, tab.cap = 'Optimal cutoffs for AI-determined lung opacity and high opacity at detection of chest computed tomography abnormalities. The optimal cutoff was determined by Youden criterion.'}
 
 flextable::flextable(tables$ai_cutoffs) %>% 
-  width(1, width = 2.7, unit = 'cm') %>% 
-  width(2, width = 3, unit = 'cm') %>% 
-  width(3, width = 4.8, unit = 'cm') %>% 
-  width(4:8, width = 2.5, unit = 'cm') %>% 
+  set_widths(c(2.7, 3, 4.8, rep(2.5, 5))) %>% 
   merge_v(1) %>% 
   footnote(1, 2, 
            value = as_paragraph('CT: chest computed tomography; GGO: ground glass opacity'), 
@@ -158,7 +243,7 @@ flextable::flextable(tables$ai_cutoffs) %>%
            part = 'header', 
            ref_symbols = 'b') %>% 
   footnote(1, 7, 
-           value = as_paragraph('J: Youden J statistic'), 
+           value = as_paragraph("J: Youden's J statistic"), 
            part = 'header', 
            ref_symbols = 'c') %>% 
   footnote(1, 8, 
@@ -179,13 +264,74 @@ flextable::flextable(tables$ai_cutoffs) %>%
 
 <hr style = "border-top: 1px solid DarkGray" />
 
+```{r fig-ai-opacity-severity, fig.width = figur::convert(figures$ai_opacity_severity, to = 'in')$w, fig.height = figur::convert(figures$ai_opacity_severity, to = 'in')$h, fig.cap = 'Performance of artificial intelligence-determined lung opacity at detection of chest computed tomography abnormalities in patients stratified by severity of acute COVID-19.'}
+
+figures$ai_opacity_severity$plot
+
+```
+
+<p class = "legend">
+<b>Figure \@ref(fig:fig-ai-opacity-severity). Performance of artificial intelligence-determined lung opacity at detection of chest computed tomography abnormalities in patients stratified by severity of acute COVID-19.</b>
+<br>
+The optimal cutoffs of artificial intelligence (AI) determined lung opacity for detection of human-recognizable lung computed tomography (CT) abnormalities were computed as presented in Figure \@ref(fig:fig-ai-opacity-roc). Concordance between the CT findings identified by lung opacity using the optimal cutoffs and the CT abnormalities determined by the radiologist in the entire observation data set ('cohort') and the CovILD study participants stratified by the severity of acute COVID-19 was assessed by Cohen's $\kappa$ inter-rated reliability statistic. $\kappa$ values with their 95% confidence intervals obtained by bootstrapping with B = 2000 iterations are presented in Forest plots. Numbers of complete observations ('total') and observations with the given CT abnormality ('events') are indicated in the Y axes.
+<br>
+CT: computed tomography; GGO: ground glass opacity.
+</p>
+
+<hr style = "border-top: 1px solid DarkGray" />
+
+```{r fig-ai-opacity-fup, fig.width = figur::convert(figures$ai_opacity_fup, to = 'in')$w, fig.height = figur::convert(figures$ai_opacity_fup, to = 'in')$h, fig.cap = 'Performance of artificial intelligence-determined lung opacity at detection of chest computed tomography abnormalities at post-COVID-19 follow-up evaluations.'}
+
+figures$ai_opacity_fup$plot
+
+```
+
+<p class = "legend">
+<b>Figure \@ref(fig:fig-ai-opacity-fup). Performance of artificial intelligence-determined lung opacity at detection of chest computed tomography abnormalities at post-COVID-19 follow-up evaluations.</b>
+<br>
+The optimal cutoffs of artificial intelligence (AI) determined lung opacity for detection of human-recognizable lung computed tomography (CT) abnormalities were computed as presented in Figure \@ref(fig:fig-ai-opacity-roc). Concordance between the CT findings identified by lung opacity using the optimal cutoffs and the CT abnormalities determined by the radiologist in the entire observation data set ('cohort') and at consecutive post-COVID-19 follow-up examinations was assessed by Cohen's $\kappa$ inter-rated reliability statistic. $\kappa$ values with their 95% confidence intervals obtained by bootstrapping with B = 2000 iterations are presented in Forest plots. Numbers of complete observations ('total') and observations with the given CT abnormality ('events') are indicated in the Y axes.
+<br>
+CT: computed tomography; GGO: ground glass opacity.
+</p>
+
+<hr style = "border-top: 1px solid DarkGray" />
+
+```{r fig-ai-high-opacity-severity, fig.width = figur::convert(figures$ai_high_opacity_severity, to = 'in')$w, fig.height = figur::convert(figures$ai_high_opacity_severity, to = 'in')$h, fig.cap = 'Performance of artificial intelligence-determined lung high opacity at detection of chest computed tomography abnormalities in patients stratified by severity of acute COVID-19.'}
+
+figures$ai_high_opacity_severity$plot
+
+```
+
+<p class = "legend">
+<b>Figure \@ref(fig:fig-ai-high-opacity-severity). Performance of artificial intelligence-determined lung high opacity at detection of chest computed tomography abnormalities in patients stratified by severity of acute COVID-19.</b>
+<br>
+The optimal cutoffs of artificial intelligence (AI) determined lung high opacity for detection of human-recognizable lung computed tomography (CT) abnormalities were computed as presented in Figure \@ref(fig:fig-ai-high-opacity-roc). Concordance between the CT findings identified by lung high opacity using the optimal cutoffs and the CT abnormalities determined by the radiologist in the entire observation data set ('cohort') and the CovILD study participants stratified by the severity of acute COVID-19 was assessed by Cohen's $\kappa$ inter-rated reliability statistic. $\kappa$ values with their 95% confidence intervals obtained by bootstrapping with B = 2000 iterations are presented in Forest plots. Numbers of complete observations ('total') and observations with the given CT abnormality ('events') are indicated in the Y axes.
+<br>
+CT: computed tomography; GGO: ground glass opacity.
+</p>
+
+<hr style = "border-top: 1px solid DarkGray" />
+
+```{r fig-ai-high-opacity-fup, fig.width = figur::convert(figures$ai_high_opacity_fup, to = 'in')$w, fig.height = figur::convert(figures$ai_high_opacity_fup, to = 'in')$h, fig.cap = 'Performance of artificial intelligence-determined lung high opacity at detection of chest computed tomography abnormalities at post-COVID-19 follow-up evaluations.'}
+
+figures$ai_high_opacity_fup$plot
+
+```
+
+<p class = "legend">
+<b>Figure \@ref(fig:fig-ai-high-opacity-fup). Performance of artificial intelligence-determined lung high opacity at detection of chest computed tomography abnormalities at post-COVID-19 follow-up evaluations.</b>
+<br>
+The optimal cutoffs of artificial intelligence (AI) determined lung high opacity for detection of human-recognizable lung computed tomography (CT) abnormalities were computed as presented in Figure \@ref(fig:fig-ai-high-opacity-roc). Concordance between the CT findings identified by lung high opacity using the optimal cutoffs and the CT abnormalities determined by the radiologist in the entire observation data set ('cohort') and at consecutive post-COVID-19 follow-up examinations was assessed by Cohen's $\kappa$ inter-rated reliability statistic. $\kappa$ values with their 95% confidence intervals obtained by bootstrapping with B = 2000 iterations are presented in Forest plots. Numbers of complete observations ('total') and observations with the given CT abnormality ('events') are indicated in the Y axes.
+<br>
+CT: computed tomography; GGO: ground glass opacity.
+</p>
+
+<hr style = "border-top: 1px solid DarkGray" />
+
 ```{r tab-ai-cutoffs-severity, tab.cap = 'Performance of AI-determined lung opacity and high opacity at detection of chest computed tomography abnormalities in the COVID-19 severity subsets. The opacity and high opacity values were stratified by their optimal cutoffs determined by Youden criterion in the entire CovILD cohort. Statistic values are presented with 95% confidence intervals obtained by bootstrap.'}
 
 flextable::flextable(tables$ai_cutoffs_severity) %>% 
-  width(1, width = 2.7, unit = 'cm') %>% 
-  width(2, width = 3, unit = 'cm') %>% 
-  width(3, width = 3, unit = 'cm') %>% 
-  width(4:7, width = 5.2, unit = 'cm') %>% 
+  set_widths(c(2.7, 3, 3, rep(5.2, 4))) %>% 
   merge_v(1:2) %>% 
   footnote(1, 3, 
            value = as_paragraph('CT: chest computed tomography; GGO: ground glass opacity'), 
@@ -204,10 +350,7 @@ flextable::flextable(tables$ai_cutoffs_severity) %>%
 ```{r tab-ai-cutoffs-fup, tab.cap = 'Performance of AI-determined lung opacity and high opacity at detection of chest computed tomography abnormalities at the consecutive follow-ups. The opacity and high opacity values were stratified by their optimal cutoffs determined by Youden criterion in the entire CovILD cohort. Statistic values are presented with 95% confidence intervals obtained by bootstrap.'}
 
 flextable::flextable(tables$ai_cutoffs_fup) %>% 
-  width(1, width = 2.7, unit = 'cm') %>% 
-  width(2, width = 3, unit = 'cm') %>% 
-  width(3, width = 3, unit = 'cm') %>% 
-  width(4:7, width = 5.2, unit = 'cm') %>% 
+  set_widths(c(2.7, 3, 3, rep(5.2, 4))) %>% 
   merge_v(1:2) %>% 
   footnote(1, 3, 
            value = as_paragraph('CT: chest computed tomography; GGO: ground glass opacity'), 
@@ -229,12 +372,26 @@ flextable::flextable(tables$ai_cutoffs_fup) %>%
 
 <hr style = "border-top: 1px solid DarkGray" />
 
+```{r fig-ctss-ild-cutoff, fig.width = figur::convert(figures$ctss_ild_cutoff, to = 'in')$w, fig.height = figur::convert(figures$ctss_ild_cutoff, to = 'in')$h, fig.cap = 'Detection of interstitial lung disease defined by opacity >5% of the lung by a human-determined computed tomography severity score.'}
+
+figures$ctss_ild_cutoff$plot
+
+```
+
+<p class = "legend">
+<b>Figure \@ref(fig:fig-ctss-ild-cutoff). Detection of interstitial lung disease defined by opacity >5% of the lung by a human-determined computed tomography severity score.</b>
+<br>
+(A) The optimal cutoff of the radiologist's computed tomography severity score (CTSS) for diagnosis of interstitial lung disease (ILD) defined as opacity > 5% of the lung was found by maximizing the Youden's J statistic (i.e sensitivity +  specificity - 1). Results of the optimal CTSS cutoff finding are presented as a receiver-operating characteristic (ROC) curve. The optimal CTSS cutoff is labeled with a point and the corresponding CTSS value. Sensitivity, specificity, Youden's J and area under the ROC curve (AUC) are displayed in the plot.
+<br>
+(B) Concordance between the ILD diagnosis with CTSS > 10 points and ILD defined as opacity > 5% of the lung in the whole observation set ('cohort') and in observations stratified by the acute disease severity or post-COVID-19 follow-up was assessed by Cohen's $\kappa$ inter-rater reliability statistic. $\kappa$ values with 95% confidence intervals obtained by bootstrap with B = 2000 iterations are presented in Forest plots. Numbers of complete observations ('total') and cases of ILD defined by >5% lung opacity ('events') are indicated in the Y axes.
+</p>
+
+<hr style = "border-top: 1px solid DarkGray" />
+
 ```{r tab-ild-cutoff, tab.cap = 'Detecion of interstitial lung disease defined by lung opacity > 5% by chest computed tomography severity score (CTSS). The optimal cutoff for CTSS was determined by Youden criterion.'}
 
 flextable::flextable(tables$ild_cutoff) %>% 
-  width(1, width = 3, unit = 'cm') %>% 
-  width(2, width = 4.8, unit = 'cm') %>% 
-  width(3:8, width = 2.5, unit = 'cm') %>% 
+  set_widths(c(3, 4.8, rep(2.6, 6))) %>% 
   footnote(1, 1, 
            value = as_paragraph('AI: artificial intelligence'), 
            part = 'header', 
@@ -264,8 +421,7 @@ flextable::flextable(tables$ild_cutoff) %>%
 ```{r tab-ild-cutoff-severity, tab.cap = 'Detecion of interstitial lung disease defined by lung opacity > 5% by chest computed tomography severity score (CTSS) in the COVID-19 severity subsets. The optimal cutoff for CTSS was determined by Youden criterion in the entire CovILD cohort. Statistic values are presented with 95% confidence intervals obtained by bootstrap.'}
 
 flextable::flextable(tables$ild_cutoff_severity) %>% 
-  width(1, width = 2.7, unit = 'cm') %>% 
-  width(2:5, width = 5, unit = 'cm') %>% 
+  set_widths(c(2.7, rep(5, 4))) %>% 
   footnote(1, 2, 
            value = as_paragraph('\u03BA: Cohen \u03BA inter-rater reliability statistic'), 
            part = 'header', 
@@ -279,8 +435,7 @@ flextable::flextable(tables$ild_cutoff_severity) %>%
 ```{r tab-ild-cutoff-fup, tab.cap = 'Detecion of interstitial lung disease defined by lung opacity > 5% by chest computed tomography severity score (CTSS) at the consecutive follow-ups. The optimal cutoff for CTSS was determined by Youden criterion in the entire CovILD cohort. Statistic values are presented with 95% confidence intervals obtained by bootstrap.'}
 
 flextable::flextable(tables$ild_cutoff_fup) %>% 
-  width(1, width = 2.7, unit = 'cm') %>% 
-  width(2:5, width = 5, unit = 'cm') %>% 
+  set_widths(c(2.7, rep(5, 4))) %>% 
   footnote(1, 2, 
            value = as_paragraph('\u03BA: Cohen \u03BA inter-rater reliability statistic'), 
            part = 'header', 
@@ -293,81 +448,241 @@ flextable::flextable(tables$ild_cutoff_fup) %>%
 
 ## Mathematical relationship of the severity score, and AI-determined opacity and high opacity
 
+<hr style = "border-top: 1px solid DarkGray" />
+
+```{r fig-ctss-ai-relation, fig.width = figur::convert(figures$ctss_ai_relation, to = 'in')$w, fig.height = figur::convert(figures$ctss_ai_relation, to = 'in')$h, fig.cap = "Mathematical relationship between the artificial intelligence-determined lung opacity and high opacity, and the radiologist's computed tomography severity score."}
+
+figures$ctss_ai_relation$plot
+
+```
+
+<p class = "legend">
+<b>Figure \@ref(fig:fig-ctss-ai-relation). Mathematical relationship between the artificial intelligence-determined lung opacity and high opacity, and the radiologist's computed tomography severity score.</b>
+<br>
+Mathematical relationships (A) between the artificial intelligence's lung opacity and radiologist's CTSS (computed tomography severity score), and (B) between the artificial intelligence's high lung opacity and radiologist's CTSS were explored by ordinary least squares 4^th^ order polynomial regression, robust 4^th^ order polynomial regression or generalized additive modeling (GAM) with thin plate splines. The model fit quality was assessed by the pseudo-R^2^ metric of explained variance and median absolute error (MedAE). The relationships are presented in scatter plots with single observations visualized as points. The model fits with their 2 $\times$ standard error regions are represented by blue lines with gray ribbons. The R^2^ and MedAE values along with numbers of complete observations are displayed in the plot captions.
+</p>
+
 <hr style = "border-top: 5px solid #417a8b" />
 
 # Prediction of lung function with chest computed tomography
 
-## Development of multi-paramater Random Forest models of lung function variables and abnormalities
+## Development of multi-paramater machine learning models of lung function variables and abnormalities
 
 <hr style = "border-top: 1px solid DarkGray" />
 
-```{r tab-rf-tuning, tab.cap = 'Optimal values of the mtry, splitrule and min.node.size paramaters for Random Forest models of lung function abnormalities and paramaters found by cross-validation tuning.'}
+```{r fig-dlco-red-tuning, fig.width = figur::convert(figures$dlco_red_tuning, to = 'in')$w, fig.height = figur::convert(figures$dlco_red_tuning, to = 'in')$h, fig.cap = 'Tuning of machine learning models of insufficient diffusion capacity for carbon monoxide.'}
 
-flextable::flextable(tables$rf_tuning) %>% 
-  width(1, width = 2.5, unit = 'cm') %>% 
-  width(2, width = 2.7, unit = 'cm') %>% 
-  width(3, width = 3, unit = 'cm') %>% 
-  width(4:6, width = 2.7, unit = 'cm') %>% 
-  merge_v(1:2) %>% 
-  footnote(1, 2, 
-           value = as_paragraph('LFT: lung function testing; DLCO: diffusion capacity for CO; FVC: forced vital capacity; FEV1: forced expiratory volume in 1 second'), 
-           part = 'header', 
-           ref_symbols = 'a') %>% 
+figures$dlco_red_tuning$plot
+
+```
+
+<p class = "legend">
+<b>Figure \@ref(fig:fig-dlco-red-tuning). Tuning of machine learning models of insufficient diffusion capacity for carbon monoxide.</b>
+<br>
+Insufficient diffusion capacity for carbon monoxide (DLCO) was defined as values < 80% of the age-, sex-, and weight-specific reference. Probability of insufficient DLCO was modeled as a function of 
+`r length(lft_globals$baseline_variables) + length(lft_globals$ct_variables)` explanatory variables concerning demographic and clinical history, course of acute COVID-19, follow-up time as well as lung computed tomography results obtained at consecutive follow-up visits. 
+The models were built with the following algorithms: gradient boosted machines (GBM), random forest, neural network with a single hidden layer, and support vector machines with radial kernel (SVM radial). The optimal sets of algorithm's parameters such as number of trees for GBM, number of randomly selected variables for random forests, size of the hidden layer for neuronal networks or cost penalty value for SVM were found by maximizing the sum of sensitivity and specificity, i.e. Youden's J criterion, in 10-repeats 10-fold cross-validation - in a process called 'model tuning'. Values of the J statistic for various combination of the algorithm's parameters are presented in plots. The optimal parameter combinations corresponding to the maximal J value are displayed in the plot captions.
+</p>
+
+<hr style = "border-top: 1px solid DarkGray" />
+
+```{r fig-dlco-red-resamples, fig.width = figur::convert(figures$dlco_red_resamples, to = 'in')$w, fig.height = figur::convert(figures$dlco_red_resamples, to = 'in')$h, fig.cap = 'Performance of machine learning models of insufficient diffusion capacity for carbon monoxide in cross-validation folds.'}
+
+figures$dlco_red_resamples$plot
+
+```
+
+<p class = "legend">
+<b>Figure \@ref(fig:fig-dlco-red-resamples). Performance of machine learning models of insufficient diffusion capacity for carbon monoxide in cross-validation folds.</b>
+<br>
+Machine learning models of insufficient diffusion capacity for carbon monoxide (DLCO < 80% reference value) employing the following algorithms: gradient boosted machines (GBM), random forest, neural network with a single hidden layer, and support vector machines with radial kernel (SVM radial) were developed as presented in Figure \@ref(fig:fig-dlco-red-tuning). Their performance at detection of the reduced DLCO in 10-repeats 10-fold cross-validation was measured by Youden's J statistic, i.e. the sum of sensitivity and specificity. Sorted J values are presented in plots. Orange dashed lines visualize J values expected for a meaningless model.
+</p>
+
+<hr style = "border-top: 1px solid DarkGray" />
+
+```{r fig-dlco-tuning, fig.width = figur::convert(figures$dlco_tuning, to = 'in')$w, fig.height = figur::convert(figures$dlco_tuning, to = 'in')$h, fig.cap = 'Tuning of machine learning regression models of diffusion capacity for carbon monoxide.'}
+
+figures$dlco_tuning$plot
+
+```
+
+<p class = "legend">
+<b>Figure \@ref(fig:fig-dlco-tuning). Tuning of machine learning regression models of diffusion capacity for carbon monoxide.</b>
+<br>
+Diffusion capacity for carbon monoxide (DLCO) expressed as percentage of he age-, sex-, and weight-specific reference was modeled as as a function of 
+`r length(lft_globals$baseline_variables) + length(lft_globals$ct_variables)` explanatory variables concerning demographic and clinical history, course of acute COVID-19, follow-up time as well as lung computed tomography results obtained at consecutive follow-up visits. The models were built with the following algorithms: gradient boosted machines (GBM), random forest, neural network with a single hidden layer, and support vector machines with radial kernel (SVM radial). The optimal sets of algorithm's parameters such as number of trees for GBM, number of randomly selected variables for random forests, size of the hidden layer for neuronal networks or cost penalty value for SVM were found by minimizing mean absolute error (MAE) in 10-repeats 10-fold cross-validation - in a process called 'model tuning'. Values of the MAE statistic for various combination of the algorithm's parameters are presented in plots. The optimal parameter combinations corresponding to the minimal MAE are displayed in the plot captions.
+</p>
+
+```{r fig-dlco-resamples, fig.width = figur::convert(figures$dlco_resamples, to = 'in')$w, fig.height = figur::convert(figures$dlco_resamples, to = 'in')$h, fig.cap = 'Performance of machine learning regression models of diffusion capacity for carbon monoxide in cross-validation folds.'}
+
+figures$dlco_resamples$plot
+
+```
+
+<p class = "legend">
+<b>Figure \@ref(fig:fig-dlco-resamples). Performance of machine learning regression models of diffusion capacity for carbon monoxide in cross-validation folds.</b>
+<br>
+Machine learning models of diffusion capacity for carbon monoxide (DLCO, percentage of the reference value) employing the following algorithms: gradient boosted machines (GBM), random forest, neural network with a single hidden layer, and support vector machines with radial kernel (SVM radial) were developed as presented in Figure \@ref(fig:fig-dlco-tuning). Their performance at detection of the reduced DLCO in 10-repeats 10-fold cross-validation was measured by mean absolute error (MAE). Sorted MAE values are presented in plots.
+</p>
+
+<hr style = "border-top: 1px solid DarkGray" />
+
+```{r tab-tuning, tab.cap = 'Selection of machine learning algorithm paramaters by cross-validation-mediated tuning.'}
+
+flextable::flextable(tables$tuning) %>% 
+  set_widths(c(3, 6, 6)) %>% 
+  merge_v(1) %>% 
+  footnote(1, 1, 
+           value = as_paragraph('LFT: lung function testing; DLCO: diffusion lung capacity for carbon monoxide; FCV: forced vital capacity; FEV1: forced expiratory volume in one second.'), 
+          ref_symbols = 'a', 
+          part = 'header') %>% 
   theme_vanilla
 
 ```
 
 <hr style = "border-top: 5px solid DarkGray" />
 
-## Performance of Random Forest models at prediction of lung function
+## Performance of machine learning models at prediction of lung function testing abnormalities 
 
 <hr style = "border-top: 1px solid DarkGray" />
 
-```{r tab-bin-models, tab.cap = 'Performance of Random Forest classifiers at prediction of lung function testing (LFT) abnormalities in the training dataset and cross-validation (CV). CV results for any LFT abnormalities and diffusion capacity for CO (DLCO) < 80% reference are presented. The entire table is available in a supplementary Excel file.'}
+```{r fig-bin-performance, fig.width = figur::convert(figures$bin_performance, to = 'in')$w, fig.height = figur::convert(figures$bin_performance, to = 'in')$h, fig.cap = 'Performance of machine learning models at prediction of abnormalities of lung function testing in the training data set and repeated cross-validation.'}
 
-tables$bin_models %>% 
-  filter(`LFT variable` %in% c('LFT findings', 'DLCO < 80%'), 
-         `Data type` == 'CV') %>% 
-  select(-`Data type`) %>% 
-  flextable %>% 
-  width(1, width = 2.7, unit = 'cm') %>% 
-  width(2, width = 2.7, unit = 'cm') %>% 
-  width(3, width = 4, unit = 'cm') %>% 
-  width(4, width = 5.5, unit = 'cm') %>% 
+figures$bin_performance$plot
+
+```
+
+<p class = "legend">
+<b>Figure \@ref(fig:fig-bin-performance). Performance of machine learning models at prediction of abnormalities of lung function testing in the training data set and repeated cross-validation.</b>
+<br>
+Probability of any lung function testing (LFT) abnormalities, as well as probability of abnormalities of diffusion capacity for carbon monoxide (DLCO), forced vital capacity (FVC) and forced expiratory volume in one second (FEV1) defined as values < 80% of the age-, sex-, and weight-specific reference were modeled with machine learning algorithms. The following algorithms were employed: gradient boosted machines (GBM), random forest, neural network with a single hidden layer, and support vector machines with radial kernel (SVM radial). The explanatory variables included demographic and clinical history variables, readouts of course of acute COVID-19, follow-up time as well as lung computed tomography results obtained at consecutive follow-up visits. 
+Parameters controlling the algorithm's behavior were optimized by tuning as presented in Figure \@ref(fig:fig-dlco-red-tuning).
+<br>
+Performance of the machine learning models at prediction of the LFT abnormalities described above was assessed by Cohen's $\kappa$ inter-rater reliability statistic (high value: good concordance between the model prediction and the observed abnormality), Brier scores (low values: good agreement between the observed and model-predicted probability of LFT abnormality) and overall accuracy. The performance metric values in the training data (open symbols) and 10-repeats 10-fold cross-validation (filled symbols) are presented in scatter plots. Point size codes for the overall accuracy value. Points are labeled with the corresponding overall accuracy values. Point color represents the machine learning algorithm. Dashed lines visualize performance metrics expected for a meaningless model. Numbers of complete observations ('total') and observations with the particular LFT abnormality ('events') are displayed in the plot captions.
+<br>
+Note superior performance of all investigated algorithms at prediction of DLCO as compared with other LFT abnormalities.
+</p>
+
+<hr style = "border-top: 1px solid DarkGray" />
+
+```{r fig-dlco-red-performance, fig.width = figur::convert(figures$dlco_red_performance, to = 'in')$w, fig.height = figur::convert(figures$dlco_red_performance, to = 'in')$h, fig.cap = 'Quality of prediction of insufficient diffusion capacity for carbon monoxide with machine learning models.'}
+
+figures$dlco_red_performance$plot
+
+```
+
+<p class = "legend">
+<b>Figure \@ref(fig:fig-dlco-red-performance). Quality of prediction of insufficient diffusion capacity for carbon monoxide with machine learning models.</b>
+<br>
+Machine learning models of probability of insufficient diffusion capacity for carbon monoxide (DLCO < 80% of reference value) were developed as presented in Figure \@ref(fig:fig-dlco-red-tuning) and Figure \@ref(fig:fig-bin-performance) with gradient boosted machines (GBM), random forest, neural network with a single hidden layer, and support vector machines with radial kernel (SVM radial).
+<br>
+(A) Performance of the model assessed by receiver-operating characteristic (ROC) in the training data set and 10-repeats 10-fold cross-validation (CV). ROC curve and text annotation color codes for the algorithm. Points represent cutoffs corresponding to 50% probability of insufficient DLCO. Values of the area under the ROC curves (AUC) as well as sensitivity (Se), specificity (Sp) and Youden's J statistic (Se - Sp - 1) at the 50% probability cutoff are presented in the plots.
+<br>
+(B) Observed and predicted, cross-validated frequency of insufficient DLCO at consecutive follow-ups after COVID-19. Lines represent mean frequency estimates, standard errors are visualized as tinted ribbons.
+</p>
+
+<hr style = "border-top: 1px solid DarkGray" />
+
+```{r tab-bin-classifiers, tab.cap = 'Performance of binary machine learining classifiers at predicting lung function testing (LFT) abnormalities in the CovILD study participants.'}
+
+flextable::flextable(tables$bin_classifiers) %>% 
+  set_widths(c(2.5, 2.5, 2.7, rep(2, 7))) %>% 
   merge_v(1:2) %>% 
   footnote(1, 1, 
-           value = as_paragraph('LFT: lung function testing; DLCO: diffusion capacity for CO; FVC: forced vital capacity; FEV1: forced expiratory volume in 1 second'), 
-           part = 'header', 
-           ref_symbols = 'a') %>% 
-  footnote(1, 3, 
-           value = as_paragraph('C-index: concordance index; \u03BA: Cohen \u03BA inter-rater relaibility statistic; AUC, ROC: area under the curve, receiver - operating characteristic'), 
-           part = 'header', 
-           ref_symbols = 'b') %>% 
+           value = as_paragraph('LFT: lung function testing; DLCO: diffusion lung capacity for carbon monoxide; FCV: forced vital capacity; FEV1: forced expiratory volume in one second.'), 
+          ref_symbols = 'a', 
+          part = 'header') %>% 
+  footnote(1, 2, 
+           value = as_paragraph('SVM radial: support vector machines with radial kernel; GBM: gradient boosted machines.'), 
+           ref_symbols = 'b', 
+           part = 'header') %>% 
+  footnote(1, 5, 
+           value = as_paragraph("\u03BA: Cohen's \u03BA inter-rater reliability statistic."), 
+           ref_symbols = 'c', 
+           part = 'header') %>% 
+  footnote(1, 7, 
+           value = as_paragraph('AUC: Area under the receiver-operating characteristic curve'), 
+           ref_symbols = 'd', 
+           part = 'header') %>% 
+  footnote(1, 10, 
+           value = as_paragraph("J: Youden's J statistic"), 
+           ref_symbols = 'e', 
+           part = 'header') %>% 
   theme_vanilla
 
 ```
 
+<hr style = "border-top: 5px solid DarkGray" />
+
+## Performance of machine learning models at prediction of lung function paramaters
+
 <hr style = "border-top: 1px solid DarkGray" />
 
-```{r tab-reg-models, tab.cap = 'Performance of Random Forest regression models at prediction of lung function testing (LFT) variables in the training dataset and cross-validation (CV). CV results for diffusion capacity for CO (DLCO), forced vital capacity (FVC) and forced expiratory volume in 1 second (FEV1) are presented. The entire table is available in a supplementary Excel file.'}
+```{r fig-reg-performance, fig.width = figur::convert(figures$reg_performance, to = 'in')$w, fig.height = figur::convert(figures$reg_performance, to = 'in')$h, fig.cap = 'Performance of machine learning regression models at prediction of lung function testing parameters in the training data set and repeated cross-validation.'}
 
-tables$reg_models %>% 
-  filter(`Data type` == 'CV') %>% 
-  select(-`Data type`) %>% 
-  flextable %>% 
-  width(1, width = 2.7, unit = 'cm') %>% 
-  width(2, width = 2.7, unit = 'cm') %>% 
-  width(3, width = 4, unit = 'cm') %>% 
-  width(4, width = 5.5, unit = 'cm') %>% 
+figures$reg_performance$plot
+
+```
+
+<p class = "legend">
+<b>Figure \@ref(fig:fig-reg-performance). Performance of machine learning regression models at prediction of lung function testing parameters in the training data set and repeated cross-validation.</b>
+<br>
+Lung function testing (LFT) parameters: diffusion diffusion capacity for carbon monoxide (DLCO), forced vital capacity (FVC) and forced expiratory volume in one second (FEV1) were expressed as percentages of the respective age-, sex- and weight-specific reference values. The LFT parameters were modeled with the following machine learning algorithms: gradient boosted machines (GBM), random forest, neural network with a single hidden layer, and support vector machines with radial kernel (SVM radial). The explanatory variables included demographic and clinical history variables, readouts of course of acute COVID-19, follow-up time as well as lung computed tomography results obtained at consecutive follow-up visits. 
+Parameters controlling the algorithm's behavior were optimized by tuning as presented in Figure \@ref(fig:fig-dlco-tuning).
+<br>
+Performance of the machine learning models at prediction of the LFT parameters was assessed by mean absolute error (MAE: low value indicate a good model fit), pseudo-R^2^ as a measure of data set variance explained by the model, and Spearman's $\rho$ coefficient of correlation between the observed and fitted parameter value. The performance metric values in the training data (open symbols) and 10-repeats 10-fold cross-validation (filled symbols) are presented in scatter plots. Point size codes for the overall accuracy value. Points are labeled with the corresponding overall accuracy values. Point color represents the machine learning algorithm. Dashed lines visualize the R^2^ values expected for a meaningless model. Numbers of complete observations are displayed in the plot captions.
+<br>
+Note the overall higher accuracy of the investigated models at prediction of DLCO as compared with the remaining LFT paramaters.
+</p>
+
+<hr style = "border-top: 1px solid DarkGray" />
+
+```{r fig-dlco-performance, fig.width = figur::convert(figures$dlco_performance, to = 'in')$w, fig.height = figur::convert(figures$dlco_performance, to = 'in')$h, fig.cap = 'Observed and model-fitted values of diffusion capacity for carbon dioxide.'}
+
+figures$dlco_performance$plot
+
+```
+
+<p class = "legend">
+<b>Figure \@ref(fig:fig-dlco-performance). Observed and model-fitted values of diffusion capacity for carbon dioxide.</b>
+<br>
+Machine learning models of diffusion capacity for carbon monoxide (percentage of the reference values) were developed as presented in Figure \@ref(fig:fig-dlco-tuning) and Figure \@ref(fig:fig-reg-performance) with the gradient boosted machines (GBM), random forest, neural network with a single hidden layer, and support vector machines with radial kernel (SVM radial) algorithms. Fitted and observed values of DLCO are presented in scatter plots for the training data set (blue) and 10-repeats 10-fold cross-validation (CV, orange). Observations are visualized as points. General additive model (GAM) trends with standard error regions are depicted as blue lines with gray ribbons. Dashed lines represent the slope = 1, intercept = 0 linear trends, expected for a model with ideal concordance with the observed data. Values of Spearman's correlation coefficients $\rho$ of correlation of the fitted and observed DLCO values are displayed in the plot captions along with the number of complete observations in the training data set.
+</p>
+
+<hr style = "border-top: 1px solid DarkGray" />
+
+```{r fig-dlco-model-course, fig.width = figur::convert(figures$dlco_model_course, to = 'in')$w, fig.height = figur::convert(figures$dlco_model_course, to = 'in')$h, fig.cap = 'Observed and model-predicted time course of diffusion capacity for carbon monoxide at consecutive post-COVID-19 follow-up examinations.'}
+
+figures$dlco_model_course$plot
+
+```
+
+<p class = "legend">
+<b>Figure \@ref(fig:fig-dlco-model-course). Observed and model-predicted time course of diffusion capacity for carbon monoxide at consecutive post-COVID-19 follow-up examinations.</b>
+<br>
+Machine learning models of diffusion capacity for carbon monoxide (percentage of the reference values) were developed as presented in Figure \@ref(fig:fig-dlco-tuning) and Figure \@ref(fig:fig-reg-performance) with the gradient boosted machines (GBM), random forest, neural network with a single hidden layer, and support vector machines with radial kernel (SVM radial) algorithms. 
+Observed and predicted, cross-validated diffusion DLCO values at consecutive follow-ups after COVID-19. Lines represent mean DLCO estimates, standard errors are visualized as tinted ribbons.
+</p>
+
+<hr style = "border-top: 1px solid DarkGray" />
+
+```{r tab-reg-models, tab.cap = 'Performance of regression machine learning models at predicting lung function testing parameters in the CovILD study participants.'}
+
+flextable::flextable(tables$reg_models) %>% 
+  set_widths(c(2.5, 2.5, 2.7, rep(2.2, 3))) %>% 
   merge_v(1:2) %>% 
   footnote(1, 1, 
-           value = as_paragraph('LFT: lung function testing; DLCO: diffusion capacity for CO; FVC: forced vital capacity; FEV1: forced expiratory volume in 1 second'), 
-           part = 'header', 
-           ref_symbols = 'a') %>% 
-  footnote(1, 3, 
-           value = as_paragraph('MAE: mean absolute error; RMSE: root mean square error; Pearson r: Pearson correlation coefficient between fitter and observed values'), 
-           part = 'header', 
-           ref_symbols = 'b') %>% 
+           value = as_paragraph('DLCO: diffusion lung capacity for carbon monoxide; FCV: forced vital capacity; FEV1: forced expiratory volume in one second.'), 
+          ref_symbols = 'a', 
+          part = 'header') %>% 
+  footnote(1, 2, 
+           value = as_paragraph('SVM radial: support vector machines with radial kernel; GBM: gradient boosted machines.'), 
+           ref_symbols = 'b', 
+           part = 'header') %>% 
+  footnote(1, 5, 
+           value = as_paragraph('MAE: mean absolute error'), 
+           ref_symbols = 'c', 
+           part = 'header') %>% 
   theme_vanilla
 
 ```
@@ -375,6 +690,89 @@ tables$reg_models %>%
 <hr style = "border-top: 5px solid DarkGray" />
 
 ## Severity score, and AI-determined opacity and high opacity are the key predictors of lung function
+
+<hr style = "border-top: 1px solid DarkGray" />
+
+```{r fig-dlco-reduced-global-vim, fig.width = figur::convert(figures$dlco_reduced_global_vim, to = 'in')$w, fig.height = figur::convert(figures$dlco_reduced_global_vim, to = 'in')$h, fig.cap = 'Top most influential variables for prediction of abnormalities of diffusion capacity for carbon monoxide by machine learning models.'}
+
+figures$dlco_reduced_global_vim$plot
+
+```
+
+<p class = "legend">
+<b>Figure \@ref(fig:fig-dlco-reduced-global-vim). Top most influential variables for prediction of abnormalities of diffusion capacity for carbon monoxide by machine learning models.</b>
+<br>
+Abnormalities in diffusion capacity for carbon dioxide defined as values < 80% of the age-, sex-, and weight-specific reference were modeled with machine learning as presented in Figure \@ref(fig:fig-dlco-red-tuning) and Figure \@ref(fig:fig-bin-performance). The following algorithms were employed: gradient boosted machines (GBM), random forest, neural network with a single hidden layer, and support vector machines with radial kernel (SVM radial). 
+The explanatory variables included demographic and clinical history variables, readouts of course of acute COVID-19, follow-up time as well as lung computed tomography results obtained at consecutive follow-up visits. 
+<br>
+Variable importance measures: permutation importance for random forests, input weight importance for neural network, area under the receiver-operating characteristic curve for SVM, and mean tree-split reduction of model deviance for GBM were extracted from the models. The variable 0 - 100 scaled importance metrics for the top ten most important explanator variables are presented in bar plots.
+</p>
+
+<hr style = "border-top: 1px solid DarkGray" />
+
+```{r fig-dlco-regression-global-vim, fig.width = figur::convert(figures$dlco_regression_global_vim, to = 'in')$w, fig.height = figur::convert(figures$dlco_regression_global_vim, to = 'in')$h, fig.cap = 'Top most influential variables for prediction of diffusion capacity for carbon monoxide by machine learning models.'}
+
+figures$dlco_regression_global_vim$plot
+
+```
+
+<p class = "legend">
+<b>Figure \@ref(fig:fig-dlco-regression-global-vim). Top most influential variables for prediction of diffusion capacity for carbon monoxide by machine learning models.</b>
+<br>
+Diffusion capacity for carbon monoxide expressed as percentage of the age-, sex-, and weight-specific reference was modeled with machine learning as presented in Figure \@ref(fig:fig-dlco-tuning) and Figure \@ref(fig:fig-reg-performance). The following algorithms were employed: gradient boosted machines (GBM), random forest, neural network with a single hidden layer, and support vector machines with radial kernel (SVM radial). 
+The explanatory variables included demographic and clinical history variables, readouts of course of acute COVID-19, follow-up time as well as lung computed tomography results obtained at consecutive follow-up visits. 
+<br>
+Variable importance measures: permutation importance for random forests, input weight importance for neural network, R^2^ for the LOESS trend between the variable and outcome for SVM, and mean tree-split reduction of model deviance for GBM were extracted from the models. The variable 0 - 100 scaled importance metrics for the top ten most important explanatory variables are presented in bar plots.
+</p>
+
+<hr style = "border-top: 1px solid DarkGray" />
+
+```{r fig-univariable-dlco-red, fig.width = figur::convert(figures$univariable_dlco_red, to = 'in')$w, fig.height = figur::convert(figures$univariable_dlco_red, to = 'in')$h, fig.cap = 'Human- and artificial intelligence-derived measures of severity of radiological lung abnormality and anti-coagulation treatment are strong predictors of insufficient diffusion capacity for carbon monoxide.'}
+
+figures$univariable_dlco_red$plot
+
+```
+
+<p class = "legend">
+<b>Figure \@ref(fig:fig-univariable-dlco-red). Human- and artificial intelligence-derived measures of severity of radiological lung abnormality and anti-coagulation treatment are strong predictors of insufficient diffusion capacity for carbon monoxide.</b>
+<br>
+Differences in single demographic and clinical history variables, readouts of course of acute COVID-19, follow-up time as well as lung computed tomography (CT) parameters between CovILD data set observations with and without insufficient diffusion capacity for carbon monoxide (DLCO < 80 of reference value) were investigated. 
+Differences in numeric explanatory variables were assessed by Mann-Whitney test with r effect size statistic. Difference in categorical variables were investigated by $\chi^2$ test with Cramer's V effect size statistic. P values were corrected for multiple testing with the false discovery rate method (FDR).
+<br>
+(A) Effect size and significance for differences in explanatory variable levels presented in a scatted plot. Each point represents a single explanatory variable. Significant effects are color coded. The dashed line represents the significance cutoff (pFDR < 0.05). Numbers of complete observations ('total') and observations with DLCO insufficiency ('events') are displayed in the plot caption.
+<br>
+(B) Radiologist's CT severity score (CTSS), artificial intelligence (AI)-derived lung opacity and lug high opacity in observations with and without DLCO insufficiency were presented as box plots (medians with interquartile ranges) with whiskers spanning over 150% of the interquartile range and single observations visualized as points. Frequencies of observations with anti-coagulant treatment during acute COVID-19 between observations with and without DLCO insufficiency are depicted in stack plot. Effect sizes and p values are displayed in the plot captions. Numbers of observations with and without DLCO insufficiency are indicated in the X axes.
+</p>
+
+<hr style = "border-top: 1px solid DarkGray" />
+
+```{r fig-univariable-dlco-corr, fig.width = figur::convert(figures$univariable_dlco_corr, to = 'in')$w, fig.height = figur::convert(figures$univariable_dlco_corr, to = 'in')$h, fig.cap = "Radiologist's computed tomography severity score, artificial intelligence-computed lung opacity and lung high opacity, and length of hospital stay are significant correlates of diffusion capacity for carbon monoxide."}
+
+figures$univariable_dlco_corr$plot
+
+```
+
+<p class = "legend">
+<b>Figure \@ref(fig:fig-univariable-dlco-corr). Radiologist's computed tomography severity score, artificial intelligence-computed lung opacity and lung high opacity, and length of hospital stay are significant correlates of diffusion capacity for carbon monoxide.</b>
+<br>
+The human derived computed tomography severity score (CTSS), artificial intelligence (AI) calculated lung opacity and lung high opacity as well as the length of hospital stay were the strongest correlates of diffusion capacity for carbon monoxide (DLCO, percentage of the reference value) as assessed by Spearman's rank test corrected for multiple testing with the false discovery rate method.
+<br>
+Association of DLCO with the explanatory variables described above was visualized in scatter plots of ranks. Each point represents a single observation. Blue lines with gray ribbons represent fitted linear trends with standard error regions. Spearman's $\rho$ coefficients of correlation with 95% confidence intervals, p values and numbers of complete observations are displayed in the plot captions.
+</p>
+
+<hr style = "border-top: 1px solid DarkGray" />
+
+```{r fig-lft-roc, fig.width = figur::convert(figures$dlco_roc, to = 'in')$w, fig.height = figur::convert(figures$dlco_roc, to = 'in')$h, fig.cap = 'Detection of insufficient diffusion capacity for carbon monoxide by human- and artificial intelligence- derived measures of radiological lung abnormality.'}
+
+figures$dlco_roc$plot
+
+```
+
+<p class = "legend">
+<b>Figure \@ref(fig:fig-lft-roc). Detection of insufficient diffusion capacity for carbon monoxide by human- and artificial intelligence- derived measures of radiological lung abnormality.</b>
+<br>
+The optimal cutoffs of the radiologist's computed tomography severity score (CTSS), and artificial intelligence (AI) determined lung opacity and high lung opacity for detection of insufficient diffusion capacity for carbon monoxide (DLCO < 80% of reference) were found by maximizing the Youden's J statistic (i.e. sensitivity + specificity - 1). Results of the optimal opacity cutoff finding are presented as receiver-operating characteristic (ROC) curves. The optimal opacity cutoffs are labeled with points and the corresponding CTSS, opacity or high opacity values. Sensitivity, specificity, Youden's J and area under the ROC curve (AUC) are displayed in the plots.
+</p>
 
 <hr style = "border-top: 1px solid DarkGray" />
 
@@ -388,7 +786,7 @@ flextable::flextable(tables$lft_binary_uni) %>%
   width(6, width = 2.5, unit = 'cm') %>% 
   merge_v(1) %>% 
   footnote(1, 1, 
-           value = as_paragraph('LFT: lung function testing; DLCO: diffusion capacity for CO; FVC: forced vital capacity; FEV1: forced expiratory volume in 1 second'), 
+           value = as_paragraph('LFT: lung function testing; DLCO: diffusion capacity for carbon monoxide; FVC: forced vital capacity; FEV1: forced expiratory volume in one second'), 
            part = 'header', 
            ref_symbols = 'a') %>% 
   footnote(1, 2, 
@@ -414,7 +812,7 @@ flextable::flextable(tables$lft_correlation_uni) %>%
   width(5, width = 2.7, unit = 'cm') %>% 
   merge_v(1) %>% 
   footnote(1, 1, 
-           value = as_paragraph('DLCOP: diffusion capacity for CO; FVC: forced vital capacity; FEV1: forced expiratory volume in 1 second'), 
+           value = as_paragraph('DLCOP: diffusion capacity for carbon monoxide; FVC: forced vital capacity; FEV1: forced expiratory volume in one second'), 
            part = 'header', 
            ref_symbols = 'a') %>% 
   footnote(1, 2, 
@@ -439,11 +837,11 @@ flextable::flextable(tables$lft_roc) %>%
   width(4:9, width = 2.5, unit = 'cm') %>% 
   merge_v(1) %>% 
   footnote(1, 1, 
-           value = as_paragraph('LFT:: lung function testting; DLCO: diffusion capacity for CO; FVC: forced vital capacity; FEV1: forced expiratory volume in 1 second'), 
+           value = as_paragraph('LFT:: lung function testting; DLCO: diffusion capacity for carbon monoxide; FVC: forced vital capacity; FEV1: forced expiratory volume in one second'), 
            part = 'header', 
            ref_symbols = 'a') %>% 
   footnote(1, 2, 
-           value = as_paragraph('CTSS: chest computed tomography severity score; AI: artificual intelligence'),
+           value = as_paragraph('CTSS: chest computed tomography severity score; AI: artifical intelligence'),
            part = 'header',
            ref_symbols = 'b') %>% 
    footnote(1, 3, 
