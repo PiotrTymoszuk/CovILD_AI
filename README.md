@@ -28,6 +28,9 @@ devtools::install_github('PiotrTymoszuk/figur') ## management of figures and tab
 devtools::install_github('PiotrTymoszuk/trafo') ## handling of tabular data
 devtools::install_github('PiotrTymoszuk/caretExtra') ## performance stats and visualization of caret models
 
+devtools::install_github('PiotrTymoszuk/clustTools') ## a dependency of `caretExtra`
+devtools::install_github('PiotrTymoszuk/somKernels') ## a dependency of `caretExtra`
+
 ```
 
 Source 'exec.R' to launch the entire pipeline:
