@@ -28,6 +28,7 @@
   c('./exploration scripts/baseline_cohort.R', 
     './exploration scripts/ct.R',
     './exploration scripts/lft.R', 
+    './exploration scripts/symptoms.R', 
     './exploration scripts/distribution_longitudinal.R', 
     './exploration scripts/distribution_baseline.R') %>% 
     source_all(message = TRUE, crash = TRUE)

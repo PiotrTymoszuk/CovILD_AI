@@ -18,6 +18,7 @@
   library(OptimalCutpoints)
   library(plotROC)
   library(caret)
+  library(bootStat)
 
   library(soucer)
   library(furrr)

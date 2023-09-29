@@ -11,73 +11,46 @@
   
   kin_numeric <- list()
   
-# parallel backend -------
+# parallel backend ------
   
   insert_msg('Parallel backend')
   
   plan('multisession')
-  
-# Analysis globals -------
-  
-  insert_msg('Analysis globals')
-  
-  ## variables
-  
-  kin_numeric$variables <- kin_globals$variables$numeric
-  
-  kin_numeric$variable_class <- 
-    ifelse(kin_numeric$variables %in% covild$ct_lexicon$variable, 
-           'CT', 'LFT') %>% 
-    tibble(variable = kin_numeric$variables, 
-           class = .)
-  
-  kin_numeric$variables <- 
-    set_names(kin_numeric$variables, 
-              kin_numeric$variables)
-
-  ## analysis table
-  
-  kin_numeric$analysis_tbl <- kin_globals$analysis_tbl %>% 
-    map(select, ID, follow_up, all_of(kin_numeric$variables))
 
 # Descriptive stats -------
   
   insert_msg('Descriptive stats')
   
-  kin_numeric$stats <- kin_numeric$analysis_tbl %>% 
-    future_map(function(data) kin_numeric$variables %>% 
-                 map(~explore(data[c('ID', 'follow_up', .x)] %>% 
-                                complete_cases('ID'), 
-                              variables = .x, 
-                              split_factor = 'follow_up', 
-                              what = 'table', 
-                              pub_styled = TRUE)), 
+  kin_numeric$stats <- kin_globals$analysis_tbl %>% 
+    future_map(explore, 
+               split_factor = 'follow_up', 
+               variables = kin_globals$variables$numeric, 
+               what = 'table', 
+               pub_styled = TRUE, 
                .options = furrr_options(seed = TRUE))
-  
+
   kin_numeric$stats <- kin_numeric$stats %>% 
-    map(map_dfr, reduce, left_join, by = 'variable') %>% 
+    map(reduce, left_join, by = 'variable') %>% 
     compress(names_to = 'severity_class') %>% 
     relocate(severity_class) %>% 
     set_names(c('severity_class', 'variable', 
-                levels(kin_numeric$analysis_tbl[[1]]$follow_up)))
+                levels(kin_globals$analysis_tbl[[1]]$follow_up)))
   
 # Testing ---------
   
   insert_msg('Testing')
   
-  kin_numeric$test <- kin_numeric$analysis_tbl %>% 
-    future_map(function(data) kin_numeric$variables %>% 
-                 map_dfr(~compare_variables(data[c('ID', 'follow_up', .x)] %>% 
-                                              complete_cases('ID'), 
-                                            variables = .x, 
-                                            split_factor = 'follow_up', 
-                                            what = 'eff_size', 
-                                            types = 'kendall_w', 
-                                            exact = FALSE, 
-                                            ci = FALSE, 
-                                            pub_styled = FALSE)), 
+  kin_numeric$test <- kin_globals$analysis_tbl %>% 
+    future_map(compare_variables, 
+               variables = kin_globals$variables$numeric, 
+               split_factor = 'follow_up', 
+               what = 'eff_size', 
+               types = 'kendall_w', 
+               exact = FALSE, 
+               ci = FALSE, 
+               pub_styled = FALSE, 
                .options = furrr_options(seed = TRUE))
-  
+
   kin_numeric$test <- kin_numeric$test %>% 
     compress(names_to = 'severity_class') %>% 
     re_adjust %>% 
@@ -92,12 +65,11 @@
                                    replacement = ''), 
            strength = factor(strength, 
                              c('slight', 'fair', 'moderate', 
-                               'substantial', 'almost perfect'))) 
-  
-  kin_numeric$test <- 
-    left_join(kin_numeric$test, 
-              kin_numeric$variable_class)
-  
+                               'substantial', 'almost perfect')), 
+           class = exchange(variable, 
+                            dict = kin_globals$lexicon, 
+                            value = 'class'))
+
 # Plotting effect sizes -------
   
   insert_msg('Plotting effect sizes')
@@ -107,7 +79,8 @@
   kin_numeric$eff_plots <- 
     list(data = blast(kin_numeric$test, class), 
          plot_title = c('CT parameters, recovery effect', 
-                        'LFT paramaters, recovery effect')) %>% 
+                        'LFT paramaters, recovery effect', 
+                        'Symptoms, recovery effect')) %>% 
     pmap(plot_eff_bubble) %>% 
     map(~.x + 
           guides(size = 'none') + 
@@ -123,16 +96,16 @@
   insert_msg('Kinetic plots')
   
   kin_numeric$plots <- 
-    list(x = kin_numeric$analysis_tbl, 
+    list(x = kin_globals$analysis_tbl, 
          y = blast(kin_numeric$test, severity_class), 
-         z = globals$sev_colors[names(kin_numeric$analysis_tbl)], 
-         v = globals$sev_labels[names(kin_numeric$analysis_tbl)]) %>% 
-    pmap(function(x, y, z, v) list(y_var = kin_numeric$variables, 
-                                   plot_title = exchange(kin_numeric$variables, 
+         z = globals$sev_colors[names(kin_globals$analysis_tbl)], 
+         v = globals$sev_labels[names(kin_globals$analysis_tbl)]) %>% 
+    pmap(function(x, y, z, v) list(y_var = kin_globals$variables$numeric, 
+                                   plot_title = exchange(kin_globals$variables$numeric, 
                                                          kin_globals$lexicon) %>% 
                                      paste(v, sep = ', '), 
                                    plot_subtitle = y$plot_cap, 
-                                   y_lab = exchange(kin_numeric$variables, 
+                                   y_lab = exchange(kin_globals$variables$numeric, 
                                                     kin_globals$lexicon, 
                                                     value = 'unit')) %>% 
            pmap(plot_kinetic, 
@@ -141,7 +114,8 @@
                 point_size = 0, 
                 fill_color = z) %>% 
            map(~.x + scale_x_discrete(labels = globals$fup_labels))) %>% 
-    transpose
+    transpose %>% 
+    set_names(kin_globals$variables$numeric)
   
 # END ------
   

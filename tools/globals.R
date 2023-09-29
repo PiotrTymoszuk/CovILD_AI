@@ -35,6 +35,38 @@
           plot.margin = globals$common_margin,
           panel.grid.major = element_line(color = 'gray90'))
   
+# a theme for presentation figures --------
+  
+  globals$presentation_text <- element_text(size = 12,
+                                            face = 'plain',
+                                            color = 'black')
+  
+  globals$presentation_margin <- ggplot2::margin(t = 5,
+                                           l = 4,
+                                           r = 2,
+                                           unit = 'mm')
+  
+  globals$presentation_theme <- theme_classic() + 
+    theme(axis.text = globals$presentation_text,
+          axis.title = globals$presentation_text,
+          plot.title = element_text(size = 12,
+                                    face = 'bold'),
+          plot.subtitle = globals$presentation_text,
+          plot.tag = element_text(size = 12,
+                                  face = 'plain',
+                                  color = 'black',
+                                  hjust = 0,
+                                  vjust = 1),
+          plot.tag.position = 'bottom',
+          legend.text = globals$presentation_text,
+          legend.title = globals$presentation_text,
+          strip.text = globals$presentation_text,
+          strip.background = element_rect(fill = 'gray95',
+                                          color = 'gray80'),
+          plot.margin = globals$common_margin,
+          panel.grid.major = element_line(color = 'gray90'))
+  
+  
 # strata colors and labels ------
 
   globals$sev_colors <- c('ambulatory mild' = 'steelblue', 

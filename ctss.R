@@ -21,6 +21,7 @@
   library(caret)
   library(exda)
   library(rstatix)
+  library(bootStat)
 
   library(plotROC)
   library(OptimalCutpoints)
@@ -84,7 +85,8 @@
   
   insert_msg('Analysis scripts')
   
-  c('./CTSS scripts/ild_cutoff.R', 
+  c('./CTSS scripts/ild_frequency.R', 
+    './CTSS scripts/ild_cutoff.R', 
     './CTSS scripts/ild_strata.R', 
     './CTSS scripts/ctss_classes.R', 
     './CTSS scripts/ctss_relationship.R') %>% 

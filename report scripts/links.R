@@ -14,7 +14,9 @@
     list('ExDA' = 'https://github.com/PiotrTymoszuk/ExDA', 
          'trafo' = 'https://github.com/PiotrTymoszuk/trafo', 
          'figur' = 'https://github.com/PiotrTymoszuk/figur', 
-         'caretExtra' = 'https://github.com/PiotrTymoszuk/caretExtra') %>% 
+         'caretExtra' = 'https://github.com/PiotrTymoszuk/caretExtra', 
+         'lmqc' = 'https://github.com/PiotrTymoszuk/lmqc', 
+         'bootStat' = 'https://github.com/PiotrTymoszuk/bootStat') %>% 
     compress(names_to = 'obj_name', 
              values_to = 'x') %>% 
     mutate(ref_name = paste0('_', obj_name, '_'))

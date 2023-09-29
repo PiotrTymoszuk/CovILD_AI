@@ -20,11 +20,11 @@
   ## and particular severity strata
   
   cohort$analysis_tbl <- 
-    c(list(cohort = covild$baseline), 
+    c(list(`entire cohort` = covild$baseline), 
       blast(covild$baseline, severity_class)) %>% 
     compress(names_to = 'cohort_split') %>% 
     mutate(cohort_split = factor(cohort_split, 
-                                 c('cohort', 
+                                 c('entire cohort', 
                                    levels(covild$baseline$severity_class))))
   
 # Descriptive statistics ------
@@ -65,14 +65,16 @@
   insert_msg('Result table')
   
   cohort$result_tbl <- 
-    left_join(cohort$stats, 
+    left_join(cohort$stats[c('variable', 'entire cohort', 'ambulatory mild', 
+                             'hospitalized moderate', 'hospitalized severe')], 
               cohort$test[c('variable', 'significance', 'eff_size')], 
               by = 'variable') %>% 
     format_summ_tbl(dict = cohort$lexicon, rm_n = TRUE) %>% 
     full_rbind(tibble(variable = 'Participants, n', 
-                      `ambulatory mild` = cohort$n_numbers$n[1], 
-                      `hospitalized moderate` = cohort$n_numbers$n[2], 
-                      `hospitalized severe` = cohort$n_numbers$n[3]), .)
+                      `entire cohort` = cohort$n_numbers$n[1], 
+                      `ambulatory mild` = cohort$n_numbers$n[2], 
+                      `hospitalized moderate` = cohort$n_numbers$n[3], 
+                      `hospitalized severe` = cohort$n_numbers$n[4]), .)
   
 # END -------
   

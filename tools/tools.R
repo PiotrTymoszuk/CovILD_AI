@@ -10,6 +10,7 @@
   library(furrr)
   library(coxed)
   library(soucer)
+  library(bootStat)
   
 # Lexicon handling ------
   
@@ -147,6 +148,8 @@
                                  shape_alpha = 0.25, 
                                  point_alpha = 0.75, 
                                  dodge_w = 0.85, 
+                                 point_wjitter = 0.1, 
+                                 point_hjitter = 0, 
                                  show_n = FALSE, 
                                  n_adjust = TRUE, 
                                  n_offset = 0,
@@ -169,8 +172,8 @@
       geom_point(size = 2, 
                  shape = 21, 
                  alpha = point_alpha, 
-                 position = position_jitterdodge(jitter.width = 0.1, 
-                                                 jitter.height = 0, 
+                 position = position_jitterdodge(jitter.width = point_wjitter, 
+                                                 jitter.height = point_hjitter, 
                                                  dodge.width = dodge_w)) + 
       globals$common_theme + 
       labs(title = plot_title, 
@@ -423,6 +426,26 @@
   }
   
   
+# Complete cases --------
+  
+  complete_longitudinal <- function(data) {
+    
+    ## filters for cases with the complete one-year follow-up
+    
+    all_timepoints <- levels(data$follow_up)
+    
+    timepoint_test <- data %>% 
+      blast(ID) %>% 
+      map_lgl(~all(all_timepoints %in% .x$follow_up))
+      
+      
+    timepoint_test <- names(timepoint_test)[timepoint_test]
+    
+    data %>% 
+      filter(ID %in% timepoint_test)
+    
+  }
+  
 # Optimal cutoff -----
   
   extract_cut <- function(object) {
@@ -646,29 +669,18 @@
 
     # output
     
-    tibble(kappa = confusion_matrix$overall['Kappa'],
-           Se = confusion_matrix$byClass['Sensitivity'],
-           Sp = confusion_matrix$byClass['Specificity'],
-           accuracy = confusion_matrix$overall['Accuracy'], 
-           n = sum(confusion_matrix$table), 
-           n_disease = sum(confusion_matrix$table[, 2]))
-  }
-  
-  bootstraps_tidy <- function(data, B = 1000) {
-    
-    ## creates B bootstraps of a data frame provided as the data argument
-    ## will do in parallel when a backend is registered
-    
-    1:B %>% 
-      set_names(paste0('rep_', 1:B)) %>% 
-      future_map(function(x) slice_sample(data, 
-                                          n = nrow(data), 
-                                          replace = TRUE), 
-                 .options = furrr_options(seed = TRUE))
+    c(confusion_matrix$overall['Kappa'], 
+      confusion_matrix$byClass['Sensitivity'],
+      confusion_matrix$byClass['Specificity'],
+      confusion_matrix$overall['Accuracy'], 
+      sum(confusion_matrix$table), 
+      sum(confusion_matrix$table[, 2])) %>% 
+      set_names(c('kappa', 'Se', 'Sp', 'accuracy', 'n', 'n_disease'))
 
   }
   
   rater_stats <- function(data, 
+                          id_variable = 'ID', 
                           d_variable, 
                           m_variable, 
                           B = 1, 
@@ -679,58 +691,24 @@
     ## for the disease and marker variables 
     ## (both of them dichotomous and the same levels)
     ## will employ a parallel backend if registered
+    ## 
+    ## because I'm dealing with non-independently distributed 
+    ## I' re-sampling the participants instead of single observations, 
+    ## i.e. resorting to a block bootstrap
+    
+    stats <- bmap.data.frame(data, 
+                             B = B, 
+                             FUN = rater_stats_, 
+                             d_variable = d_variable, 
+                             m_variable = m_variable, 
+                             positive = positive, 
+                             .by = id_variable)
 
-    ## entry control
-    
-    stopifnot(is.data.frame(data))
-    stopifnot(identical(levels(data[[d_variable]]), 
-                        levels(data[[m_variable]])))
-    
-    stopifnot(is.numeric(B))
-    stopifnot(B > 0)
+    stats$bootstrap %>% 
+      mutate(estimate = unname(stats$dataset)) %>% 
+      relocate(estimate) %>% 
+      relocate(statistic)
 
-    B <- as.integer(B)
-    
-    ## inter-rater stats for the original data
-    
-    data_stats <- rater_stats_(data, d_variable, m_variable)
-    
-    ## special case: no bootstraps, B = 1
-    
-    if(B == 1) return(data_stats)
-    
-    ## benchmarking
-    
-    start_time <- Sys.time()
-    on.exit(message(paste('Elapsed:', Sys.time() - start_time)))
-    
-    ## bootstraps and confidence intervals
-    
-    boots <- bootstraps_tidy(data, B)
-    
-    boot_stats <- boots %>% 
-      future_map_dfr(rater_stats_, 
-                     d_variable = d_variable, 
-                     m_variable = m_variable, 
-                     positive = positive)
-    
-    boot_ci <- boot_stats[c('kappa', 'Se', 'Sp', 'accuracy')] %>% 
-      #map(bca, conf.level = conf.level)
-      map(quantile, probs = c(0.025, 0.975), na.rm = TRUE)
-    
-    ## the output tibble
-    
-    for(i in names(data_stats)) {
-      
-      data_stats <- data_stats %>% 
-        mutate(!!paste0(i, '_lower') := boot_ci[[i]][1], 
-               !!paste0(i, '_upper') := boot_ci[[i]][2])
-      
-      
-    }
-    
-    data_stats
-    
   } 
   
   plot_rater_stats <- function(data, 
@@ -759,60 +737,151 @@
     ## plotting data and variables
     
     data <- data %>% 
-      filter(.data[['response']] == !!response)
+      filter(.data[['response']] == !!response) %>% 
+      mutate(split_factor = factor(.data[[split_factor]], 
+                                   rev(levels(.data[[split_factor]]))))
     
     plot_vars <- list(kappa = 'kappa', 
                       Se = 'Se', 
                       Sp = 'Sp', 
-                      accuracy = 'accuracy') %>% 
-      map(~c(.x, paste0(.x, c('_lower', '_upper')), 
-             'n', 'n_disease', split_factor))
+                      accuracy = 'accuracy')
     
-    data <- plot_vars %>% 
-      map(~data[.x]) %>% 
-      map(set_names, 
-          c('value', 'lower_ci', 'upper_ci', 'n', 'n_disease', 'split_factor')) %>% 
-      map(mutate, 
-          plot_lab = paste0(signif(value, signif_digits), 
-                            ' [', signif(lower_ci, signif_digits), 
-                            ' - ', signif(upper_ci, signif_digits), ']'), 
-          axis_lab = split_labels[as.character(split_factor)], 
-          axis_lab = paste0(axis_lab, 
-                            '\ntotal: n = ', n, 
-                            '\nevents: n = ', n_disease), 
-          split_factor := factor(split_factor, rev(levels(split_factor))))
+    plot_data <- data %>% 
+      filter(statistic %in% plot_vars) %>% 
+      mutate(statistic = factor(statistic, plot_vars), 
+             plot_lab = paste0(signif(estimate, signif_digits), 
+                               ' [', signif(boot_lower_ci, signif_digits), 
+                               ' - ', signif(boot_upper_ci, signif_digits), ']')) %>% 
+      blast(statistic)
     
     axis_labs <- data %>% 
-      map(~set_names(.x$axis_lab, .x$split_factor))
+      filter(statistic %in% c('n', 'n_disease')) %>% 
+      blast(split_factor)
+    
+    axis_labs <- axis_labs %>% 
+      map2_chr(., names(.), 
+               ~paste0(split_labels[.y], 
+                       '\ntotal: n = ', .x$estimate[1], 
+                       '\nevents: n = ', .x$estimate[2]))
     
     ## plots
     
-    list(x = data, 
-         v = axis_labs, 
-         y = plot_title, 
-         z = x_lab) %>% 
-      pmap(function(x, v, y, z) x %>% 
-             ggplot(aes(x = value, 
+    plot_lst <- 
+      list(x = plot_data, 
+           y = plot_title, 
+           z = x_lab) %>% 
+      pmap(function(x, y, z) x %>% 
+             ggplot(aes(x = estimate, 
                         y = split_factor, 
                         color = split_factor)) + 
-             geom_errorbarh(aes(xmin = lower_ci, 
-                                xmax = upper_ci), 
+             geom_errorbarh(aes(xmin = boot_lower_ci, 
+                                xmax = boot_upper_ci), 
                             height = 0) + 
              geom_point(size = 2, 
                         shape = 16) + 
              geom_text(aes(label = plot_lab), 
                        size = txt_size, 
                        hjust = txt_hjust, 
-                       vjust = txt_vjust) + 
+                       vjust = txt_vjust,
+                       show.legend = FALSE) + 
              scale_color_manual(values = split_palette, 
                                 name = '') +
-             scale_y_discrete(labels = v) + 
+             scale_y_discrete(labels = axis_labs) + 
              globals$common_theme + 
              theme(axis.title.y = element_blank()) + 
              labs(title = y, 
                   subtitle = plot_subtitle, 
                   x = z))
     
+    
+  }
+  
+  format_strata_rater <- function(stat_tbl, 
+                                  response_order = op_strata$responses, 
+                                  response_dict = cut_globals$lexicon) {
+    
+    stat_tbl %>% 
+      filter(statistic %in% c('kappa', 'Se', 'Sp', 'accuracy')) %>% 
+      map_dfc(function(x) if(is.numeric(x)) signif(x, 2) else x) %>% 
+      mutate(response = factor(response, response_order), 
+             table_lab = paste0(estimate, ' [', 
+                                boot_lower_ci, ' - ', 
+                                boot_upper_ci, ']')) %>% 
+      select(response, 
+             statistic, 
+             any_of(c('follow_up', 'severity_class')), 
+             table_lab) %>% 
+      pivot_wider(values_from = 'table_lab', 
+                  names_from = 'statistic') %>% 
+      arrange(response) %>% 
+      mutate(response = exchange(as.character(response), 
+                                 dict = response_dict))
+    
+    
+  }
+  
+  plot_lft_forests <- function(stats, 
+                               dict = lft_globals$lexicon,
+                               palette = lft_roc$variable_colors) {
+    
+    ## Forest plot of inter-rater kappa and ROC statistics
+    ## with confidence intervals obtained by bootstrap
+    
+    ## plotting data and metadata
+    
+    plot_subtitle <- stats %>% 
+      filter(statistic %in% c('n', 'n_disease'))
+    
+    plot_subtitle <- paste0('total: n = ', plot_subtitle$estimate[1], 
+                            ', events: n = ', plot_subtitle$estimate[2])
+    
+    plot_stats <- c('kappa', 'Se', 'Sp', 'accuracy')
+    
+    plot_data <- stats %>% 
+      filter(statistic %in% plot_stats) %>% 
+      mutate(statistic = factor(statistic, plot_stats), 
+             plot_lab = paste0(signif(estimate, 2), ' [', 
+                               signif(boot_lower_ci, 2), ' - ', 
+                               signif(boot_upper_ci, 2), ']'), 
+             response = exchange(response, dict = dict)) %>% 
+      blast(statistic)
+    
+    title_prefix <- plot_data[[1]][['response']][[1]]
+    
+    title_suffixes <- 
+      c("Cohen's \u03BA", 'sensitivity', 'specificity', 'accuracy')
+    
+    plot_titles <- paste(title_prefix, title_suffixes, sep = ', ')
+    
+    x_labs <- c('\u03BA', 'Se', 'Sp', 'accuracy')
+    
+    ## plots
+    
+    list(x = plot_data, 
+         y = plot_titles, 
+         z = x_labs) %>% 
+      pmap(function(x, y, z) x %>% 
+             ggplot(aes(x = estimate,
+                        y = marker, 
+                        color = marker)) + 
+             geom_errorbarh(aes(xmin = boot_lower_ci, 
+                                xmax = boot_upper_ci), 
+                            height = 0) + 
+             geom_point(shape = 16, 
+                        size = 2) + 
+             geom_text(aes(label = plot_lab), 
+                       size = 2.75, 
+                       hjust = 0.2, 
+                       vjust = -1.4, 
+                       show.legend = FALSE) + 
+             scale_color_manual(values = palette, 
+                                labels = function(x) exchange(x, dict = dict)) + 
+             scale_y_discrete(labels = function(x) exchange(x, dict = dict)) + 
+             globals$common_theme + 
+             theme(axis.title.y = element_blank()) + 
+             labs(title = y, 
+                  subtitle = plot_subtitle, 
+                  x = z))
     
   }
   
@@ -908,7 +977,7 @@
     form <- match.arg(form, c('box', 'ribbon'))
     
     data <- data %>% 
-      complete_cases(group_var)
+      complete_longitudinal
     
     plot <- data %>% 
       ggplot(aes(x = .data[[time_var]], 
@@ -973,7 +1042,8 @@
     
     multi_sum <- multiClassSummary(data, lev, model)
     
-    multi_sum['J'] <- multi_sum['Sensitivity'] + multi_sum['Specificity']
+    multi_sum['J'] <- 
+      multi_sum['Sensitivity'] + multi_sum['Specificity'] - 1
     
     multi_sum
     
@@ -991,7 +1061,7 @@
     if('J' %in% names(tune_res)) {
       
       plot_var <- 'J'
-      y_lab <- "Youden's J, Se + Sp"
+      y_lab <- "Youden's J"
       
     } else if('Kappa' %in% names(tune_res)) {
       
@@ -1053,7 +1123,7 @@
     if('J' %in% names(tune_res)) {
       
       plot_var <- 'J'
-      y_lab <- "Youden's J, Se + Sp"
+      y_lab <- "Youden's J"
       
     } else if('Kappa' %in% names(tune_res)) {
       
@@ -1111,7 +1181,7 @@
     if('J' %in% names(tune_res)) {
       
       plot_var <- 'J'
-      y_lab <- "Youden's J, Se + Sp"
+      y_lab <- "Youden's J"
       
     } else if('Kappa' %in% names(tune_res)) {
       
@@ -1158,7 +1228,7 @@
     if('J' %in% names(tune_res)) {
       
       plot_var <- 'J'
-      y_lab <- "Youden's J, Se + Sp"
+      y_lab <- "Youden's J"
       
     } else if('Kappa' %in% names(tune_res)) {
       
@@ -1224,7 +1294,7 @@
       
       plot_var <- 'J'
       x_lab <- 'Data resample, sorted by J'
-      y_lab <- "Youden's J, Se + Sp"
+      y_lab <- "Youden's J"
       
     } else if('Kappa' %in% names(resamp_data)) {
       
@@ -2094,6 +2164,224 @@
   
   pred_reg <- function(object, X) caret::predict.train(object, newdata = X)
   
+  kernelshap.caretx <- function(object, 
+                                X, 
+                                bg_X, 
+                                pred_fun = stats::predict, 
+                                feature_names = colnames(X), 
+                                bg_w = NULL, 
+                                exact = length(feature_names) <= 8L, 
+                                hybrid_degree = 1L + length(feature_names) %in% 4:16, 
+                                paired_sampling = TRUE, 
+                                m = 2L * length(feature_names) * (1L + 3L * (hybrid_degree == 0L)), 
+                                tol = 0.005, 
+                                max_iter = 100L, 
+                                parallel_args = NULL, 
+                                verbose = TRUE, ...) {
+    
+    ## I'm writing a specific method, because the default one crashes 
+    ## in a nasty manner with an error - not captured by the code authors
+    ## concerning handling of NAs in the convergence check
+    ##
+    ##
+    ## Consider including in a package!
+    
+    ## entry check -------
+    
+    stopifnot(is.matrix(X) || is.data.frame(X))
+    stopifnot(is.matrix(bg_X) || is.data.frame(bg_X))
+    stopifnot(is.matrix(X) == is.matrix(bg_X))
+    
+    stopifnot(dim(X) >= 1L) 
+    stopifnot(dim(bg_X) >= 1L)
+    
+    stopifnot(!is.null(colnames(X)))
+    stopifnot(!is.null(colnames(bg_X)))
+    
+    p <- length(feature_names)
+    
+    stopifnot(p >= 1)
+    stopifnot(all(feature_names %in% colnames(X)))
+    stopifnot(all(feature_names %in% colnames(bg_X)))
+    stopifnot(all(colnames(X) %in% colnames(bg_X)))
+    
+    stopifnot(is.function(pred_fun))
+    
+    stopifnot(is.logical(exact))
+    stopifnot(is.logical(paired_sampling))
+    
+    stopifnot(p == 1L || exact || hybrid_degree %in% 0:(p/2))
+    
+    n <- nrow(X)
+    bg_n <- nrow(bg_X)
+
+    if (!is.null(bg_w)) {
+      
+      stopifnot(length(bg_w) == bg_n, all(bg_w >= 0), !all(bg_w == 0))
+    }
+    
+    if (is.matrix(X) && !identical(colnames(X), feature_names)) {
+      
+      stop("If X is a matrix, feature_names must equal colnames(X)", 
+           call. = FALSE)
+      
+    }
+    
+    ## marking predictions -------
+    
+    v1 <- kernelshap:::check_pred(pred_fun(object, X, ...), n = n)
+    
+    bg_preds <- 
+      kernelshap:::check_pred(pred_fun(object, 
+                                       bg_X[, colnames(X), drop = FALSE], ...), 
+                              n = bg_n)
+    
+    v0 <- kernelshap:::weighted_colMeans(bg_preds, bg_w)
+    
+    ## computation of SHAPs: a single feature case ---------
+    
+    if (p == 1L) {
+      
+      return(kernelshap:::case_p1(n = n, 
+                                  nms = feature_names, 
+                                  v0 = v0, 
+                                  v1 = v1, 
+                                  X = X, 
+                                  verbose = verbose))
+      
+    }
+    
+    ## computation of SHAPS other cases --------
+    
+    if (!identical(colnames(bg_X), feature_names)) {
+      
+      bg_X <- bg_X[, feature_names, drop = FALSE]
+      
+    }
+    
+    if (exact || hybrid_degree >= 1L) {
+      
+      if(exact) {
+        
+        precalc <- kernelshap:::input_exact(p)
+        
+      } else {
+        
+        precalc <- kernelshap:::input_partly_exact(p, hybrid_degree)
+        
+      }
+      
+      m_exact <- nrow(precalc[["Z"]])
+      prop_exact <- sum(precalc[["w"]])
+      
+      precalc[["bg_X_exact"]] <- 
+        bg_X[rep(seq_len(bg_n), times = m_exact), , drop = FALSE]
+      
+    } else {
+      
+      precalc <- list()
+      m_exact <- 0L
+      prop_exact <- 0
+      
+    }
+
+    if (!exact) {
+      
+      precalc[["bg_X_m"]] <- 
+        bg_X[rep(seq_len(bg_n), times = m), , drop = FALSE]
+    }
+    
+    txt <- 
+      kernelshap:::summarize_strategy(p, exact = exact, deg = hybrid_degree)
+    
+    if (verbose) message(txt)
+    
+    if (max(m, m_exact) * bg_n > 2e+05) {
+      
+      warn_txt <- 
+        paste("\nPredictions on large data sets with ", 
+              max(m, m_exact), "x", bg_n, 
+              " observations are being done.\n", 
+              "Consider reducing the computational burden", 
+              "(e.g. use smaller X_bg)")
+      
+      warning(warn_txt, call. = FALSE)
+      
+    }
+    
+    if (verbose && n >= 2L) {
+      
+      pb <- utils::txtProgressBar(1L, n, style = 3)
+      
+    }
+    
+    res <- vector("list", n)
+
+    for (i in seq_len(n)) {
+      
+      res[[i]] <- 
+        kernelshap:::kernelshap_one(x = X[i, , drop = FALSE], 
+                                    v1 = v1[i, , drop = FALSE], 
+                                    object = object, 
+                                    pred_fun = pred_fun, 
+                                    feature_names = feature_names, 
+                                    bg_w = bg_w, 
+                                    exact = exact, 
+                                    deg = hybrid_degree, 
+                                    paired = paired_sampling, 
+                                    m = m, tol = tol, 
+                                    max_iter = max_iter, 
+                                    v0 = v0, 
+                                    precalc = precalc, ...)
+      
+      if (verbose && n >= 2L) {
+        
+        utils::setTxtProgressBar(pb, i)
+        
+      }
+      
+    }
+
+    converged <- map_lgl(res, ~.x$converged)
+    
+    if(verbose && any(is.na(converged))) {
+      
+      warning("\nConvergence undetermined for ", sum(is.na(converged)), " rows.", 
+              call. = FALSE)
+      
+    }
+    
+    converged[is.na(converged)] <- FALSE
+    
+    if (verbose && !all(converged)) {
+      
+      warning("\nNon-convergence for ", sum(!converged), " rows.", 
+              call. = FALSE)
+      
+    }
+    
+    converged <- vapply(res, `[[`, "converged", FUN.VALUE = logical(1L))
+
+    out <- list(S = kernelshap:::reorganize_list(lapply(res, `[[`, "beta"), 
+                                                 nms = feature_names), 
+                X = X, 
+                baseline = as.vector(v0), 
+                SE = kernelshap:::reorganize_list(lapply(res, `[[`, "sigma"), 
+                                                  nms = feature_names), 
+                n_iter = vapply(res, `[[`, "n_iter", FUN.VALUE = integer(1L)), 
+                converged = converged, 
+                m = m, 
+                m_exact = m_exact, 
+                prop_exact = prop_exact, 
+                exact = exact || trunc(p/2) == hybrid_degree, 
+                txt = txt, 
+                predictions = v1)
+    
+    structure(out, class = 'kernelshap')
+
+  }
+  
+  
 # General plotting tools ----
   
   scatter_plot <- function(data, 
@@ -2187,6 +2475,54 @@
       
     }
     
+  }
+  
+# Markdown helpers -------
+  
+  get_percent <- function(data, variable, 
+                          signif_digits = 2, 
+                          percent_mark = TRUE) {
+    
+    ## computes percentages of complete observations for categorical variables
+    
+    perc <- 
+      signif(table(data[[variable]])/sum(table(data[[variable]])) * 100, signif_digits)
+    
+    if(!percent_mark) return(perc)
+    
+    paste0(perc, '%') %>% 
+      set_names(names(perc))
+    
+  }
+  
+  get_test <- function(data, variable, effect_size = TRUE) {
+    
+    ## retrieves results of statistical testing from a data frame (etest class)
+    
+    stopifnot(inherits(data, 'etest'))
+   
+    if('variable' %in% names(data)) {
+      
+      data <- data %>%
+        filter(.data[['variable']] == !!variable)
+      
+    } else {
+      
+      data <- data %>%
+        filter(.data[['variable1']] == !!variable)
+      
+    }
+
+    if(!effect_size) {
+      
+      return(data[['significance']][[1]])
+      
+    }
+    
+    paste(data[['significance']][[1]], 
+          data[['eff_size']][[1]], 
+          sep = ', effect size: ')
+        
   }
   
 # END -----

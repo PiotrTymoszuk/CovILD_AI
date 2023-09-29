@@ -1,0 +1,37 @@
+<mxfile host="Electron" modified="2023-09-15T09:10:02.002Z" agent="Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) draw.io/21.6.5 Chrome/114.0.5735.243 Electron/25.3.1 Safari/537.36" etag="MTK9FFVKGANcMpah-7H-" version="21.6.5" type="device">
+  <diagram name="Page-1" id="ME_rR0h6g6oH_uVuHWtc">
+    <mxGraphModel dx="1418" dy="828" grid="1" gridSize="10" guides="1" tooltips="1" connect="1" arrows="1" fold="1" page="1" pageScale="1" pageWidth="690" pageHeight="980" math="0" shadow="0">
+      <root>
+        <mxCell id="0" />
+        <mxCell id="1" parent="0" />
+        <mxCell id="grNded3wlk_CFeCUfCRz-6" style="edgeStyle=orthogonalEdgeStyle;rounded=0;orthogonalLoop=1;jettySize=auto;html=1;exitX=0.5;exitY=1;exitDx=0;exitDy=0;" parent="1" source="grNded3wlk_CFeCUfCRz-1" target="grNded3wlk_CFeCUfCRz-3" edge="1">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+        <mxCell id="grNded3wlk_CFeCUfCRz-1" value="&lt;p style=&quot;line-height: 150%;&quot;&gt;&lt;b&gt;CovILD cohort&lt;br&gt;&lt;/b&gt;n = 145 COVID-19 convalescents&lt;/p&gt;" style="rounded=0;whiteSpace=wrap;html=1;fillColor=#dae8fc;strokeColor=#6c8ebf;" parent="1" vertex="1">
+          <mxGeometry x="116.25" y="30" width="207.5" height="50" as="geometry" />
+        </mxCell>
+        <mxCell id="grNded3wlk_CFeCUfCRz-7" style="edgeStyle=orthogonalEdgeStyle;rounded=0;orthogonalLoop=1;jettySize=auto;html=1;exitX=0.5;exitY=1;exitDx=0;exitDy=0;entryX=0.5;entryY=0;entryDx=0;entryDy=0;" parent="1" source="grNded3wlk_CFeCUfCRz-3" target="grNded3wlk_CFeCUfCRz-5" edge="1">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+        <mxCell id="grNded3wlk_CFeCUfCRz-3" value="&lt;blockquote style=&quot;margin: 0 0 0 40px; border: none; padding: 0px;&quot;&gt;&lt;div style=&quot;text-align: left;&quot;&gt;&lt;span style=&quot;background-color: initial;&quot;&gt;Baseline and acute disease data:&lt;/span&gt;&lt;/div&gt;&lt;/blockquote&gt;&lt;blockquote style=&quot;margin: 0 0 0 40px; border: none; padding: 0px;&quot;&gt;&lt;div style=&quot;text-align: left;&quot;&gt;&lt;ul&gt;&lt;li&gt;&lt;span style=&quot;background-color: initial;&quot;&gt;Age, sex, smoking, comorbidity&lt;/span&gt;&lt;/li&gt;&lt;/ul&gt;&lt;ul&gt;&lt;li&gt;&lt;span style=&quot;background-color: initial;&quot;&gt;COVID-19 severity, medication and hospital treatment&lt;/span&gt;&lt;/li&gt;&lt;/ul&gt;&lt;/div&gt;&lt;/blockquote&gt;" style="rounded=0;whiteSpace=wrap;html=1;spacingLeft=-20;fillColor=#d5e8d4;strokeColor=#82b366;" parent="1" vertex="1">
+          <mxGeometry x="50" y="100" width="340" height="100" as="geometry" />
+        </mxCell>
+        <mxCell id="grNded3wlk_CFeCUfCRz-10" style="edgeStyle=orthogonalEdgeStyle;rounded=0;orthogonalLoop=1;jettySize=auto;html=1;entryX=0.5;entryY=0;entryDx=0;entryDy=0;" parent="1" source="grNded3wlk_CFeCUfCRz-5" target="grNded3wlk_CFeCUfCRz-9" edge="1">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+        <mxCell id="grNded3wlk_CFeCUfCRz-12" style="edgeStyle=orthogonalEdgeStyle;rounded=0;orthogonalLoop=1;jettySize=auto;html=1;exitX=0.5;exitY=1;exitDx=0;exitDy=0;" parent="1" source="grNded3wlk_CFeCUfCRz-5" target="grNded3wlk_CFeCUfCRz-11" edge="1">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+        <mxCell id="grNded3wlk_CFeCUfCRz-5" value="Folow-up examinations at 2, 3, 6 and 12 months:&lt;br style=&quot;border-color: var(--border-color); text-align: left;&quot;&gt;&lt;blockquote style=&quot;margin: 0 0 0 40px; border: none; padding: 0px;&quot;&gt;&lt;div style=&quot;text-align: left;&quot;&gt;&lt;ul&gt;&lt;li&gt;Symptoms and self-rated physical performance&lt;/li&gt;&lt;/ul&gt;&lt;ul&gt;&lt;li&gt;Chest CT examined by a radiologist (GGOs, consolidations, reticulations) and AI (opacity and high opacity)&lt;/li&gt;&lt;/ul&gt;&lt;ul&gt;&lt;li&gt;Lung function testing: DLCO, FVC, FEV1&lt;/li&gt;&lt;/ul&gt;&lt;ul&gt;&lt;li&gt;Trans-troracic ECG&lt;/li&gt;&lt;/ul&gt;&lt;/div&gt;&lt;/blockquote&gt;" style="rounded=0;whiteSpace=wrap;html=1;spacingLeft=-20;fillColor=#ffe6cc;strokeColor=#d79b00;" parent="1" vertex="1">
+          <mxGeometry x="50" y="220" width="340" height="170" as="geometry" />
+        </mxCell>
+        <mxCell id="grNded3wlk_CFeCUfCRz-9" value="&lt;p style=&quot;line-height: 150%;&quot;&gt;&lt;b&gt;Analysis data set&lt;br&gt;&lt;/b&gt;n = 140 participants with complete matched CT and LFT data&lt;/p&gt;&lt;p style=&quot;line-height: 150%;&quot;&gt;&lt;span style=&quot;background-color: initial;&quot;&gt;n = 420 data points (observations)&lt;/span&gt;&lt;/p&gt;" style="rounded=0;whiteSpace=wrap;html=1;fillColor=#dae8fc;strokeColor=#6c8ebf;" parent="1" vertex="1">
+          <mxGeometry x="51.25" y="430" width="337.5" height="90" as="geometry" />
+        </mxCell>
+        <mxCell id="grNded3wlk_CFeCUfCRz-11" value="&lt;b&gt;Excluded: missing CT or LFT&lt;br&gt;&lt;/b&gt;n = 5 participants" style="rounded=0;whiteSpace=wrap;html=1;fillColor=#f8cecc;strokeColor=#b85450;" parent="1" vertex="1">
+          <mxGeometry x="430" y="380" width="190" height="60" as="geometry" />
+        </mxCell>
+      </root>
+    </mxGraphModel>
+  </diagram>
+</mxfile>

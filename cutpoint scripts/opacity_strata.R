@@ -72,7 +72,7 @@
   ## may not appear (e.g. bronchiectasis)
   
   set.seed(1234)
-  
+
   op_strata$severity_stats <- op_strata$analysis_tbl %>% 
     blast(severity_class) %>% 
     map(function(x) future_map2(op_strata$responses, 
@@ -90,7 +90,7 @@
     compress(names_to = 'severity_class') %>% 
     mutate(severity_class = factor(severity_class, 
                                    levels(op_strata$analysis_tbl$severity_class)), 
-           reponse = factor(response, op_strata$responses))
+           response = factor(response, op_strata$responses))
   
 # Calculation of bootstrapped stats for the timepoints ------
   
@@ -141,18 +141,8 @@
   
   op_strata[c('severity_result_tbl', 'follow_up_result_tbl')] <- 
     op_strata[c("severity_stats", "follow_up_stats")] %>% 
-    map(map_dfc, function(x) if(is.numeric(x)) signif(x, 2) else x) %>% 
-    map(mutate, 
-        kappa = paste0(kappa, ' [', kappa_lower, ' - ', kappa_upper, ']'), 
-        Se = paste0(Se, ' [', Se_lower, ' - ', Se_upper, ']'), 
-        Sp = paste0(Sp, ' [', Sp_lower, ' - ', Sp_upper, ']'), 
-        accuracy = paste0(accuracy, ' [', accuracy_lower, ' - ', accuracy_upper, ']'), 
-        response = exchange(response, dict = cut_globals$lexicon)) %>% 
-    map(select, 
-        response, 
-        any_of(c('follow_up', 'severity_class')), 
-        kappa, Se, Sp, accuracy)
-  
+    map(format_strata_rater)
+
 # END -----
   
   plan('sequential')

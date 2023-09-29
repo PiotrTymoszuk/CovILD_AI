@@ -22,7 +22,8 @@
   
   distr_long$lexicon <- 
     rbind(covild$ct_lexicon, 
-          covild$lft_lexicon) %>% 
+          covild$lft_lexicon, 
+          covild$symptoms_lexicon) %>% 
     filter(!variable %in% c('ID', 'follow_up', 'severity_class')) %>% 
     filter(format == 'numeric') %>% 
     filter(!stri_detect(variable, regex = '(DLCO|volume)$'))
@@ -32,7 +33,9 @@
   distr_long$analysis_tbl <- 
     list(covild$ct, 
          covild$lft %>% 
-           select(-follow_up), 
+           select(- follow_up),
+         covild$symptoms %>% 
+           select(- follow_up), 
          covild$baseline[c('ID', 'severity_class')]) %>% 
     reduce(left_join, by = 'ID') %>% 
     filter(follow_up != 'acute COVID-19') %>% 

@@ -1,0 +1,49 @@
+<mxfile host="Electron" modified="2023-09-26T07:42:27.296Z" agent="Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) draw.io/21.7.5 Chrome/114.0.5735.289 Electron/25.8.1 Safari/537.36" etag="aDGrboZNuEvtUnD9am-T" version="21.7.5" type="device">
+  <diagram name="Page-1" id="tja42HOSOiQajD3rXUwZ">
+    <mxGraphModel dx="2108" dy="828" grid="1" gridSize="10" guides="1" tooltips="1" connect="1" arrows="1" fold="1" page="1" pageScale="1" pageWidth="690" pageHeight="980" math="0" shadow="0">
+      <root>
+        <mxCell id="0" />
+        <mxCell id="1" parent="0" />
+        <mxCell id="Sar9NlUkJHeniA2vc7sU-5" style="edgeStyle=orthogonalEdgeStyle;rounded=0;orthogonalLoop=1;jettySize=auto;html=1;exitX=0;exitY=0.5;exitDx=0;exitDy=0;entryX=0.5;entryY=0;entryDx=0;entryDy=0;" parent="1" source="Sar9NlUkJHeniA2vc7sU-1" target="Sar9NlUkJHeniA2vc7sU-2" edge="1">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+        <mxCell id="Sar9NlUkJHeniA2vc7sU-6" style="edgeStyle=orthogonalEdgeStyle;rounded=0;orthogonalLoop=1;jettySize=auto;html=1;exitX=1;exitY=0.5;exitDx=0;exitDy=0;entryX=0.5;entryY=0;entryDx=0;entryDy=0;" parent="1" source="Sar9NlUkJHeniA2vc7sU-1" target="Sar9NlUkJHeniA2vc7sU-4" edge="1">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+        <mxCell id="Sar9NlUkJHeniA2vc7sU-7" style="edgeStyle=orthogonalEdgeStyle;rounded=0;orthogonalLoop=1;jettySize=auto;html=1;exitX=0.5;exitY=1;exitDx=0;exitDy=0;" parent="1" source="Sar9NlUkJHeniA2vc7sU-1" target="Sar9NlUkJHeniA2vc7sU-3" edge="1">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+        <mxCell id="Sar9NlUkJHeniA2vc7sU-1" value="&lt;b&gt;COVID-19 recovery&lt;/b&gt;" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#dae8fc;strokeColor=#6c8ebf;" parent="1" vertex="1">
+          <mxGeometry x="280" y="20" width="120" height="40" as="geometry" />
+        </mxCell>
+        <mxCell id="Sar9NlUkJHeniA2vc7sU-11" style="edgeStyle=orthogonalEdgeStyle;rounded=0;orthogonalLoop=1;jettySize=auto;html=1;exitX=0.5;exitY=1;exitDx=0;exitDy=0;" parent="1" source="Sar9NlUkJHeniA2vc7sU-2" target="Sar9NlUkJHeniA2vc7sU-8" edge="1">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+        <mxCell id="Sar9NlUkJHeniA2vc7sU-2" value="Comparison of AI-determined lung opacity and high opacity with radiological findings by a radioblogist" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#fff2cc;strokeColor=#d6b656;" parent="1" vertex="1">
+          <mxGeometry y="80" width="210" height="70" as="geometry" />
+        </mxCell>
+        <mxCell id="Sar9NlUkJHeniA2vc7sU-12" style="edgeStyle=orthogonalEdgeStyle;rounded=0;orthogonalLoop=1;jettySize=auto;html=1;exitX=0.5;exitY=1;exitDx=0;exitDy=0;entryX=0.5;entryY=0;entryDx=0;entryDy=0;" parent="1" source="Sar9NlUkJHeniA2vc7sU-3" target="Sar9NlUkJHeniA2vc7sU-9" edge="1">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+        <mxCell id="Sar9NlUkJHeniA2vc7sU-3" value="Cut-off of radiologist&#39;s CT severity score (CTSS) for detection of ILD" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#fff2cc;strokeColor=#d6b656;" parent="1" vertex="1">
+          <mxGeometry x="235" y="80" width="210" height="70" as="geometry" />
+        </mxCell>
+        <mxCell id="Sar9NlUkJHeniA2vc7sU-13" style="edgeStyle=orthogonalEdgeStyle;rounded=0;orthogonalLoop=1;jettySize=auto;html=1;exitX=0.5;exitY=1;exitDx=0;exitDy=0;entryX=0.5;entryY=0;entryDx=0;entryDy=0;" parent="1" source="Sar9NlUkJHeniA2vc7sU-4" target="Sar9NlUkJHeniA2vc7sU-10" edge="1">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+        <mxCell id="Sar9NlUkJHeniA2vc7sU-4" value="Significance of radiological lung abnormalities, demographics, clinical history, acute COVID-19 course and persistent symptoms for lung function" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#fff2cc;strokeColor=#d6b656;" parent="1" vertex="1">
+          <mxGeometry x="470" y="80" width="210" height="70" as="geometry" />
+        </mxCell>
+        <mxCell id="Sar9NlUkJHeniA2vc7sU-8" value="&lt;ul style=&quot;line-height: 120%;&quot;&gt;&lt;li&gt;ROC analysis for determination of the opacity and high opacity cutoffs&lt;/li&gt;&lt;/ul&gt;&lt;ul style=&quot;line-height: 120%;&quot;&gt;&lt;li&gt;&lt;span style=&quot;background-color: initial;&quot;&gt;Reliability of the AI and the radiologist at detection of lung abnormalities (Cohen&#39;s&amp;nbsp;κ)&lt;/span&gt;&lt;/li&gt;&lt;/ul&gt;&lt;div&gt;&lt;ul&gt;&lt;li&gt;Inter-rater reliability in acute COVID-19 severity classes and follow-ups after COVID-19&lt;/li&gt;&lt;/ul&gt;&lt;/div&gt;" style="rounded=0;whiteSpace=wrap;html=1;align=left;spacingLeft=-20;spacingTop=0;fillColor=#f8cecc;strokeColor=#b85450;spacing=1;" parent="1" vertex="1">
+          <mxGeometry y="170" width="210" height="160" as="geometry" />
+        </mxCell>
+        <mxCell id="Sar9NlUkJHeniA2vc7sU-9" value="&lt;ul style=&quot;line-height: 120%;&quot;&gt;&lt;li&gt;ROC analysis for determination of the CTSS cutoff&lt;/li&gt;&lt;/ul&gt;&lt;ul style=&quot;line-height: 120%;&quot;&gt;&lt;li&gt;&lt;span style=&quot;background-color: initial;&quot;&gt;Reliability of the radiologist&#39;s CTSS at detection of ILD in the entire cohort, acute COVID-19 severity classes and at post-COVID-19 follow-ups&lt;/span&gt;&lt;/li&gt;&lt;/ul&gt;&lt;div&gt;&lt;ul&gt;&lt;li&gt;Mathematical relationship between CTSS, and AI-determined opacity and high opacity&lt;/li&gt;&lt;/ul&gt;&lt;/div&gt;" style="rounded=0;whiteSpace=wrap;html=1;align=left;spacingLeft=-20;spacingTop=0;fillColor=#f8cecc;strokeColor=#b85450;spacing=1;" parent="1" vertex="1">
+          <mxGeometry x="235" y="170" width="210" height="180" as="geometry" />
+        </mxCell>
+        <mxCell id="Sar9NlUkJHeniA2vc7sU-10" value="&lt;ul style=&quot;line-height: 120%;&quot;&gt;&lt;li&gt;Multi-parameter modeling od any LFT abnormalities, DLCO, FEV1 and FVC&lt;/li&gt;&lt;/ul&gt;&lt;div&gt;&lt;ul&gt;&lt;li&gt;SHAP importance of explanatory variables&lt;/li&gt;&lt;/ul&gt;&lt;ul&gt;&lt;li&gt;Univariable analysis for the top influential factors&lt;/li&gt;&lt;/ul&gt;&lt;/div&gt;" style="rounded=0;whiteSpace=wrap;html=1;align=left;spacingLeft=-20;spacingTop=0;fillColor=#f8cecc;strokeColor=#b85450;spacing=1;" parent="1" vertex="1">
+          <mxGeometry x="470" y="170" width="210" height="140" as="geometry" />
+        </mxCell>
+      </root>
+    </mxGraphModel>
+  </diagram>
+</mxfile>

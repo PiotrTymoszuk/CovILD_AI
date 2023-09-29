@@ -112,16 +112,8 @@
   
   ild_strata[c('severity_result_tbl', 'follow_up_result_tbl')] <- 
     ild_strata[c("severity_stats", "follow_up_stats")] %>% 
-    map(map_dfc, function(x) if(is.numeric(x)) signif(x, 2) else x) %>% 
-    map(mutate, 
-        kappa = paste0(kappa, ' [', kappa_lower, ' - ', kappa_upper, ']'), 
-        Se = paste0(Se, ' [', Se_lower, ' - ', Se_upper, ']'), 
-        Sp = paste0(Sp, ' [', Sp_lower, ' - ', Sp_upper, ']'), 
-        accuracy = paste0(accuracy, ' [', accuracy_lower, ' - ', accuracy_upper, ']'), 
-        response = exchange(response, dict = cut_globals$lexicon)) %>% 
-    map(select, 
-        any_of(c('follow_up', 'severity_class')), 
-        kappa, Se, Sp, accuracy)
+    map(format_strata_rater) %>% 
+    map(select, -response)
   
 # END -----
   

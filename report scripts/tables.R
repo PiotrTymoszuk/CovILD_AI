@@ -6,9 +6,51 @@
   
   tables <- list()
   
-# Table 1: characteristic of the cohort ------
+# Table 1: study variables --------
   
-  insert_msg('Table 1: characteristic of the cohort')
+  insert_msg('Table 1: Study variables')
+  
+  tables$study_variables <- 
+    list(lft = tibble(variable = lft_globals$responses), 
+         ct = tibble(variable = lft_globals$ct_variables), 
+         symptoms = tibble(variable = lft_globals$symptom_variables), 
+         baseline = tibble(variable = lft_globals$baseline_variables)) %>% 
+    compress(names_to = 'category') %>% 
+    mutate(modeling = ifelse(category == 'lft', 
+                             'response variable', 
+                             'explanatory variable'), 
+            category = car::recode(category, 
+                                   "'lft' = 'Lung function testing'; 
+                                   'ct' = 'Chest computed tomography'; 
+                                   'symptoms' = 'Persistent symptoms';
+                                   'baseline' = 'Baseline characteristic and acute COVID-19'")) %>% 
+    left_join(lft_globals$lexicon[c('variable', 'label', 'format', 
+                                    'unit', 'description')] %>% 
+                filter(!duplicated(variable)), 
+              by = 'variable') %>% 
+    select(modeling, 
+           category, 
+           variable, 
+           label, 
+           description, 
+           format, 
+           unit) %>% 
+    set_names(c('Use in modeling', 
+                'Category', 
+                'Name in R', 
+                'Name in the report', 
+                'Description', 
+                'Format', 
+                'Unit'))
+  
+  tables$study_variables <- tables$study_variables %>% 
+    mdtable(label = 'table_1_study_variables', 
+            ref_name = 'study_variables', 
+            caption = 'Study variables')
+  
+# Table 2: characteristic of the cohort ------
+  
+  insert_msg('Table 2: characteristic of the cohort')
   
   tables$cohort <- cohort$result_tbl %>% 
     filter(variable != 'COVID-19 severity') %>% 
@@ -19,7 +61,7 @@
                 'Severe COVID-19', 
                 'Significance', 
                 'Effect size')) %>% 
-    mdtable(label = 'table_1_cohort_characteristic', 
+    mdtable(label = 'table_2_cohort_characteristic', 
             ref_name = 'cohort', 
             caption = paste('Baseline characteristics and COVID-19 course', 
                             'in the CovILD cohort.', 
@@ -29,58 +71,58 @@
                             'presented as percentages', 
                             'and counts within the complete observation set.'))
   
-# Table 2: CT variables at follow-ups ------
+# Tables 3 - 5: CT, LFT and symptom variables at follow-ups -------
   
-  insert_msg('Table 2: CT variables at follow-ups')
+  insert_msg('Tables 3 - 5: CT, LFT and symptom variables at follow-ups')
   
-  tables$cohort_ct <- cohort_ct$result_tbl %>% 
-    compress(names_to = 'Severity subset') %>% 
-    relocate(`Severity subset`) %>% 
-    mutate(`Severity subset` = globals$sev_labels[`Severity subset`])
+  tables[c("cohort_ct", "cohort_lft", "cohort_symptoms")] <- 
+    list(cohort_ct, cohort_lft, cohort_sympt) %>% 
+    map(~.x$result_tbl) %>% 
+    map(compress, names_to = 'Severity subset') %>% 
+    map(relocate, `Severity subset`) %>% 
+    map(mutate, 
+        `Severity subset` = globals$sev_labels[`Severity subset`])
   
-  tables$cohort_ct <- tables$cohort_ct %>% 
-    set_colnames(capitalize_first_char(names(tables$cohort_ct))) %>% 
-    mdtable(label = 'table_2_cohort_ct_variables',
-            ref_name = 'cohort_ct', 
-            caption = paste('Chest computed tomography variables', 
-                            'at consecutive follow-ups.', 
-                            'Numeric variables are presented as medians with', 
-                            'interquartile ranges (IQR) and ranges.', 
-                            'Categorical variables are', 
-                            'presented as percentages', 
-                            'and counts within the complete observation set.'))
+  tables[c("cohort_ct", "cohort_lft", "cohort_symptoms")] <- 
+    tables[c("cohort_ct", "cohort_lft", "cohort_symptoms")] %>% 
+    list(x = ., 
+         label = c('table_3_cohort_ct_variables', 
+                    'table_4_cohort_lft_variables', 
+                    'table_5_cohort_symptom_variables'), 
+         ref_name = names(.), 
+         caption = c(paste('Chest computed tomography variables', 
+                           'at consecutive follow-ups.', 
+                           'Numeric variables are presented as medians with', 
+                           'interquartile ranges (IQR) and ranges.', 
+                           'Categorical variables are', 
+                           'presented as percentages', 
+                           'and counts within the complete observation set.'), 
+                     paste('Lung function testing variables', 
+                           'at consecutive follow-ups.', 
+                           'Numeric variables are presented as medians with', 
+                           'interquartile ranges (IQR) and ranges.', 
+                           'Categorical variables are', 
+                           'presented as percentages', 
+                           'and counts within the complete observation set.'), 
+                     paste('Presence and rating of symptoms of relevance for',
+                           'lung function at consecutive follow-ups.', 
+                           'Numeric variables are presented as medians with', 
+                           'interquartile ranges (IQR) and ranges.', 
+                           'Categorical variables are', 
+                           'presented as percentages', 
+                           'and counts within the complete observation set.'))) %>% 
+    pmap(mdtable)
   
-# Table 3: LFT variables at follow-ups ------
+# Table 6: optimal cutoffs for the AI opacity and AI high opacity ------
   
-  insert_msg('Table 3: LFT variables at follow ups')
-  
-  tables$cohort_lft <- cohort_lft$result_tbl %>% 
-    compress(names_to = 'Severity subset') %>% 
-    relocate(`Severity subset`) %>% 
-    mutate(`Severity subset` = globals$sev_labels[`Severity subset`])
-  
-  tables$cohort_lft <- tables$cohort_lft %>% 
-    set_colnames(capitalize_first_char(names(tables$cohort_lft))) %>% 
-    mdtable(label = 'table_3_cohort_lft_variables',
-            ref_name = 'cohort_lft', 
-            caption = paste('Lung function testing variables', 
-                            'at consecutive follow-ups.', 
-                            'Numeric variables are presented as medians with', 
-                            'interquartile ranges (IQR) and ranges.', 
-                            'Categorical variables are', 
-                            'presented as percentages', 
-                            'and counts within the complete observation set.'))
-  
-# Table 4: optimal cutoffs for the AI opacity and AI high opacity ------
-  
-  insert_msg('Table 4: cutoff for opacity and high opacity')
+  insert_msg('Table 6: cutoff for opacity and high opacity')
   
   tables$ai_cutoffs <- list(cut_opacity, cut_high) %>% 
     map(~.x$result_tbl) %>% 
     set_names(c('opacity', 'high opacity')) %>% 
     compress(names_to = 'AI marker') %>% 
     relocate(`AI marker`) %>% 
-    mdtable(label = 'table_4_ai_cutoffs', 
+    mdtable(label = 'table_6_ai_cutoffs', 
             ref_name = 'ai_cutoffs', 
             caption = paste('Optimal cutoffs for AI-determined', 
                             'lung opacity and high opacity at detection', 
@@ -88,9 +130,9 @@
                             'The optimal cutoff was determined', 
                             'by Youden criterion.'))
   
-# Table 5: performance of AI parameters, severity classes ------
+# Table 7: performance of AI parameters, severity classes ------
   
-  insert_msg('Table 5: AI cutoff performance, severity classes')
+  insert_msg('Table 7: AI cutoff performance, severity classes')
   
   tables$ai_cutoffs_severity <- 
     list(op_strata, high_strata) %>% 
@@ -98,13 +140,13 @@
     set_names(c('opacity', 'high opacity')) %>% 
     compress(names_to = 'ai_marker') %>% 
     select(ai_marker, 
+           response, 
            severity_class, 
-           response,  
            kappa, Se, Sp, accuracy) %>% 
-    set_names(c('AI marker', 'COVID-19 severity', 
-                'CT abnormality', '\u03BA', 
+    set_names(c('AI marker', 'CT abnormality', 
+                'COVID-19 severity', '\u03BA', 
                 'Sensitivity', 'Specificity', 'Accuracy')) %>% 
-    mdtable(label = 'table_5_ai_cutoffs_severity', 
+    mdtable(label = 'table_7_ai_cutoffs_severity', 
             ref_name = 'ai_cutoffs_severity', 
             caption = paste('Performance of AI-determined lung', 
                             'opacity and high opacity at detection of', 
@@ -118,9 +160,9 @@
                             'with 95% confidence intervals obtained', 
                             'by bootstrap.'))
   
-# Table 6: performance of AI parameters, follow-ups -------
+# Table 8: performance of AI parameters, follow-ups -------
   
-  insert_msg('Table 6: AI cutoff performance, follow-ups')
+  insert_msg('Table 8: AI cutoff performance, follow-ups')
   
   tables$ai_cutoffs_fup <- 
     list(op_strata, high_strata) %>% 
@@ -128,13 +170,13 @@
     set_names(c('opacity', 'high opacity')) %>% 
     compress(names_to = 'ai_marker') %>% 
     select(ai_marker, 
-           follow_up, 
            response, 
+           follow_up, 
            kappa, Se, Sp, accuracy) %>% 
-    set_names(c('AI marker', 'Follow-up', 
-                'CT abnormality', '\u03BA', 
+    set_names(c('AI marker', 'CT abnormality', 
+                'Follow-up', '\u03BA', 
                 'Sensitivity', 'Specificity', 'Accuracy')) %>% 
-    mdtable(label = 'table_6_ai_cutoffs_follow_up', 
+    mdtable(label = 'table_8_ai_cutoffs_follow_up', 
             ref_name = 'ai_cutoffs_fup', 
             caption = paste('Performance of AI-determined lung', 
                             'opacity and high opacity at detection of', 
@@ -148,12 +190,12 @@
                             'with 95% confidence intervals obtained', 
                             'by bootstrap.'))
   
-# Table 7: detection of ILD by CTSS --------
+# Table 9: detection of ILD by CTSS --------
   
-  insert_msg('Table 7: detection of ILD')
+  insert_msg('Table 9: detection of ILD')
   
   tables$ild_cutoff <- ild_cutoff$result_tbl %>% 
-    mdtable(label = 'table_7_ild_cutoff', 
+    mdtable(label = 'table_9_ild_cutoff', 
             ref_name = 'ild_cutoff', 
             caption = paste('Detecion of interstitial lung disease', 
                             'defined by lung opacity > 5% by chest computed', 
@@ -161,51 +203,54 @@
                             'The optimal cutoff for CTSS was determined', 
                             'by Youden criterion.'))
   
-# Table 8: performance of CTSS, severity classes -------
+# Tables 10 - 11: performance of CTSS, severity classes and follow-ups -------
   
-  insert_msg('Table 8: CTSS performance, severity classes')
+  insert_msg('Tables 10 - 11: CTSS performance, severity classes and follwo-ups')
   
-  tables$ild_cutoff_severity <- ild_strata$severity_result_tbl %>% 
-    set_names(c('COVID-19 severity', '\u03BA', 
+  tables[c('ild_cutoff_severity', 
+           'ild_cutoff_fup')] <- 
+    map2(ild_strata[c("severity_result_tbl", "follow_up_result_tbl")], 
+         list(c('COVID-19 severity', '\u03BA', 
                 'Sensitivity', 'Specificity', 
-                'Accuracy')) %>% 
-    mdtable(label = 'table_8_ild_cutoff_severity', 
-            ref_name = 'ild_cutoff_severity', 
-            caption = paste('Detecion of interstitial lung disease', 
-                            'defined by lung opacity > 5% by chest computed', 
-                            'tomography severity score (CTSS)',
-                            'in the COVID-19 severity subsets.', 
-                            'The optimal cutoff for CTSS was determined', 
-                            'by Youden criterion in the entire', 
-                            'CovILD cohort.', 
-                            'Statistic values are presented', 
-                            'with 95% confidence intervals obtained', 
-                            'by bootstrap.'))
-  
-# Table 9: performance of CTSS, follow-ups ------
-  
-  insert_msg('Table 9: performance of CTSS, follow-ups')
-  
-  tables$ild_cutoff_fup <- ild_strata$follow_up_result_tbl %>% 
-    set_names(c('Follow-up', '\u03BA', 
+                'Accuracy'), 
+              c('Follow-up', '\u03BA', 
                 'Sensitivity', 'Specificity', 
-                'Accuracy')) %>% 
-    mdtable(label = 'table_9_ild_cutoff_severity', 
-            ref_name = 'ild_cutoff_fup', 
-            caption = paste('Detecion of interstitial lung disease', 
-                            'defined by lung opacity > 5% by chest computed', 
-                            'tomography severity score (CTSS)',
-                            'at the consecutive follow-ups.', 
-                            'The optimal cutoff for CTSS was determined', 
-                            'by Youden criterion in the entire', 
-                            'CovILD cohort.', 
-                            'Statistic values are presented', 
-                            'with 95% confidence intervals obtained', 
-                            'by bootstrap.'))
+                'Accuracy')), 
+         set_names)
   
-# Table 10: machine learning tuning parameters -----  
+  tables[c('ild_cutoff_severity', 
+           'ild_cutoff_fup')] <- tables[c('ild_cutoff_severity', 
+                                          'ild_cutoff_fup')] %>% 
+    list(x = ., 
+         label = c('table_10_ild_cutoff_severity', 
+                   'table_11_ild_cutoff_severity'), 
+         ref_name = names(.), 
+         caption = c(paste('Detecion of interstitial lung disease', 
+                           'defined by lung opacity > 5% by chest computed', 
+                           'tomography severity score (CTSS)',
+                           'in the COVID-19 severity subsets.', 
+                           'The optimal cutoff for CTSS was determined', 
+                           'by Youden criterion in the entire', 
+                           'CovILD cohort.', 
+                           'Statistic values are presented', 
+                           'with 95% confidence intervals obtained', 
+                           'by bootstrap.'), 
+                     paste('Detecion of interstitial lung disease', 
+                           'defined by lung opacity > 5% by chest computed', 
+                           'tomography severity score (CTSS)',
+                           'at the consecutive follow-ups.', 
+                           'The optimal cutoff for CTSS was determined', 
+                           'by Youden criterion in the entire', 
+                           'CovILD cohort.', 
+                           'Statistic values are presented', 
+                           'with 95% confidence intervals obtained', 
+                           'by bootstrap.'))) %>% 
+    pmap(mdtable)
+
+
+# Table 12: machine learning tuning parameters -----  
   
-  insert_msg('Table 10: machine learining, tuning')
+  insert_msg('Table 12: machine learining, tuning')
   
   tables$tuning <- c(bin_models$models, 
                      reg_models$models) %>% 
@@ -224,14 +269,14 @@
                                     replacement = 'Gradiant boosted machines')) %>% 
     select(response, algorithm, parameter) %>% 
     set_names(c('Response', 'Algorithm', 'Parameters')) %>% 
-    mdtable(label = 'table_10_ml_tuning',
+    mdtable(label = 'table_12_ml_tuning',
             ref_name = 'tuning', 
             caption = paste('Selection of machine learning algorithm', 
-                            'paramaters by cross-validation-mediated tuning.'))
+                            'parameters by cross-validation-mediated tuning.'))
   
-# Table 11: performance of binary classifiers -------
+# Table 13: performance of binary classifiers -------
   
-  insert_msg('Table 11: performance of the binary classifiers')
+  insert_msg('Table 13: performance of the binary classifiers')
   
   tables$bin_classifiers <- bin_models$stats %>% 
     compress(names_to = 'response') %>% 
@@ -251,16 +296,16 @@
                 'Brier score', 'AUC', 
                 'Sensitivity', 'Specificity', "J")) %>% 
     map_dfc(function(x) if(is.numeric(x)) signif(x, 2) else x) %>%
-    mdtable(label = 'table_11_binary_classifier_performance', 
+    mdtable(label = 'table_13_binary_classifier_performance', 
             ref_name = 'bin_classifiers', 
             caption = paste('Performance of binary machine learining', 
                             'classifiers at predicting lung function testing', 
                             '(LFT) abnormalities in the CovILD study', 
                             'participants.'))
   
-# Table 12: performance of regression models -----
+# Table 14: performance of regression models -----
   
-  insert_msg('Table 12: performance of the regression models')
+  insert_msg('Table 14: performance of the regression models')
   
   tables$reg_models <- reg_models$stats %>% 
     compress(names_to = 'response') %>% 
@@ -278,16 +323,16 @@
                 'pseudo-R\u00B2', 'MAE', 
                 "\u03C1")) %>% 
     map_dfc(function(x) if(is.numeric(x)) signif(x, 2) else x) %>% 
-    mdtable(label = 'table_12_regression_model_performance', 
+    mdtable(label = 'table_14_regression_model_performance', 
             ref_name = 'reg_models', 
             caption = paste('Performance of regression machine', 
                             'learning models at predicting lung function', 
                             'testing parameters in the CovILD study', 
                             'participants.'))
 
-# Table 13: AI and CTSS differences for LFT abnormalities -------
+# Table 15: AI and CTSS differences for LFT abnormalities -------
   
-  insert_msg('Table 13: CT opacity and CTSS in LFT abnormalities')
+  insert_msg('Table 15: CT opacity and CTSS in LFT abnormalities')
   
   tables$lft_binary_uni <- 
     list(LFT_findings = lft_uni, 
@@ -310,7 +355,7 @@
                                         lft_globals$lexicon))
   
   tables$lft_binary_uni <- tables$lft_binary_uni %>% 
-    mdtable(label = 'table_13_lft_univariate_binary', 
+    mdtable(label = 'table_15_lft_univariate_binary', 
             ref_name = 'lft_binary_uni', 
             caption = paste('Differences in chest computed tomography', 
                             'severity score (CTSS), and AI-determined', 
@@ -320,9 +365,9 @@
                             'Numeric variariables are presented as medians', 
                             'with interquartile ranges (IQR) and ranges.'))
   
-# Table 14: correlation of opacity and CTSS with LFT variables ------
+# Table 16: correlation of opacity and CTSS with LFT variables ------
   
-  insert_msg('Table 14: correlation of CTSS and opacity with LFT variables')
+  insert_msg('Table 16: correlation of CTSS and opacity with LFT variables')
   
   tables$lft_correlation_uni <- 
     list(DLCO_percent = dlco_uni, 
@@ -347,24 +392,42 @@
                 'Significance'))
   
   tables$lft_correlation_uni <- tables$lft_correlation_uni %>% 
-    mdtable(label = 'table_14_lft_ct_correlation', 
+    mdtable(label = 'table_16_lft_ct_correlation', 
             ref_name = 'lft_correlation_uni', 
             caption = paste('Correlation of LFT variables with', 
                             'chest computed tomography severity score, and', 
                             'AI-determined opacity and high opactity.'))
     
-# Table 15: ROC for LFT abnormalities ------
+# Table 17: ROC for LFT abnormalities ------
   
-  insert_msg('Table 15: ROC for LFT abnormalities')
+  insert_msg('Table 17: ROC for LFT abnormalities')
   
   tables$lft_roc <- lft_roc$result_tbl %>% 
-    mdtable(label = 'table_14_lft_roc', 
+    mdtable(label = 'table_16_lft_roc', 
             ref_name = 'lft_roc', 
             caption = paste('Detection of lung function testing (LFT)', 
                             'abnormalities by chest computed tomography', 
                             'variables in receiver-operator characteristic', 
                             '(ROC) analysis.'))
   
+  
+# Table 18: bootstrapped inter-rater reliability and ROC stats for CT markers ------
+  
+  insert_msg('Table 18: bootstrapped LFT ROC and inter-rater stats')
+  
+  tables$lft_interrater <- lft_roc$bootstrap_result_tbl %>% 
+    set_names(c('LFT response', 'CT marker', 
+                '\u03BA', 'Sensitivity', 'Specificity')) %>% 
+    mdtable(label = 'table_18_lft_interrater_bootstrap_stats',
+            ref_name = 'lft_interrater',
+            caption = paste('Inter-rater reliability and', 
+                            'receiver operator characteristic metrics for', 
+                            'detection of lung function testing abnormalities', 
+                            'with lung computed tomography', 
+                            'severity markers.', 
+                            'Statistic values are presented', 
+                            'with 95% confidence intervals obtained', 
+                            'by bootstrap.'))
   
 # Saving tables on the disc ------
   

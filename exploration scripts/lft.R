@@ -69,9 +69,9 @@
                                         pattern = '.', 
                                         simplify = TRUE)[, 2])
 
-# Descriptive stats for the CT parameters ------
+# Descriptive stats for the LFT parameters ------
 
-  insert_msg('Descriptive stats for the CT parameters')
+  insert_msg('Descriptive stats for the LFT parameters')
   
   cohort_lft$raw_stats <- cohort_lft$analysis_tbl %>% 
     explore(split_factor = 'analysis_split', 
