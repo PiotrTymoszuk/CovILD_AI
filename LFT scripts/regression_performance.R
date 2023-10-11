@@ -39,31 +39,10 @@
   
   insert_msg('Diagnostic model residuals plots')
   
-  ## working with the cache: this is a time-consuming step
-  
-  if(!file.exists('./cache/reg_diagnostic_plots.RData')) {
-    
-    reg_models$diagnostic_plots <- reg_models$predictions %>% 
-      map(unlist, recursive = FALSE) %>% 
-      map(future_map, 
-          plot.predx, 
-          type = 'diagnostic', 
-          cust_theme = globals$common_theme, 
-          .options = furrr_options(seed = TRUE))
-    
-    ## caching
-    
-    reg_diagnostic_plots <-  reg_models$dignostic_plots
-    
-    save(reg_diagnostic_plots, file = './cache/reg_diagnostic_plots.RData')
-    
-  } else {
-    
-    load('./cache/reg_diagnostic_plots.RData')
-    
-    reg_models$diagnostic_plots <- reg_diagnostic_plots
-  
-  }
+  reg_models$diagnostic_plots <- reg_models$models %>% 
+    future_map(map, 
+               plot.caretx, type = 'diagnostic', 
+               .options = furrr_options(seed = TRUE))
   
 # Model residuals: normality --------
   
@@ -91,26 +70,11 @@
   
   insert_msg('Model stats')
   
-  ## working with the cache
-  
-  if(!file.exists('./cache/reg_stats.RData')) {
-    
-    reg_models$stats <- reg_models$models %>% 
-      future_map(map, summary.caretx, 
-                 .options = furrr_options(seed = TRUE))
-    
-    reg_stats <- reg_models$stats
-    
-    save(reg_stats, file = './cache/reg_stats.RData')
-    
-  } else {
-    
-    load('./cache/reg_stats.RData')
+  reg_models$stats <- reg_models$models %>% 
+    future_map(map, 
+               summary.caretx, 
+               .options = furrr_options(seed = TRUE))
 
-    reg_models$stats <- reg_stats  
-    
-  }
-  
   ## formatting the summary stats
   
   reg_models$stats <- reg_models$stats %>% 
@@ -120,7 +84,7 @@
   
   insert_msg('CV performance stats for the severity subsets and FUP')
   
-  ## secverity strata results
+  ## severity strata results
   
   reg_models$stats_dlco_severity <- reg_models$models$DLCO_percent %>% 
     map(split, severity_class) %>% 
