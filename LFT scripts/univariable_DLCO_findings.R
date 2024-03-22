@@ -59,21 +59,21 @@
 
 # Testing --------
 
-insert_msg('Testing')
+  insert_msg('Testing')
 
-dlco_red_uni$test <- dlco_red_uni$analysis_tbl %>% 
-  compare_variables(variables = dlco_red_uni$lexicon$variable, 
-                    split_factor = 'DLCO_reduced', 
-                    what = 'eff_size', 
-                    types = dlco_red_uni$lexicon$test_type, 
-                    exact = FALSE, 
-                    ci = FALSE, 
-                    pub_styled = FALSE, 
-                    adj_method = 'BH') %>% 
-  mutate(eff_size = paste(estimate_name, signif(estimate, 2), sep = ' = '), 
-         plot_cap = paste(eff_size, significance, sep = ', '), 
-         test = ifelse(estimate_name == 'V', 
-                       '\u03C7\u00B2', 'Mann-Whitney'))
+  dlco_red_uni$test <- dlco_red_uni$analysis_tbl %>% 
+    compare_variables(variables = dlco_red_uni$lexicon$variable, 
+                      split_factor = 'DLCO_reduced', 
+                      what = 'eff_size', 
+                      types = dlco_red_uni$lexicon$test_type, 
+                      exact = FALSE, 
+                      ci = FALSE, 
+                      pub_styled = FALSE, 
+                      adj_method = 'BH') %>% 
+    mutate(eff_size = paste(estimate_name, signif(estimate, 2), sep = ' = '), 
+           plot_cap = paste(eff_size, significance, sep = ', '), 
+           test = ifelse(estimate_name == 'V', 
+                         '\u03C7\u00B2', 'Mann-Whitney'))
 
 # Significant factors ------
 
@@ -114,7 +114,8 @@ insert_msg('Plotting effect sizes')
          split_factor = 'DLCO_reduced', 
          scale = 'percent', 
          cust_theme = globals$common_theme, 
-         x_n_labs = TRUE) %>% 
+         x_n_labs = TRUE, 
+         point_hjitter = 0) %>% 
     map(~.x + 
           scale_fill_brewer(palette = 'Purples')) %>% 
     set_names(dlco_red_uni$lexicon$variable)

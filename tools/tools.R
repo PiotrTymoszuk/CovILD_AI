@@ -584,7 +584,7 @@
                        txt_color = color, 
                        signif_digits = 2, ...) {
     
-    ## plots ROC
+    ## plots ROC curves
     
     plot <- data %>% 
       mutate(M = .data[[m_variable]], 
@@ -600,11 +600,10 @@
                                 ' - ', signif(upper_ci, signif_digits), ']'), 
                plot_lab = paste0('Se = ', signif(Se, signif_digits), 
                                  '\nSp = ', signif(Sp, signif_digits), 
-                                 '\nJ = ', signif(J, signif_digits), 
                                  '\n', auc_lab))
       
       plot <- plot + 
-        geom_roc(labels = TRUE, 
+        geom_roc(labels = FALSE, 
                  labelsize = txt_size, 
                  cutoffs.at = cutoff_stats$cutoff[1], 
                  cutoff.labels = signif(cutoff_stats$cutoff[1], signif_digits), 
@@ -629,6 +628,16 @@
                  y = y_txt, 
                  color = txt_color)
       
+      plot <- direct_label(plot, 
+                           labels = signif(cutoff_stats$cutoff[1], 
+                                           signif_digits), 
+                           label.angle = 0, 
+                           nudge_x = 0.0, 
+                           nudge_y = 0.0, 
+                           size = txt_size, 
+                           hjust = 0, 
+                           vjust = 0)
+      
     } else {
       
       plot <- plot +
@@ -643,7 +652,8 @@
                 guide = TRUE) + 
       geom_abline(slope = 1, 
                   intercept = 0, 
-                  color = 'gray90') + 
+                  color = 'gray20', 
+                  linetype = 'solid') + 
       globals$common_theme + 
       labs(title = plot_title, 
            subtitle = plot_subtitle, 
@@ -882,6 +892,106 @@
              labs(title = y, 
                   subtitle = plot_subtitle, 
                   x = z))
+    
+  }
+  
+# Bootstrap tests --------
+  
+  delta_median_ <- function(data, 
+                            variable, 
+                            split_factor) {
+    
+    ## computes difference in medians between the strata
+    ## used in a bootstrap test.
+    ## the `p_value` element in the output indicates if the H1 hypothesis 
+    ## (median in the second group larger as in the first one) 
+    ## is rejected
+    
+    med_diff <- split(data[[variable]], data[[split_factor]]) %>% 
+      map_dbl(median) %>% 
+      diff
+    
+    eff_size <- wilcoxonRG(x = data[[variable]], g = data[[split_factor]])
+
+    tibble(delta = unname(med_diff), 
+           r = -unname(eff_size), 
+           p_value = as.numeric(med_diff <= 0))
+    
+  }
+  
+  delta_median <- function(data, 
+                           variable, 
+                           split_factor, 
+                           id_variable = 'ID', 
+                           B = 1, 
+                           conf.level = 0.95) {
+    
+    ## implements a blocked bootstrap test to compare medians
+    ## between two groups
+    
+    boots <- sboot.data.frame(data, B = B, .by = id_variable)
+    
+    boot_stats <- boots %>% 
+      future_map_dfr(delta_median_, 
+                     variable = variable, 
+                     split_factor = split_factor, 
+                     .options = furrr_options(seed = TRUE))
+    
+    boot_stats %>% 
+      map_dfc(mean) %>% 
+      mutate(variable = variable, 
+             split_factor = split_factor)
+    
+  }
+  
+  spearman_rho_ <- function(data, 
+                            variables, 
+                            positive = FALSE) {
+    
+    ## computes Spearman's rho correlation coefficient
+    ## used in a bootstrap correlation test
+    
+    rho <- cor(data[[variables[1]]], 
+               data[[variables[2]]], 
+               method = 'spearman')
+    
+    if(positive) {
+      
+      p_value <- rho <= 0
+      
+    } else {
+      
+      p_value <- rho >= 0
+      
+    }
+    
+    c(rho = rho, 
+      p_value = as.numeric(p_value))
+    
+  }
+  
+  spearman_rho <- function(data, 
+                           variables, 
+                           id_variable = 'ID', 
+                           B = 1, 
+                           positive = FALSE) {
+    
+    ## implements a block bootstrap correlation test
+    
+    boots <- sboot.data.frame(data, B = B, .by = id_variable)
+    
+    boot_stats <- boots %>% 
+      future_map_dfr(spearman_rho_, 
+                     variables = variables, 
+                     positive = positive, 
+                     .options = furrr_options(seed = TRUE))
+    
+    tibble(rho = mean(boot_stats$rho), 
+           lower_ci = quantile(boot_stats$rho, 0.025), 
+           upper_ci = quantile(boot_stats$rho, 0.975), 
+           p_value = mean(boot_stats$p_value), 
+           variable1 = variables[1], 
+           variable2 = variables[2])
     
   }
   
@@ -1331,35 +1441,6 @@
   
 # Model performance ------
 
-  format_ml_summary <- function(summary_lst) {
-    
-   summary_lst %>% 
-      map(transpose) %>% 
-      map(map, map, select, statistic, estimate) %>% 
-      map(map, map, column_to_rownames, 'statistic') %>% 
-      map(map, map, t) %>% 
-      map(map, map, as.data.frame) %>% 
-      map(map, compress, names_to = 'algorithm') %>% 
-      map(compress, names_to = 'dataset') %>% 
-      map(as_tibble) %>% 
-      map(relocate, algorithm) %>% 
-      map(relocate, dataset)
-    
-  }
-  
-  format_strata_summary <- function(summary_lst, strata_name = 'strata') {
-    
-    summary_lst %>% 
-      map(~.x[c('statistic', 'estimate')]) %>% 
-      map(column_to_rownames, 'statistic') %>% 
-      map(t) %>% 
-      map(as.data.frame) %>% 
-      compress(names_to = strata_name) %>% 
-      relocate(.data[[strata_name]]) %>% 
-      as_tibble
-    
-  }
-  
   plot_binary_performance <- function(stats, 
                                       model, 
                                       plot_title = NULL, 
@@ -1488,7 +1569,7 @@
                           title_prefix, 
                           annot_y = 0.1, 
                           annot_x = 0.4, 
-                          increment = 0.05, 
+                          increment = 0.07, 
                           txt_size = 2.75) {
     
     ## ROC curves for algorithms in the training and test data
@@ -1515,8 +1596,7 @@
              algorithm = factor(algorithm, names(globals$algo_labs)), 
              plot_lab = paste0('AUC = ', signif(AUC, 2), 
                                ', Se = ', signif(Se, 2),
-                               ', Sp = ', signif(Sp, 2), 
-                               ', J = ', signif(J, 2))) %>% 
+                               ', Sp = ', signif(Sp, 2))) %>% 
       arrange(dataset, algorithm) %>% 
       blast(dataset) %>% 
       map(~set_names(.x$plot_lab, .x$algorithm))
@@ -1795,7 +1875,11 @@
                                 cv_predictions, 
                                 stats, 
                                 title_prefix, 
-                                show_trend = TRUE, ...) {
+                                collapse_resamples = TRUE, 
+                                show_trend = TRUE, 
+                                point_alpha = 0.5, 
+                                abline_width = 0.7, 
+                                abline_color = 'blue', ...) {
     
     ## plots fitted and observed values
     ## displays Spearman's rho and the number of complete observations
@@ -1822,66 +1906,54 @@
                       cv = cv_predictions) %>% 
       map(map, model.frame)
     
-    ## training plots -------
-    
-    train_plots <- 
-      list(x = plot_data$train, 
-           y = paste(title_prefix, 
-                     globals$algo_labs[names(train_predictions)], 
-                     'training', 
-                     sep = ', '), 
-           z = plot_subtitles$train) %>% 
-      pmap(function(x, y, z) x %>% 
-             ggplot(aes(x = .outcome, 
-                        y = .fitted)) + 
-             geom_abline(slope = 1, 
-                         intercept = 0, 
-                         linetype = 'dashed') + 
-             geom_point(size = 2, 
-                        shape = 21, 
-                        alpha = 0.5, 
-                        fill = globals$dataset_colors["train"]) + 
-             labs(title = y, 
-                  subtitle = z))
-    
-    ## CV plots -------
-    
-    cv_plots <- 
-      list(x = plot_data$cv, 
-           y = paste(title_prefix, 
-                     globals$algo_labs[names(train_predictions)], 
-                     'CV', 
-                     sep = ', '), 
-           z = plot_subtitles$cv) %>% 
-      pmap(function(x, y, z) x %>% 
-             ggplot(aes(x = .outcome, 
-                        y = .fitted)) + 
-             geom_abline(slope = 1, 
-                         intercept = 0, 
-                         linetype = 'dashed') + 
-             geom_point(size = 2, 
-                        shape = 21, 
-                        alpha = 0.5, 
-                        fill = globals$dataset_colors["cv"]) + 
-             labs(title = y, 
-                  subtitle = z))
-    
-    ## common formats ------
-    
-    out_lst <- list(train = train_plots, 
-                    cv = cv_plots)
-    
-    for(i in names(out_lst)) {
+    if(collapse_resamples) {
       
-      out_lst[[i]] <- out_lst[[i]] %>% 
-        map(~.x + 
-              globals$common_theme + 
-              labs(x = 'Observed % of reference value', 
-                   y = 'Predicted % of reference value'))
+      plot_data$cv <- plot_data$cv %>% 
+        map(group_by, .observation) %>% 
+        map(summarise, 
+            .outcome = mean(.outcome), 
+            .fitted = mean(.fitted))
       
+    }
+    
+    ## training and CV plots plots -------
+    
+    plots <- list()
+    
+    dataset_labs <- c(train = 'training', 
+                      cv = 'CV')
+    
+    for(i in c('train', 'cv')) {
+      
+      plots[[i]] <- 
+        list(x = plot_data[[i]], 
+             y = paste(title_prefix, 
+                       globals$algo_labs[names(plot_data$train)], 
+                       dataset_labs[[i]], 
+                       sep = ', '), 
+             z = plot_subtitles[[i]], 
+             w = globals$algo_colors[names(plot_data$train)]) %>% 
+        pmap(function(x, y, z, w) x %>% 
+               ggplot(aes(x = .outcome, 
+                          y = .fitted)) + 
+               geom_point(size = 2, 
+                          shape = 21, 
+                          alpha = point_alpha, 
+                          fill = w) + 
+               geom_abline(slope = 1, 
+                           intercept = 0, 
+                           linetype = 'dashed', 
+                           linewidth = abline_width,
+                           color = abline_color) + 
+               globals$common_theme + 
+               labs(title = y, 
+                    subtitle = z, 
+                    x = 'Observed % of reference value', 
+                    y = 'Predicted % of reference value'))
+
       if(show_trend) {
         
-        out_lst[[i]] <- out_lst[[i]] %>% 
+        plots[[i]] <- plots[[i]] %>% 
           map(~.x + 
                 geom_smooth(method = 'gam', 
                             formula = y ~ s(x, bs = "tp")))
@@ -1889,8 +1961,8 @@
       }
       
     }
-    
-    out_lst
+
+    plots
 
   }
   
@@ -2046,6 +2118,133 @@
                   y = y_lab))
     
   }
+  
+  plot_resid_hm <- function(data, 
+                            plot_variable = c('median', 'mean', 'kappa'), 
+                            plot_title = NULL, 
+                            plot_subtitle = NULL, 
+                            x_lab = 'follow-up, months', 
+                            y_lab = 'acute CoV severity',
+                            label_tiles = TRUE, 
+                            label_range = TRUE, 
+                            label_size = 2.5, 
+                            fill_lab = 'Median', 
+                            midpoint = NULL, 
+                            palette = c(low = 'steelblue', 
+                                        mid = 'white', 
+                                        high = 'firebrick'), ...) {
+    
+    ## heat map of mean normalized square residuals
+    ## per follow-up and CoV severity
+    
+    ## data and metadata -------
+    
+    plot_variable <- match.arg(plot_variable[1], c('median', 'mean', 'kappa'))
+    
+    if(label_range) {
+      
+      data <- data %>% 
+        mutate(tile_lab = paste0(signif(.data[[plot_variable]], 2), '\n[', 
+                                 signif(q025, 2), ' - ', 
+                                 signif(q975, 2), ']'))
+      
+    } else {
+      
+      data <- data %>% 
+        mutate(tile_lab = signif(.data[[plot_variable]], 2))
+      
+    }
+    
+    data <- data %>% 
+      mutate(fup_labs = stri_extract(follow_up, regex = '\\d{1,2}'), 
+             sev_labs = car::recode(severity_class, 
+                                    "'ambulatory mild' = 'A'; 
+                                    'hospitalized moderate' = 'HM'; 
+                                    'hospitalized severe' = 'HS'"))
+      
+    fup_labs <- set_names(as.character(data$fup_labs), 
+                          as.character(data$follow_up))
+    
+    sev_labs <- set_names(as.character(data$sev_labs), 
+                          as.character(data$severity_class))
+    
+    if(is.null(midpoint)) {
+      
+      midpoint <- mean(range(data[[plot_variable]]))
+      
+    }
+    
+    ## plotting -------
+    
+    hm_plot <- data %>% 
+      ggplot(aes(x = follow_up, 
+                 y = severity_class, 
+                 fill = .data[[plot_variable]])) + 
+      geom_tile(color = 'black') + 
+      scale_fill_gradient2(low = palette['low'], 
+                           mid = palette['mid'], 
+                           high = palette['high'], 
+                           midpoint = midpoint, 
+                           name = fill_lab, ...) + 
+      scale_x_discrete(labels = fup_labs) + 
+      scale_y_discrete(labels = sev_labs) + 
+      globals$common_theme + 
+      labs(title = plot_title, 
+           subtitle = plot_subtitle, 
+           x = x_lab, 
+           y = y_lab)
+    
+    if(label_tiles) {
+      
+      hm_plot <- hm_plot + 
+        geom_text(aes(label = tile_lab), 
+                  size = label_size)
+      
+    }
+    
+    hm_plot
+    
+  }
+  
+  plot_error_scatters <- function(data, 
+                                  x_var = 'CTSS', 
+                                  y_var = 'error', 
+                                  plot_title = exchange(x_var, 
+                                                        covild$ct_lexicon) %>% 
+                                    capitalize_first_char, 
+                                  plot_subtitle = NULL, 
+                                  x_lab = exchange(x_var, 
+                                                   covild$ct_lexicon, 
+                                                   value = 'table_label'), 
+                                  y_lab = 'error', 
+                                  point_color = 'steelblue', 
+                                  point_alpha = 0.75, 
+                                  point_size = 2, 
+                                  point_hjitter = 0, 
+                                  point_wjitter = 0) {
+    
+    ## scatter plot of out-pf-fold prediction errors 
+    ## as a function of an explanatory variable
+    
+    sc_plot <- data %>% 
+      ggplot(aes(x = .data[[x_var]], 
+                 y = .data[[y_var]])) + 
+      geom_point(shape = 21, 
+                 size = point_size, 
+                 alpha = point_alpha, 
+                 fill = point_color, 
+                 position = position_jitter(width = point_wjitter, 
+                                            height = point_hjitter)) + 
+      globals$common_theme + 
+      labs(title = plot_title, 
+           subtitle = plot_subtitle, 
+           x = x_lab, 
+           y = y_lab)
+    
+    sc_plot
+    
+  }
+  
   
 # Variable importance -------
   
@@ -2381,6 +2580,94 @@
 
   }
   
+  my_shap_bee <- function(bee_plot, 
+                          absolute = TRUE, 
+                          reorder_ft = c('mean', 'median'), 
+                          violin_fill = 'cornsilk', 
+                          violin_alpha = 0.25, 
+                          point_size = 1, 
+                          point_alpha = 0.25, 
+                          point_hjitter = 0.1, 
+                          point_wjitter = 0, 
+                          midpoint = c('mean', 'median'), 
+                          x_trans = 'sqrt', ...) {
+    
+    ## transforms a bee swarm plot to a customized
+    ## violin plot
+    
+    reorder_ft <- match.arg(reorder_ft[1], c('mean', 'median'))
+    
+    reorder_fun <- 
+      switch(reorder_ft, 
+             mean = function(x) mean(x, na.rm = TRUE), 
+             median = function(x) median(x, na.rm = TRUE))
+    
+    if(!is.numeric(midpoint)) {
+      
+      midpoint <- match.arg(midpoint[1], c('mean', 'median'))
+      
+      midpoint_fun <- 
+        switch(midpoint, 
+               mean = function(x) mean(x, na.rm = TRUE), 
+               median = function(x) median(x, na.rm = TRUE))
+      
+    }
+    
+    ## plotting data --------
+    
+    data <- bee_plot$data
+    
+    if(absolute) {
+      
+      data <- mutate(data, value = abs(value))
+      
+      x_lab <- '|SHAP value|'
+      
+    } else {
+      
+      x_lab <- 'SHAP value'
+      
+    }
+    
+    titles <- bee_plot$labels[c('title', 'subtitle')]
+    
+    if(!is.numeric(midpoint)) {
+      
+      midpoint <- midpoint_fun(range(data$value))
+      
+    }
+    
+    ## plotting --------
+    
+    my_plot <- data %>% 
+      ggplot(aes(x = value, 
+                 y = reorder(feature, value, FUN = reorder_fun), 
+                 color = color)) + 
+      geom_violin(fill = violin_fill, 
+                  alpha = violin_alpha, 
+                  color = 'black', 
+                  scale = 'width') +
+      geom_point(size = point_size, 
+                 alpha = point_alpha, 
+                 position = position_jitter(width = point_wjitter, 
+                                            height = point_hjitter)) + 
+      scale_y_discrete(labels = bee_plot$scales$scales[[1]]$labels) + 
+      scale_x_continuous(trans = x_trans) + 
+      scale_color_gradient2(low = 'steelblue', 
+                            mid = 'black', 
+                            high = 'firebrick', 
+                            midpoint = midpoint, 
+                            name = 'Min/max scaled\nfeature value', ...) + 
+      globals$common_theme + 
+      theme(axis.title.y = element_blank()) + 
+      labs(title = titles$title, 
+           subtitle = titles$subtitle, 
+           x = x_lab)
+    
+    my_plot
+    
+  }
+  
   
 # General plotting tools ----
   
@@ -2454,32 +2741,11 @@
                     y = limits)
 
   }
-  
-# Cache access -------
-  
-  access_cache <- function(cache_path, 
-                           script_path, 
-                           message = 'Loading cached results') {
-    
-    if(file.exists(cache_path)) {
-      
-      insert_msg(message)
-      
-      load(cache_path, envir = .GlobalEnv)
 
-    } else {
-      
-      source_all(script_path, 
-                 message = TRUE, 
-                 crash = TRUE)
-      
-    }
-    
-  }
-  
 # Markdown helpers -------
   
-  get_percent <- function(data, variable, 
+  get_percent <- function(data, 
+                          variable, 
                           signif_digits = 2, 
                           percent_mark = TRUE) {
     
@@ -2524,5 +2790,6 @@
           sep = ', effect size: ')
         
   }
+  
   
 # END -----

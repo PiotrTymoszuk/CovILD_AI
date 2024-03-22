@@ -8,5 +8,8 @@
                      'cutpoint.R', 
                      'ctss.R', 
                      'lft.R', 
-                     'report.R'), 
+                     'report.R', 
+                     'paper.R'), 
                    message = TRUE, crash = TRUE))
+  
+  save.image()

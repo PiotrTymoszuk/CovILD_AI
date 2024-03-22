@@ -43,9 +43,12 @@
   ## for the entire cohort
   
   bin_models$stats <- bin_models$models %>% 
-    future_map(map, summary.caretx, 
+    future_map(map, 
+               summary.caretx, 
+               wide = TRUE, 
                .options = furrr_options(seed = TRUE)) %>% 
-    format_ml_summary %>% 
+    map(map, compress, names_to = 'dataset') %>%
+    map(compress, names_to = 'algorithm') %>% 
     map(mutate, 
         J = Se + Sp - 1)
   
@@ -54,9 +57,11 @@
   bin_models$stats_dlco_severity <- bin_models$models$DLCO_reduced %>% 
     map(split, severity_class) %>% 
     map(~.x[stri_detect(names(.x), fixed = 'cv')]) %>% 
-    future_map(map, summary.predx, 
+    future_map(map, 
+               summary.predx, 
+               wide = TRUE, 
                .options = furrr_options(seed = TRUE)) %>% 
-    map(format_strata_summary, 'severity_class') %>% 
+    map(compress, names_to = 'severity_class') %>% 
     map(mutate, 
         severity_class = stri_replace(severity_class, fixed = 'cv.', replacement = '')) %>% 
     compress(names_to = 'algorithm') %>% 
@@ -68,9 +73,11 @@
   bin_models$stats_dlco_fup <- bin_models$models$DLCO_reduced %>% 
     map(split, follow_up) %>% 
     map(~.x[stri_detect(names(.x), fixed = 'cv')]) %>% 
-    future_map(map, summary.predx, 
+    future_map(map, 
+               summary.predx, 
+               wide = TRUE, 
                .options = furrr_options(seed = TRUE)) %>% 
-    map(format_strata_summary, 'follow_up') %>% 
+    map(compress, names_to = 'follow_up') %>% 
     map(mutate, 
         follow_up = stri_replace(follow_up, fixed = 'cv.', replacement = '')) %>% 
     compress(names_to = 'algorithm') %>% 
@@ -141,7 +148,7 @@
          title_prefix = exchange(names(bin_models$predictions$train), 
                                  globals$lft_lexicon)) %>% 
     future_pmap(plot_ml_roc,
-                annot_x = 0.2, 
+                annot_x = 0.3, 
                 .options = furrr_options(seed = TRUE))
 
 # Predictive performance in the severity strata and follow-ups ------

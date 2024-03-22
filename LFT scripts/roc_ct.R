@@ -120,28 +120,6 @@
     
   }
   
-# ROC plots ------
-  
-  insert_msg('ROC plots')
-  
-  for(i in names(lft_roc$stats$all_cutoffs)) {
-    
-    lft_roc$roc_plots[[i]] <- 
-      list(cutoff_stats = blast(lft_roc$stats$optimal_cutoff[[i]], variable), 
-           plot_title = names(lft_roc$stats$all_cutoffs[[i]]) %>% 
-             exchange(lft_globals$lexicon) %>% 
-             capitalize_first_char %>% 
-             paste(exchange(i, lft_globals$lexicon), sep = ' and '), 
-           plot_subtitle = lft_roc$n_caps[[i]], 
-           m_variable = as.character(lft_roc$stats$optimal_cutoff[[i]]$variable), 
-           color = lft_roc$variable_colors) %>% 
-      pmap(plot_roc,
-           data = lft_roc$analysis_tbl %>% 
-             map_dfc(function(x) if(is.factor(x)) as.numeric(x) - 1 else x), 
-           d_variable = i)
-    
-  }
-  
 # Summary ROC plots for each LFT abnormality ------
   
   insert_msg('Summary ROC plots')
@@ -286,10 +264,56 @@
            marker = exchange(marker, 
                              lft_globals$lexicon), 
            response = exchange(response, 
-                              lft_globals$lexicon)) %>% 
+                               lft_globals$lexicon)) %>% 
     select(response, marker, statistic, table_lab) %>% 
     pivot_wider(names_from = 'statistic', 
-                values_from = 'table_lab')
+                values_from = 'table_lab') %>% 
+    set_names(c('LFT abnormality', 
+                'CT variable', 
+                'Kappa', 
+                'Sensitivity', 
+                'Specificity'))
+  
+  ## A single summary table
+  
+  lft_roc$summary_result_tbl <- 
+    lft_roc[c("result_tbl", "bootstrap_result_tbl")] %>% 
+    map2(., 
+         list(c('Cutoff', 'AUC'), 
+              c('Kappa', 'Sensitivity', 'Specificity')), 
+         ~select(.x, 
+                 `LFT abnormality`, 
+                 `CT variable`, 
+                 all_of(.y))) %>% 
+    reduce(left_join, by = c('LFT abnormality', 'CT variable')) %>% 
+    pivot_longer(cols = c('AUC', 'Kappa', 'Sensitivity', 'Specificity'), 
+                 names_to = 'Statistic', 
+                 values_to = 'Value, 95% CI') %>% 
+    mutate(Cutoff = ifelse(Statistic == 'AUC', NA, Cutoff), 
+           Statistic = ifelse(Statistic == 'Kappa', 
+                              '\u03BA', Statistic))
+  
+# ROC plots ------
+  
+  insert_msg('ROC plots')
+  
+  for(i in names(lft_roc$stats$all_cutoffs)) {
+    
+    lft_roc$roc_plots[[i]] <- 
+      list(cutoff_stats = blast(lft_roc$stats$optimal_cutoff[[i]], variable), 
+           plot_title = names(lft_roc$stats$all_cutoffs[[i]]) %>% 
+             exchange(lft_globals$lexicon) %>% 
+             capitalize_first_char %>% 
+             paste(exchange(i, lft_globals$lexicon), sep = ' and '), 
+           plot_subtitle = lft_roc$n_caps[[i]], 
+           m_variable = as.character(lft_roc$stats$optimal_cutoff[[i]]$variable), 
+           color = lft_roc$variable_colors) %>% 
+      pmap(plot_roc,
+           data = lft_roc$analysis_tbl %>% 
+             map_dfc(function(x) if(is.factor(x)) as.numeric(x) - 1 else x), 
+           d_variable = i)
+    
+  }
   
 # END ------
   

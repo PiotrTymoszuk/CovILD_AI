@@ -20,6 +20,7 @@
   library(caretExtra)
   library(effectsize)
   library(sciplot)
+  library(rcompanion)
 
   library(ranger)
   library(nnet)
@@ -33,10 +34,11 @@
   library(furrr)
   library(doParallel)
 
+  library(ggrepel)
+  library(ggtext)
+
   library(OptimalCutpoints)
   library(plotROC)
-
-  library(ggrepel)
 
   explore <- exda::explore
   train <- caret::train
@@ -65,7 +67,8 @@
     './LFT scripts/univariable_FVC_findings.R', 
     './LFT scripts/univariable_FVC.R',
     './LFT scripts/univariable_FEV1_findings.R', 
-    './LFT scripts/univariable_FEV1.R') %>% 
+    './LFT scripts/univariable_FEV1.R', 
+    './LFT scripts/bootstrap_tests.R') %>% 
     source_all(message = TRUE, crash = TRUE)
   
 # Tuning of the machine learining models --------
@@ -86,7 +89,7 @@
                    'Loading cached tuning results for DLCO findings', 
                    'Loading cached tuning results for FVC findings', 
                    'Loading cached tuning results for FEV1 findings')) %>% 
-    pwalk(access_cache)
+    pwalk(soucer::access_cache)
   
   ## for regression
   
@@ -99,14 +102,16 @@
        message = c('Loading cached tuning results for DLCO percentage',
                    'Loading cached tuning results for FVC percentage', 
                    'Loading cached tuning results for FEV1 percentage')) %>% 
-    pwalk(access_cache)
+    pwalk(soucer::access_cache)
   
 # Assessment of the model performance ------
   
   insert_msg('Assessment of the model performance')
   
   c('./LFT scripts/binary_performance.R', 
-    './LFT scripts/regression_performance.R') %>% 
+    './LFT scripts/regression_performance.R', 
+    './LFT scripts/residuals.R', 
+    './LFT scripts/ct_predictions.R') %>% 
     source_all(message = TRUE, crash = TRUE)
 
 # Variable importance ------
@@ -127,7 +132,6 @@
   
   c('./LFT scripts/roc_ct.R') %>% 
     source_all(message = TRUE, crash = TRUE)
-  
 
 # END -----
   

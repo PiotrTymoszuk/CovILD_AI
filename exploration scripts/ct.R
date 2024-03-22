@@ -95,7 +95,10 @@
   
   cohort_ct$result_tbl <- cohort_ct$stats %>% 
     map(format_summ_tbl, 
-        dict = cohort_ct$lexicon)
+        dict = cohort_ct$lexicon) %>% 
+    map(mutate, Variable = variable) %>% 
+    map(select, -variable) %>% 
+    map(relocate, Variable)
   
 # Plotting ------
   

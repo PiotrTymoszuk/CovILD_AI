@@ -115,7 +115,7 @@
       'hospital_stay_days' = 'hospital stay', 
       'ICU_stay_days' = 'ICU stay', 
       'steroid_treatment' = 'steroids during COVID-19', 
-      'antiinfective_treatment' = 'antiinfectives during COVID-19', 
+      'antiinfective_treatment' = 'anti-infectives during COVID-19', 
       'macrolide_treatment' = 'macrolides during COVID-19', 
       'antiplatelet_treatment' = 'anti-platelet drugs during COVID-19', 
       'anticoagulant_treatment' = 'anti-coagulants during COVID-19', 
@@ -145,7 +145,7 @@
       'ARDS_pattern_finding' = 'ARDS pattern', 
       'opacitiy_finding' = 'opacity', 
       'CTSS' = 'CTSS', 
-      'opacity_percent' = 'opactity, AI', 
+      'opacity_percent' = 'opacity, AI', 
       'high_opacity_percent' = 'high opacity, AI')
   
   ct_units <- 

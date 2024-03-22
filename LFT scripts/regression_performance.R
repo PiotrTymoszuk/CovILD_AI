@@ -73,13 +73,11 @@
   reg_models$stats <- reg_models$models %>% 
     future_map(map, 
                summary.caretx, 
-               .options = furrr_options(seed = TRUE))
+               wide = TRUE, 
+               .options = furrr_options(seed = TRUE)) %>% 
+    map(map, compress, names_to = 'dataset') %>% 
+    map(compress, names_to = 'algorithm')
 
-  ## formatting the summary stats
-  
-  reg_models$stats <- reg_models$stats %>% 
-    format_ml_summary
-  
 # CV stats for the subsets --------
   
   insert_msg('CV performance stats for the severity subsets and FUP')
@@ -89,9 +87,11 @@
   reg_models$stats_dlco_severity <- reg_models$models$DLCO_percent %>% 
     map(split, severity_class) %>% 
     map(~.x[stri_detect(names(.x), fixed = 'cv')]) %>% 
-    map(future_map, summary.predx, 
+    map(future_map, 
+        summary.predx, 
+        wide = TRUE, 
         .options = furrr_options(seed = TRUE)) %>% 
-    map(format_strata_summary, 'severity_class') %>% 
+    map(compress, names_to = 'severity_class') %>% 
     map(mutate, 
         severity_class = stri_replace(severity_class, fixed = 'cv.', replacement = '')) %>% 
     compress(names_to = 'algorithm') %>% 
@@ -103,9 +103,11 @@
   reg_models$stats_dlco_fup <- reg_models$models$DLCO_percent %>% 
     map(split, follow_up) %>% 
     map(~.x[stri_detect(names(.x), fixed = 'cv')]) %>% 
-    map(future_map, summary.predx, 
+    map(future_map, 
+        summary.predx, 
+        wide = TRUE, 
         .options = furrr_options(seed = TRUE)) %>% 
-    map(format_strata_summary, 'follow_up') %>% 
+    map(compress, names_to = 'follow_up') %>% 
     map(mutate, 
         follow_up = stri_replace(follow_up, fixed = 'cv.', replacement = '')) %>% 
     compress(names_to = 'algorithm') %>% 
@@ -146,7 +148,8 @@
          stats = reg_models$stats, 
          title_prefix = exchange(names(reg_models$predictions$train), 
                                  globals$lft_lexicon)) %>% 
-    pmap(plot_fit_observed)
+    pmap(plot_fit_observed,
+         abline_width = 1)
   
 # Performance of the models in the severity strata and at FUP ------
   

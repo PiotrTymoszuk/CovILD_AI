@@ -266,7 +266,7 @@
                                     replacement = 'Support vector machines, radial kernel'), 
            algorithm = stri_replace(algorithm, 
                                     fixed = 'GBM', 
-                                    replacement = 'Gradiant boosted machines')) %>% 
+                                    replacement = 'Gradient boosted machines')) %>% 
     select(response, algorithm, parameter) %>% 
     set_names(c('Response', 'Algorithm', 'Parameters')) %>% 
     mdtable(label = 'table_12_ml_tuning',

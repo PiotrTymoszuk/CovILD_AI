@@ -15,7 +15,11 @@
   shap_imp$lexicon <- lft_globals$lexicon %>% 
     mutate(label = ifelse(!is.na(unit), 
                           paste(label, unit, sep = ', '), 
-                          label))
+                          label), 
+           label = ifelse(variable %in% lft_globals$ct_variables & 
+                            variable != 'follow_up', 
+                          paste0('<b>', label, '</b>'), 
+                          label))  
   
 # SHAP objects ------
   
@@ -25,7 +29,7 @@
   
   shap_imp$shap_viz_objects <- shap_imp$shap_objects %>% 
     map(map, shapviz)
-  
+
 # Bar plots with the mean importance measures -------  
   
   insert_msg('Bar plots')
@@ -41,10 +45,8 @@
                                          kind = 'bar', 
                                          fill = z, 
                                          color = 'black') + 
-           scale_y_discrete(labels = function(x) exchange(x, dict = shap_imp$lexicon)) + 
            labs(title = y,
-                subtitle = 'Importance for probability of DLCO < 80%') + 
-           globals$common_theme)
+                subtitle = 'Importance for probability of DLCO < 80%'))
   
   ## regression
   
@@ -57,10 +59,18 @@
                                          kind = 'bar', 
                                          fill = z, 
                                          color = 'black') + 
-           scale_y_discrete(labels = function(x) exchange(x, dict = shap_imp$lexicon)) + 
            labs(title = y,
-                subtitle = 'Importance for DLCO, % of reference') + 
-           globals$common_theme)
+                subtitle = 'Importance for DLCO, % of reference'))
+  
+  ## common styling
+  
+  shap_imp$bar_plots <- shap_imp$bar_plots %>% 
+    map(map, 
+        ~.x + 
+          scale_y_discrete(labels = function(x) exchange(x, dict = shap_imp$lexicon)) + 
+          globals$common_theme + 
+          theme(axis.text.y = element_markdown()))
+  
   
 # Bee swarm plots ------
   
@@ -80,10 +90,8 @@
                                          kind = 'bee', 
                                          size = 2, 
                                          alpha = 0.5) + 
-           scale_y_discrete(labels = function(x) exchange(x, dict = shap_imp$lexicon)) + 
            labs(title = y,
-                subtitle = 'Importance for probability of DLCO < 80%') + 
-           globals$common_theme)
+                subtitle = 'Importance for probability of DLCO < 80%'))
   
   ## regression responses
   
@@ -95,21 +103,59 @@
                                          kind = 'bee', 
                                          size = 2, 
                                          alpha = 0.5) + 
-           scale_y_discrete(labels = function(x) exchange(x, dict = shap_imp$lexicon)) + 
            labs(title = y,
-                subtitle = 'Importance for DLCO, % of reference') + 
-           globals$common_theme)
+                subtitle = 'Importance for DLCO, % of reference'))
   
-  ## common fill scale
+  ## common fill scale and styling
   
   shap_imp$bee_plots <- shap_imp$bee_plots %>% 
     map(map, 
-        ~.x + 
+        ~.x +
+          scale_y_discrete(labels = function(x) exchange(x, dict = shap_imp$lexicon)) + 
           scale_color_gradient2(low = 'steelblue', 
                                 mid = 'black', 
                                 high = 'firebrick', 
-                                midpoint = 0.5))
+                                midpoint = 0.5) + 
+          globals$common_theme + 
+          theme(axis.text.y = element_markdown()))
   
+# A table with mean SHAP values ---------
+  
+  insert_msg('A table with mean absolute SHAP values')
+  
+  shap_imp$mean_table <- shap_imp$bar_plots %>% 
+    map(map, ~.x$data) %>% 
+    map(~map2(., names(.), 
+              ~set_names(.x, c('Variable', globals$algo_labs[.y])))) %>% 
+    map(reduce, full_join, by = 'Variable') %>% 
+    set_names(c('DLCO < 80%', 'DLCO')) %>% 
+    compress(names_to = 'Response') %>% 
+    relocate(Response) %>% 
+    as_tibble
+  
+  shap_imp$mean_table <- shap_imp$mean_table %>% 
+    mutate(Variable = exchange(Variable, shap_imp$lexicon))
+  
+# Customized bee swarm plots --------
+  
+  insert_msg('Customized bee swarm plots')
+  
+  shap_imp$violin_bee_plots$DLCO_reduced <- 
+    shap_imp$bee_plots$DLCO_reduced %>% 
+    map(my_shap_bee, 
+        reorder_ft = 'median', 
+        midpoint = 0.5)
+  
+  shap_imp$violin_bee_plots$DLCO_percent <- 
+    shap_imp$bee_plots$DLCO_percent %>% 
+    map(my_shap_bee, 
+        reorder_ft = 'median', 
+        midpoint = 0.5, 
+        point_wjitter = 0.05)
+  
+  shap_imp$violin_bee_plots <- shap_imp$violin_bee_plots %>% 
+    map(map, ~.x + theme(axis.text.y = element_markdown()))
+
 # END -----
-  
+
   insert_tail()

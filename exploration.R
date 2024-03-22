@@ -12,10 +12,15 @@
   library(rstatix)
   library(rcompanion)
 
+  library(clustTools)
+  library(ggvenn)
+
   library(soucer)
   library(furrr)
 
   library(ggrepel)
+
+  explore <- exda::explore
   
   c('./tools/globals.R', 
     './tools/tools.R') %>%
@@ -30,7 +35,9 @@
     './exploration scripts/lft.R', 
     './exploration scripts/symptoms.R', 
     './exploration scripts/distribution_longitudinal.R', 
-    './exploration scripts/distribution_baseline.R') %>% 
+    './exploration scripts/distribution_baseline.R', 
+    './exploration scripts/correspondence.R', 
+    './exploration scripts/correlation.R') %>% 
     source_all(message = TRUE, crash = TRUE)
   
 # END ------
