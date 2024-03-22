@@ -1,0 +1,660 @@
+---
+title: "Artificial intelligence-assisted analysis of CT abnormalities during COVID-19 recovery"
+subtitle: "Supplementary Material"
+author: "Department of Radiology, Medical University of Innsbruck"
+date: "`r format(Sys.time(), '%Y-%m-%d')`"
+
+output: 
+  bookdown::html_document2:
+    css: "style.css"
+    
+bibliography: ct.bib
+
+csl: frontiers_medical.csl
+
+header-includes:
+  \usepackage{longtable}
+  \usepackage{tabu}
+  \usepackage{caption}
+  \usepackage{makecell}
+  \usepackage{pdflscape}
+  \usepackage{array}
+  \usepackage{booktabs}
+  \usepackage{threeparttable}
+  \usepackage{threeparttablex}
+  \usepackage{wrapfig}
+  \usepackage{multirow}
+  \usepackage[normalem]{ulem}
+  \usepackage{colortbl}
+  \usepackage{xcolor}
+  \usepackage{float} \floatplacement{figure}{H} \floatplacement{table}{H}
+
+---
+
+```{r, setup, include = FALSE}
+
+library(Cairo)
+
+opts_chunk$set(echo = FALSE, 
+                      warning = FALSE, 
+                      message = FALSE, 
+                      dev = "CairoPNG", 
+                      dpi = 600)
+
+set_flextable_defaults(font.family = "Cambria", 
+                       font.size = 10)
+
+
+```
+
+\newpage
+
+# Supplementary Methods
+
+## Ethics
+
+The CovILD study was conducted in accordance with the Declaration of Helsinki and the European Data policy. 
+All participants gave written informed consent to participate and to process their data. 
+The study data were processed, stored and analyzed in anonymized form. 
+The study protocol was approved by the ethics committee of the Medical University of Innsbruck, Austria (approval number: 1103/2020). 
+The study was registered at [ClinicalTrials.gov](https://classic.clinicaltrials.gov/ct2/show/NCT04416100) (NCT04416100). 
+
+## Study design and participants, handling of missing data
+
+The longitudinal observation CovILD study aimed at investigation of symptom, cardiopulmonary and mental health recovery of COVID-19 patients. 
+The details of the study design and the cohort are provided in our recent publications [@Sonnweber2020; @Sonnweber2022; @Luger2022; @Sahanic2023]. 
+In brief, n = `r length(covild$common_ids)` convalescent COVID-19 survivors were recruited among patients of the University Hospital of Innsbruck, St. Vinzenz Hospital in Zams and Karl-Landsteiner Rehabilitation Center in Münster (all in Austria) between March and June 2020. 
+The inclusion criteria were age $\geq$ 18 years, SARS-CoV-2 positivity confirmed by PCR and presence of COVID-19 symptoms. 
+All participants were infected with the wild-type form of SARS-CoV-2. 
+The study visits were scheduled at two, three, six, and twelve months after COVID-19 diagnosis. 
+In the current analysis, participant-matched longitudinal observations were utilized. 
+The analysis inclusion criterion was availability of data from computed tomography (CT) of the chest and lung function testing (LFT). 
+This criterion was fulfilled by `r nrow(covild$ct)` observations obtained from `r length(covild$complete_ids)` CovILD study participants. 
+For the patients included in the analysis, the set of explanatory variables concerning demographic and clinical background as well as the course and treatment of acute COVID-19 was complete. 
+
+The study design and analysis inclusion process are summarized in a flow chart in __Figure 1__. 
+Numbers of observations at study follow-up examinations are presented in __Supplementary Table S\@ref(tab:tab-n-numbers)__.
+Analyzed variables are listed in __Supplementary Table S\@ref(tab:tab-study-variables)__. 
+Baseline demographic and clinical characteristic of the study cohort and characteristic of acute COVID-19 are provided in __Table 1__. 
+Frequency of CT and LFT abnormalities, scoring of CT lesions and values of LFT readouts are listed in __Supplementary Tables S\@ref(tab:tab-cohort-ct)__ and __S\@ref(tab:tab-cohort-lft)__. 
+Frequencies of COVID-19 -related symptoms of relevance for lung function are presented in __Supplementary Table S\@ref(tab:tab-cohort-symptoms)__.
+
+## Study procedures and data sources
+
+Information on demography (age, sex), smoking status, routine medication, pre-existing conditions, as well as the course and treatment of acute COVID-19 were obtained in an interview and retrieved from electronic patient's record at the two-month follow-up visit. 
+The standard follow-up visit protocol included a survey of symptoms and self-reported physical performance, examination and interview by a physician, determination of standard blood markers (hemoglobin, iron turnover, complete blood count, markers of inflammation and vascular pathology), trans-thoracic echocardiography, LFT, and CT of the chest. 
+The details of the study procedures are provided in our recent publications [@Luger2022; @Sonnweber2020; @Sonnweber2022; @Sahanic2023]. 
+The complete list of study variables with their format and descriptions is provided in __Supplementary Table S\@ref(tab:tab-study-variables)__. 
+
+Regarding the severity of acute COVID-19, the study participants were classified as 
+'ambulatory' (home isolated, WHO ordinal scale for clinical improvement: 1 - 2), 
+'hospitalized moderate' (hospitalized, without oxygen therapy or oxygen by mask or nasal prongs, WHO: 3 - 4), and 
+'hospitalized severe' (hospitalized, high flow oxygen or mechanical ventilation, WHO: 5 - 7). 
+
+Chest CT was done with a 128 slice multi-detector SOMATOM Definition Flash device (Siemens Healthineers, Erlangen, Germany) with a 128 $\times$ 0.6 mm collimation and spiral pitch factor of 1.1. 
+Scans were obtained in craniocaudal direction without iodine contrast agent and in low-dose setting (100 kVp tube potential). 
+Artificial intelligence (AI) supported analysis of the lung CT scans was done with the Syngo.via CT Pneumonia Analysis Software (Siemens Healthineers, Erlangen, Germany), which returned percentage of the lungs with opacity and high opacity. 
+Evaluation of the CT scans by the radiologists was done in accordance with the Fleischner society guidelines as described before [@Luger2022; @Sonnweber2020; @Hansell2008]. 
+In brief, the scans were examined for presence of ground glass opacity (GGO), reticulation, consolidations, and bronchiectasis. 
+Severity of lung abnormalities was rated by the radiologist with the CT severity score (CTSS) described before [@Luger2022; @Sonnweber2020]. 
+For computation of CTSS, radiological abnormalities were scored separately for each lobe with the following scheme:
+
+* 0: no abnormalities
+
+* 1: minimal, subtle GGO
+
+* 2: mild, several GGO and subtle reticulations
+
+* 3: moderate, multiple GGO, reticulation, small consolidation
+
+* 4: severe, extensive GGO, consolidation, reticulation with distortion
+
+* 5: massive findings, parenchymal destruction
+
+CTSS was calculated as a sum of the scores over all lobes and ranged from 0 to 25 [@Luger2022; @Sonnweber2020]. 
+
+The following LFT parameters were recorded: 
+diffusion capacity for carbon monoxide (DLCO), 
+forced vital capacity (FVC), 
+forced expiratory volume in one second (FEV1), 
+total lung capacity (TLC), and 
+FEV1 to FVC ratio (FEV1:FVC). 
+Among them, DLCO, FVC, and FEV1, whose abnormalities were the most frequent in the CovILD cohort, were analyzed in the current report. 
+These variables were expressed as percentage of the patient's individual age-, sex- and weight-specific reference. 
+Insufficiency of DLCO, FVC, or FEV1 were defined as values below 80% of the reference [@Sonnweber2022; @Sonnweber2020; @Sahanic2023]. 
+
+The following longitudinally recorded symptoms of potential relevance for lung function were evaluated: 
+dyspnea measured by Modified Medical Research Council scale (mMRC, presence of dyspnea defined as mMRC > 0), 
+self-reported cough, and 
+self-rated physical performance measured by Eastern Cooperative Oncology Group (ECOG, impaired physical performance defined as ECOG > 0) [@Sahanic2023]. 
+Missing information on the symptoms or their intensity in the patient's symptom survey were interpreted as absence of the complaint. 
+
+The source study data set was fetched from the [CovILD study data repository](https://github.com/PiotrTymoszuk/covILD) available as an R package to authorized users. 
+
+## Software
+
+The analysis was done with R version 4.2.3. 
+Tabular data and code pipelines were handled by tools provided by the packages _tidyverse_ [@Wickham2016], _rlang_ [@Henry2022], and [_trafo_](https://github.com/PiotrTymoszuk/trafo). 
+Text data were handled with _stringi_ [@Gagolewski2021]. 
+Parallelization was accomplished with _furrr_ [@Vaughan2022] and _doParallel_ [@Folashade2022].
+
+In exploratory data analysis, statistical hypothesis testing and analysis of correspondence and correlations, the packages _rstatix_ [@Kassambara2021], _rcompanion_ [@Mangiafico2022], _MASS_ [@Ripley2022], [_clustTools_](https://github.com/PiotrTymoszuk/clustTools), and [_ExDA_](https://github.com/PiotrTymoszuk/ExDA) were used. 
+Receiver-operating characteristic (ROC), confusion matrix analysis and inter-rater reliability analyses were done with _caret_ [@Kuhn2008], _OptimalCutpoints_ [@Lopez-Raton2014] and [_bootStat_](https://github.com/PiotrTymoszuk/bootStat). 
+
+For machine learning modeling of lung function testing outcomes, the packages _caret_ [@Kuhn2008] and [_caretExtra_](https://github.com/PiotrTymoszuk/caretExtra) were utilized, which provide wrappers around the R implementations of the random forest algorithm (_ranger_) [@Wright2017; @Breiman2001], 
+neural network (_nnet_) [@Ripley2014], 
+support vector machines (SVM, _kernlab_) [@Weston1998; @Karatzoglou2004], 
+and gradient boosted machines (GBM, _gbm_) [@Greenwell2022; @Friedman2002; @Friedman2001]. 
+Model diagnostic statistics and performance evaluation metrics were computed with the development package [_caretExtra_](https://github.com/PiotrTymoszuk/caretExtra). 
+SHAP (Shapley additive explanations) as a metric of global variance importance in machine learning models was calculated with the package _kernelshap_ [@Covert2020; @Lundberg2017; @Mayer2023]. 
+
+Analysis results were visualized with _ggplot_ [@Wickham2016] and [_ExDA_](https://github.com/PiotrTymoszuk/ExDA) (scatter, stack and box plots), [_clustTools_](https://github.com/PiotrTymoszuk/clustTools) (visualization of results of correspondence analysis), _ggvenn_ [@Yan2021] (Venn plots), [_caretExtra_](https://github.com/PiotrTymoszuk/caretExtra) (plots for machine learning model diagnostic and evaluation), _plotROC_ [@Sachs2017] (ROC curves) and _shapviz_ [@Mayer2023a; @Mayer2023] (violin/scatter plots of absolute SHAP values). 
+Result tables were created with _flextable_ [@Gohel2022]. 
+Figures were generated with _cowplot_ [@Wilke2019]. 
+Parts of the manuscript and supplementary material were written in the _rmarkdown_ environment [@Allaire2022] with the _bookdown_ package [@Xie2016]. 
+Figures, tables, links and R expressions in the Rmarkdown document were managed with [_figur_](https://github.com/PiotrTymoszuk/figur).
+
+## Descriptive statistic, statistical tests and effect sizes, correspondence analysis
+
+If not stated otherwise, numeric values are presented as medians with interquartile ranges and ranges within the analysis data set or analysis strata. 
+Qualitative variables are presented as percentages and counts of the category within the analysis data set or analysis strata. 
+Normality of distribution of numeric variables upon identity, logarithm and square root transformation was checked with Shapiro-Wilk test (function `shapiro_test`, package _rstatix_). 
+Since multiple numeric variables were not normally distributed, Mann-Whitney test or Kruskal-Wallis test were routinely used for comparison of independently distributed numeric variables between analysis groups. 
+Differences in distribution of categorical variables between the study groups were assessed with $\chi^2$ test. 
+P values were adjusted for multiple testing with the false discovery rate method separately for each analysis task (e.g. comparison of explanatory variables between observations with and without LFT findings) [@Benjamini1995]. 
+Effects with p < 0.05 were considered significant.
+
+The following effect size metrics were used to assess differences between analysis groups and to evaluate performance of machine learning models [@McHugh2012; @Cohen2013; @Cohen1960]:
+
+* biseral r was used for two-group comparisons of numeric variables: < 0.3: small, 0.3 - 0.5: moderate, $\geq$ 0.5: large effect size
+
+* $\eta^2$ was used for multi-group comparison of numeric variables: < 0.13: small, 0.13 - 0.26: moderate, $\geq$ 0.26: large effect size
+
+* Cramer's V was used for comparisons of categorical variables: < 0.3: small, 0.3 - 0.5: moderate, $\geq$ 0.5: large effect size
+
+* Spearman's $\rho$ coefficient of correlation: < 0.3: small, 0.3 - 0.5: moderate, $\geq$ 0.5: large effect size
+
+* pseudo-R^2^ was used as a measure of explained variance of a model: < 0.13: small, 0.13 - 0.26: moderate, $\geq$ 0.26: large effect size
+
+* Cohen's $\kappa$ inter-rater reliability statistic: < 0.20: no effect, 0.2 - 0.4: fair, 0.4 - 0.6: moderate, 0.6 - 0.8: good, $\geq$ 0.8: excellent concordance
+
+Statistical significance and effect sizes for comparisons and correlations of independent observations was assessed with the functions `compare_variables()` and `correlate_variables()` (package [_ExDA_](https://github.com/PiotrTymoszuk/ExDA)). 
+Because of non-independent observations included in the analysis, pairwise correlations of numeric LFT or CT variables were investigated with blocked bootstrap Spearman's rank test described below. 
+Analogically, for comparison of medians between two subsets of non-independent observations, blocked bootstrap test was utilized. 
+Please refer to __Comparison of CT readouts between observations with and without LFT abnormality, correlation analysis__ for details. 
+
+Co-occurrence of LFT abnormalities (DLCO < 80% reference, FVC < 80% of reference, and FEV1 < 780% of reference) was investigated by two-dimensional correspondence analysis (function `mca()`, package _MASS_) [@Ripley2022] and whose column factors were visualized in a scatter plot with functions from the [_clustTools_](https://github.com/PiotrTymoszuk/clustTools) package. 
+Additionally, counts of observations with co-occurring LFT abnormalities were visualized in Venn plot (function `ggvenn()`, package _ggvenn_). 
+
+## Multi-parameter modeling of lung function
+
+Presence of reduced DLCO, FVC and FEV1 (each < 80% of reference), as well as values of DLCO, FVC and FEV1 expressed as percentages of the reference value were modeled with `r lft_globals[c("ct_variables", "symptom_variables", "baseline_variables")] %>% reduce(union) %>% length` explanatory variables including: 
+
+* baseline demographic and clinical characteristic (e.g. age, sex, smoking, comorbidities)
+
+* explanatory variables referring to the course of acute COVID-19 (e.g. WHO ordinal scale for clinical improvement, hospitalization status and length, treatment)
+
+* follow-up after COVID-19 diagnosis (two, three, six and twelve months)
+
+* presence and rating of longitudinally recorded symptoms of relevance for lung function (dyspnea, cough, impaired physical performance)
+
+* presence and severity of lung CT findings rated by the radiologist (e.g. GGO, consolidations, CTSS) and AI (opacity and high opacity)
+
+To reduce the number of explanatory variables, some qualitative variables with rare categories were re-coded. 
+This concerned: 
+
+* _`r  exchange('pulmonary_comorbidity', lft_globals$lexicon)`_ which subsumed pre-existing chronic obstructive lung disease (COPD), bronchial asthma, interstitial lung disease, chronic lung diseases and other pulmonary conditions
+
+* _`r exchange('anticoagulant_treatment', lft_globals$lexicon)`_ which subsumed anti-coagulation and anti-platelet treatment during acute COVID-19
+
+* _`r exchange('antiinfective_treatment', lft_globals$lexicon)`_ which subsumed anti-infective and anti-macrolide treatment during acute COVID-19
+
+* _`r exchange('smoking', lft_globals$lexicon)`_, where ex- and active smokers were grouped together
+
+Severity of acute COVID-19 measured by the WHO ordinal scale of clinical improvement was re-coded as categorical explanatory variable. 
+The response and explanatory variables are listed in __Supplementary Table S\@ref(tab:tab-study-variables)__, the modeling strategy is schematically summarized in __Supplementary Figure S\@ref(fig:fig-modeling-strategy)__.
+
+Multi-parameter models were constructed with four machine learning algorithms employing diverse mathematical principles: 
+canonical random forest (implemented in R by the _ranger_ package, caret's method name: 'ranger') [@Wright2017; @Breiman2001], 
+GBM (_gbm_ package, caret's method name: 'gbm') [@Greenwell2022; @Friedman2002; @Friedman2001], 
+neural network with a single hidden layer (_nnet_ package, caret's method name: 'nnet') [@Ripley2014], 
+and SVM with radial kernel (_kernlab_ package, caret's method name: 'svmRadial') [@Weston1998; @Karatzoglou2004]. 
+For random forest models, 1000 random trees per model were generated. 
+Bernoulli and Gaussian loss functions were implemented in classification and regression GBM models, respectively. 
+Optimal values of parameters controlling the algorithm's behavior such as number of observations in terminal nodes of tree models in the random forest models or cost penalty in the SVM models were found by maximizing the Youden's J statistic 
+($J = Sensitivity + Specificity - 1$, classification models of binary LFT outcomes) or by minimizing mean absolute error (MAE, regression models of numeric LFT outcomes) in 10-repeats 10-fold cross-validation. 
+To account for the participant matching of the observations, a blocked cross-validation workflow was designed to keep all observations obtained from a particular participant either in the training or in the test portion of the cross-validation split. 
+Construction of such 'participant-wise' blocked cross-validation folds was done with an in-house-developed script employing the `createMultiFolds()` function (package _caret_). 
+For tuning and training of the machine learning models, the `train()` wrapper from the _caret_ package was employed [@Kuhn2008]. 
+The optimal values of the tuning parameters are listed in __Supplementary Table S\@ref(tab:tab-tuning)__. 
+
+Performance of the machine learning models was evaluated by comparison of the model predictions with the observed outcome in the genuine training data set and in 10-repeats 10-fold cross-validation with the observed outcomes. 
+Performance of the classification models was assessed by Cohen's $\kappa$ as a measure of concordance between the predicted and observed outcome [@McHugh2012; @Cohen1960], 
+standard receiver operating characteristic metrics (AUC, overall accuracy, sensitivity, specificity) to assess the ability of the model to detect the pathological outcome [@Kuhn2008], and with 
+Brier score to investigate credibility of the predictions and model calibration [@Brier1950; @Goldstein-Greenwood2021] (__Table 2__ and __Supplementary Table S\@ref(tab:tab-bin-classifiers)__). 
+Performance of the regression models was assessed with 
+mean absolute error (MAE) as a measure of fit quality, 
+pseudo-R^2^ as a metric of explained variance and 
+Spearman's $\rho$ for correlation between the predicted and observed outcome as as measure of overall model calibration [@Kuhn2008] (__Table 3__ and __Table \@ref(tab:tab-reg-models)__). 
+Pseudo-R^2^ was computed with the following formulas:
+
+$$pseudo R^2 = 1 - \frac{MSE(y)}{Var(y)}$$
+$$MSE(y) = \frac{1}{N} \sum_i^N (y_i - \hat{y}_i)^2$$
+
+where $MSE(y)$ stands for mean squared error of the outcome variable $y$, $Var(y)$ is the variance of the outcome variable $y$, $N$ is the total observation number, $i$ represents the observation index, $y_i$ is the observed outcome value for the i-th observation, and $\hat{y}_i$ is the predicted outcome value for the i-th observation. 
+Performance statistics were retrieved from the `caret` models with the `summary()` method from the [_caretExtra_](https://github.com/PiotrTymoszuk/caretExtra) package. 
+Visualization of the model tuning and evaluation results was accomplished with the method `plot()` from the [_caretExtra_](https://github.com/PiotrTymoszuk/caretExtra) package and in-house developed, project-specific functions. 
+
+In order to assess the model accuracy as a function of acute COVID-19 severity and time after diagnosis, we computed Cohen's $\kappa$ (classification models) and MAE (regression models) of out-of-fold predictions for observations stratified by acute COVID-19 severity (mild, moderate, severe) and follow-up visit (2-, 3-, 6- and 12-month follow-up). 
+The error values were subsequently visualized as heat maps. 
+
+## Variable importance for multi-parameter models of lung function
+
+Shapley additive explanations (SHAP) were used as a global importance statistic for the model's explanatory variables. 
+In brief, SHAP measures contribution of the given variable to the model fit by comparing a goodness-of-fit statistic between models re-fitted with subsets of explanatory variables including the variable of interest and models re-fitted with subsets of explanatory variables without the variable of interest [@Covert2020; @Lundberg2017]. 
+Matrices of SHAP values for observations and variables were computed for the machine learning models of lung function outcomes with the function `kernelshap()` provided by the _kernelshap_ package [@Mayer2023a]. 
+As a background for SHAP calculation, a single observation data frame was used with numeric explanatory variables set to the 25^th^ percentile of the values in the entire data set and with qualitative explanatory variables set to the baseline category [@Mayer2023a]. 
+For mean absolute SHAP values of the most influential explanatory variables in the Random Forest, neural network, SVM, and GBM models, see: __Table \@ref(tab:tab-mean-shap)__. 
+Visualization of the mean SHAP values for the top most influential explanatory variables was accomplished with the `shapviz()`, `sv_importance()` (package _shapviz_) [@Mayer2023], and in-house developed functions. 
+
+## Comparison of CT readouts between observations with and without LFT abnormality, correlation analysis
+
+Because observations were non-independent, i.e. participant-matched, comparison of CTSS, opacity and high opacity of the lung between data points with and without LFT abnormalities could not be investigated by standard statistical tests (e.g. Mann-Whitney test) and required instead a special approach. 
+Differences in median of the CT parameters between observations with and without a LFT abnormality were investigated with blocked bootstrap test with biseral r effect size statistic (H0: no difference in CT parameter, H1: CT parameter values are higher in observations with the LFT abnormality). 
+The blocked bootstrap scheme involved re-sampling with repetition of the participants instead of single observations (B = 2000 re-samples). 
+P values were obtained by counting re-samples in which the test hypothesis H1 was not met and dividing the count by the total re-sample number. 
+The effect size statistic was computed as an arithmetic average of effect sizes in the re-samples. 
+
+A similar blocked bootstrap approach was applied in a correlation analysis of the CT (CTSS, opacity, high opacity) and LFT readouts (DLCO, FVC, FEV1, expressed as percentages of reference values). 
+The H0 null hypothesis of such correlation test was no or positive correlation of a CT and LFT readout. 
+The H1 hypothesis was the presence of negative correlation between the CT and LFT readout. 
+Spearman's $\rho$ correlation coefficients were computed for the bootstrap re-samples (B = 2000). 
+The p values were obtained by counting re-samples with $\rho \geq$ 0 and dividing the count by the total re-sample number. 
+The $\rho$ values were averaged and their confidence values were calculated as the 2.5 - 97.5 percentile range. 
+
+Bootstrap tests were performed with a functional interface implemented in the development package [_bootStat_](https://github.com/PiotrTymoszuk/bootStat). 
+The analysis results are listed in __Supplementary Table S\@ref(tab:tab-lft-binary-uni)__ and __\@ref(tab:tab-lft-correlation-uni)__.
+
+## Inter-rater reliability and receiver-operating characteristic analysis
+
+The optimal cutoffs of human-determined CTSS, and AI-determined lung opacity and high opacity for detection of insufficient DLCO (< 80% of reference) were computed with the maximum of the Youden's J statistic ($J = Sensitivity + Specificity - 1$) in the entire analysis data set (function `optimal.cutpoints()`, package _OptimalCutpoints_) [@Lopez-Raton2014]. 
+Those optimal cutoffs were subsequently used to dichotomize the analyzed observations. 
+Concordance between the CTSS^high^, opacity^high^ and high opacity^high^ strata assignment and presence of LFT insufficiency of reference was assessed by Cohen's $\kappa$ inter-rater reliability statistic [@McHugh2012; @Cohen1960] as well as sensitivity, specificity and AUC metrics. 
+Those statistics were computed with the function `multiClassSummary()` from the _caret_ package [@Kuhn2008]. 
+Boundaries of the statistic's 95% confidence intervals were obtained by blocked bootstrap with 2000 iterations and were defined by the 2.5 and 97.5 percentiles of the blocked bootstrap estimates. 
+Bootstrapping was accomplished by a functional interface implemented in the development package [_bootStat_](https://github.com/PiotrTymoszuk/bootStat). 
+The analysis results are listed in __Table 4__.
+
+## Data and code availability
+
+The entire R analysis pipeline is available as a [GitHub repository](https://github.com/PiotrTymoszuk/CovILD_AI). 
+The [CovILD data set](https://github.com/PiotrTymoszuk/covILD) will be made available on reasonable request to the corresponding author.
+
+\newpage
+
+# Supplementary Tables
+
+```{r tab-n-numbers, tab.cap = 'Numbers of observations included in the analysis split by acute COVID-19 severity and the follow-up examination.'}
+
+flextable::flextable(suppl_tabs$n_numbers) %>% 
+  set_widths(c(3, rep(3.5, 4))) %>% 
+  theme_vanilla
+
+```
+
+
+\newpage
+
+```{r tab-study-variables, tab.cap = 'Study variables. The table is available as a supplementary Excel file.'}
+
+suppl_tabs$study_variables[1, 1] %>% 
+  mutate(`Use in modeling` = '') %>% 
+  set_names(' ') %>% 
+  flextable %>% 
+  set_widths(16)
+
+```
+
+\newpage
+
+```{r tab-cohort-ct, tab.cap = 'Chest computed tomography variables at consecutive follow-ups. Numeric variables are presented as medians with interquartile ranges (IQR) and ranges. Categorical variables are presented as percentages and counts within the complete observation set.'}
+
+flextable::flextable(suppl_tabs$cohort_ct) %>% 
+  set_widths(c(2.3, 2.7, rep(3.9, 4))) %>% 
+  merge_v(1) %>% 
+  footnote(1, 2, 
+           value = as_paragraph('any CT findings: any CT findings diagnosed by a human pathologist; GGO: ground glass opacity; CTSS: human-determined CT severity score; reticulation, consolidation, bronchiectasis: diagnosed by a human radiologist; opacity and high opacity, AI: opacity and high opacity determined by artificial intelligence.'), 
+           part = 'header', 
+           ref_symbols = 'a') %>% 
+  theme_vanilla
+
+```
+
+\newpage
+
+```{r tab-cohort-lft, tab.cap = 'Lung function testing variables at consecutive follow-ups. Numeric variables are presented as medians with interquartile ranges (IQR) and ranges. Categorical variables are presented as percentages and counts within the complete observation set.'}
+
+flextable::flextable(suppl_tabs$cohort_lft) %>% 
+  set_widths(c(2.3, 2.7, rep(3.7, 4))) %>% 
+  merge_v(1) %>% 
+  footnote(1, 2, 
+           value = as_paragraph('LFT: lung function testing; FVC: forced vital capacity; FEV1: forced expiratory volume in one second; DLCO: diffusion capacity for carbon monoxide.'), 
+           part = 'header', 
+           ref_symbols = 'a') %>%
+  theme_vanilla
+
+```
+
+\newpage
+
+```{r tab-cohort-symptoms, tab.cap = 'Presence and rating of symptoms of relevance for lung function at consecutive follow-ups. Numeric variables are presented as medians with interquartile ranges (IQR) and ranges. Categorical variables are presented as percentages and counts within the complete observation set.'}
+
+flextable::flextable(suppl_tabs$cohort_symptoms) %>% 
+  set_widths(c(2.3, 3.5, rep(3.7, 4))) %>% 
+  merge_v(1) %>% 
+  footnote(1, 2, 
+           value = as_paragraph('mMRC: modified Medical Research Council scale; ECOG: Eastern Cooperative Oncology Group performance scale.'), 
+           part = 'header', 
+           ref_symbols = 'a') %>%
+  theme_vanilla
+  
+
+```
+
+\newpage
+
+```{r tab-tuning, tab.cap = 'Selection of machine learning algorithm parameters by cross-validation-mediated tuning.'}
+
+flextable::flextable(suppl_tabs$tuning) %>% 
+  set_widths(c(3, 4, 4.5)) %>% 
+  merge_v(1) %>% 
+  footnote(1, 1, 
+           value = as_paragraph('LFT: lung function testing; DLCO: diffusion capacity for carbon monoxide; FVC: forced vital capacity; FEV1: forced expiratory volume in one second.'), 
+           part = 'header', 
+           ref_symbols = 'a') %>% 
+  theme_vanilla
+
+```
+
+\newpage
+
+```{r tab-bin-classifiers, tab.cap = 'Performance of binary machine learning classifiers at predicting lung function testing (LFT) abnormalities in the entire data set.'}
+
+flextable::flextable(suppl_tabs$bin_classifiers) %>% 
+   set_widths(c(2.7, 3.1, rep(2, 6))) %>% 
+  merge_v(1) %>% 
+  footnote(1, 1, 
+           value = as_paragraph('LFT: lung function testing, DLCO: diffusion capacity for carbon monoxide, FVC: forced vital capacity; FEV1: forced expiratory volume in one second.'), 
+           part = 'header', 
+           ref_symbols = 'a') %>% 
+  footnote(1, 2, 
+           value = as_paragraph('SVM: support vector machines with radial kernel; GBM: gradient boosted machines.'), 
+           part = 'header', 
+           ref_symbols = 'b') %>% 
+  footnote(1, 3, 
+           value = as_paragraph('Ratio of correct predictions to the total observation number.'), 
+           part = 'header', 
+           ref_symbols = 'c') %>% 
+  footnote(1, 4, 
+           value = as_paragraph('Cohen \u03BA statistic of inter-rater reliability between the predicted and observed outcome.'), 
+           part = 'header', 
+           ref_symbols = 'd') %>% 
+  footnote(1, 6, 
+           value = as_paragraph('AUC: are under the receiver-operating characteristic curve.'), 
+           part = 'header', 
+           ref_symbols = 'e') %>% 
+  theme_vanilla
+
+```
+
+\newpage
+
+```{r tab-reg-models, tab.cap = 'Performance of regression machine learning models at predicting values of lung function testing parameters in the entire data set.'}
+
+flextable::flextable(suppl_tabs$reg_models) %>% 
+  set_widths(c(2.5, 3.1, rep(2.3, 3))) %>% 
+  merge_v(1) %>% 
+  footnote(1, 1, 
+           value = as_paragraph('DLCO: diffusion capacity for carbon monoxide, FVC: forced vital capacity; FEV1: forced expiratory volume in one second.'), 
+           part = 'header', 
+           ref_symbols = 'a') %>% 
+  footnote(1, 2, 
+           value = as_paragraph('SVM: support vector machines with radial kernel; GBM: gradient boosted machines.'), 
+           part = 'header', 
+           ref_symbols = 'b') %>% 
+  footnote(1, 3, 
+           value = as_paragraph('Defined as 1 - ratio of mean squared error and variance.'), 
+           part = 'header', 
+           ref_symbols = 'c') %>% 
+  footnote(1, 4, 
+           value = as_paragraph('MAE: mean absolute error.'), 
+           part = 'header', 
+           ref_symbols = 'd') %>% 
+  footnote(1, 5, 
+           value = as_paragraph('\u03A1: Spearman coefficient of correlation between the predicted and observed response values.'), 
+           part = 'header', 
+           ref_symbols = 'e') %>% 
+  theme_vanilla
+
+```
+
+\newpage
+
+```{r tab-mean-shap, tab.cap = 'Mean values of SHAP (Shapley additive explanations) variable importance statistic for the models of reduced diffusion capacity for carbon monoxide and of diffusion capacity for carbon monoxide < 80% of reference. The table is available as a supplementary Excel file.'}
+
+suppl_tabs$mean_shap[1, 1] %>% 
+  mutate(Response = '') %>% 
+  set_names(' ') %>% 
+  flextable %>% 
+  set_widths(16)
+
+```
+
+\newpage
+
+```{r tab-lft-binary-uni, tab.cap = 'Differences in chest computed tomography severity score (CTSS), and AI-determined lung opacity and high opacity in CovILD study participants with and without lung function testing (LFT) abnormalities. Numeric variables are presented as medians with interquartile ranges (IQR) and ranges.'}
+
+flextable::flextable(suppl_tabs$lft_binary_uni) %>% 
+  set_widths(c(2.5, 3, rep(4, 2), 2.7, 2.5)) %>% 
+  merge_v(1) %>% 
+  footnote(1, 1, 
+           value = as_paragraph('LFT: lung function testing; DLCO: diffusion capacity for carbon monoxide; FVC: forced vital capacity; FEV1: forced expiratory volume in one second.'), 
+           part = 'header', 
+           ref_symbols = 'a') %>% 
+  footnote(1, 2, 
+           value = as_paragraph('CTSS: CT severity score determined by a human radiologist, sum for all lobes; opacity and high opacity, AI: opacity and high opacity of the lungs determined by artificial intelligence.'), 
+           part = 'header', 
+           ref_symbols = 'b') %>% 
+  footnote(1, 5:6, 
+           value = as_paragraph('Blocked bootstrap test with biseral r effect size statistic. P values corrected for multiple testing with the false discovery rate method.'), 
+           part = 'header', 
+           ref_symbols = 'c') %>% 
+  theme_vanilla
+
+```
+
+\newpage
+
+```{r tab-lft-correlation-uni, tab.cap = 'Correlation of LFT variables with chest computed tomography severity score, and AI-determined opacity and high opacity.'}
+
+flextable::flextable(suppl_tabs$lft_correlation_uni) %>% 
+  set_widths(c(2.5, 2.5, 1.8, 4, 2.7)) %>% 
+  merge_v(1) %>% 
+  footnote(1, 1, 
+           value = as_paragraph('DLCO: diffusion capacity for carbon monoxide; FVC: forced vital capacity; FEV1: forced expiratory volume in one second.'), 
+           part = 'header', 
+           ref_symbols = 'a') %>% 
+  footnote(1, 2, 
+           value = as_paragraph('CTSS: CT severity score determined by a human radiologist, sum for al lobes; opacity and high opacity, AI: opacity and high opacity of the lungs determined by artificial intelligence.'), 
+           part = 'header', 
+           ref_symbols = 'b') %>% 
+  footnote(1, 4:5, 
+           value = as_paragraph('Blocked bootstrap Spearman correlation test; \u03C1 correlation coefficients with 95% confidence intervals. P values were corrected for multiple testing with the false discovery rate method.'), 
+           part = 'header', 
+           ref_symbols = 'c') %>% 
+  theme_vanilla
+
+```
+
+\newpage
+
+# Supplementary Figures
+
+```{r fig-ct-finding-course, fig.width = figur::convert(suppl_figs$ct_finding_course, to = 'in')$w, fig.height = figur::convert(suppl_figs$ct_finding_course, to = 'in')$h, fig.cap = 'Frequency of the most common abnormalities in computed tomography of the chest at the consecutive follow-ups in participants stratified by severity of acute COVID-19.'}
+
+suppl_figs$ct_finding_course$plot
+
+```
+
+__Supplementary Figure S\@ref(fig:fig-ct-finding-course). Frequency of the most common abnormalities in computed tomography of the chest at the consecutive follow-ups in participants stratified by severity of acute COVID-19.__ 
+
+_Frequencies of any chest computed tomography (CT) abnormalities, ground glass opacity (GGO), and reticulations identified by a human radiologist at the consecutive follow-ups after COVID-19 in the CovILD study patients stratified by the severity of acute COVID-19 were presented in stack plots. Numbers of complete observations at the follow-up examinations are displayed above the data bars._
+
+\newpage
+
+```{r fig-ct-numeric-course, fig.width = figur::convert(suppl_figs$ct_numeric_course, to = 'in')$w, fig.height = figur::convert(suppl_figs$ct_numeric_course, to = 'in')$h, fig.cap = 'Time course of numeric computed tomography readouts at the consecutive follow-ups in participants stratified by severity of acute COVID-19.'}
+
+suppl_figs$ct_numeric_course$plot
+
+```
+
+__Supplementary Figure S\@ref(fig:fig-ct-numeric-course). Time course of numeric computed tomography readouts at the consecutive follow-ups in participants stratified by severity of acute COVID-19.__ 
+
+_Severity of chest computed tomography (CT) abnormalities was assessed by a human-determined CT severity score (CTSS), and AI-determined percentages of the lung tissue with opacity and high opacity. Time courses of these parameters are visualized in box plots. Boxes represent medians with interquartile ranges, whiskers span over 150% of the interquartile range. Single observations are depicted as points. Numbers of complete observations at the follow-up examinations are displayed above the data points._
+
+\newpage
+
+```{r fig-ct-corr, fig.width = figur::convert(suppl_figs$ct_corr, to = 'in')$w, fig.height = figur::convert(suppl_figs$ct_corr, to = 'in')$h, fig.cap = 'Co-occurrence of abnormalities of chest computed tomography and correlation of computed tomography readouts in COVID-19 convalescents.'}
+
+suppl_figs$ct_corr$plot
+
+```
+
+__Supplementary Figure S\@ref(fig:fig-ct-corr). Co-occurrence of abnormalities of chest computed tomography and correlation of computed tomography readouts in COVID-19 convalescents.__ 
+
+_(A) Co-occurrence of ground glass opacity (GGO), reticulation, and consolidation diagnosed by a human radiologist was investigated by two-dimensional correspondence analysis. Left: plots of the column factors, proximity of points reflects co-occurrence of normal or pathological values of lung function testing. Right: Venn plot of frequencies of GGO, reticulation, and consolidation; the total observation number is displayed in the plot caption._
+
+_(B) Correlation between human-determined (CTSS: computed tomography severity score, sum of points form the entire lung) and artificial intelligence determined (AI, opacity and high opacity, percentage of the lung) readouts of severity of structural lung lesions was assessed by blocked bootstrap Spearman's test and visualized in scatter plots of observation ranks. Each point represents a single observation, linear trends with standard errors are depicted as blue lines with gray ribbons. Values of correlation coefficients with 95% confidence intervals and p values are displayed in the plot captions._
+
+\newpage
+
+```{r fig-lft-finding-course, fig.width = figur::convert(suppl_figs$lft_finding_course, to = 'in')$w, fig.height = figur::convert(suppl_figs$lft_finding_course, to = 'in')$h, fig.cap = 'Frequency of lung function testing abnormalities at the consecutive follow-ups in participants stratified by severity of acute COVID-19.'}
+
+suppl_figs$lft_finding_course$plot
+
+```
+
+__Supplementary Figure S\@ref(fig:fig-lft-finding-course). Frequency of lung function testing abnormalities at the consecutive follow-ups in participants stratified by severity of acute COVID-19.__ 
+
+_Insufficient diffusion capacity for carbon monoxide (DLCO), forced vital capacity (FVC), and forced expiratory volume in one second (FEV1) was defined as values < 80% of the individual's reference. Frequencies of these abnormalities in in the CovILD study patients stratified by the severity of acute COVID-19 were presented in stack plots. Numbers of complete observations at the follow-up examinations are displayed above the data bars._
+
+\newpage
+
+```{r fig-lft-numeric-course, fig.width = figur::convert(suppl_figs$lft_numeric_course, to = 'in')$w, fig.height = figur::convert(suppl_figs$lft_numeric_course, to = 'in')$h, fig.cap = 'Time course of numeric lung function testing readouts at the consecutive follow-ups in participants stratified by severity of acute COVID-19.'}
+
+suppl_figs$lft_numeric_course$plot
+
+```
+
+__Supplementary Figure S\@ref(fig:fig-lft-numeric-course). Time course of numeric lung function testing readouts at the consecutive follow-ups in participants stratified by severity of acute COVID-19.__ 
+
+_Diffusion capacity for carbon monoxide (DLCO), forced vital capacity (FVC), forced expiratory volume in one second (FEV1) were recorded a percentages of the patient's reference values. Time courses of these parameters are visualized in box plots. Boxes represent medians with interquartile ranges, whiskers span over 150% of the interquartile range. Single observations are depicted as points. Numbers of complete observations at the follow-up examinations are displayed above the data points._
+
+\newpage
+
+
+```{r fig-lft-corr, fig.width = figur::convert(suppl_figs$lft_corr, to = 'in')$w, fig.height = figur::convert(suppl_figs$lft_corr, to = 'in')$h, fig.cap = 'Co-occurrence of abnormalities of lung function testing and correlation of lung function readouts in COVID-19 convalescents.'}
+
+suppl_figs$lft_corr$plot
+
+```
+
+__Supplementary Figure S\@ref(fig:fig-lft-corr). Co-occurrence of abnormalities of lung function testing and correlation of lung function readouts in COVID-19 convalescents.__ 
+
+_(A) Co-occurrence of insufficient diffusion capacity for carbon monoxide (DLCO < 80% of reference value), insufficient forced vital capacity (FVC < 80% of reference), and insufficient forced expiratory volume in one second (FEV1 < 80% of reference) was investigated by two-dimensional correspondence analysis. Left: plots of the column factors, proximity of points reflects co-occurrence of normal or pathological values of lung function testing. Right: Venn plot of frequencies of insufficient DLCO, FVC, and FEV1; the total observation number is displayed in the plot caption._
+
+_(B) Correlation between the lung function testing parameters was assessed by blocked bootstrap Spearman's test and visualized in scatter plots of observation ranks. Each point represents a single observation, linear trends with standard errors are depicted as blue lines with gray ribbons. Values of correlation coefficients with 95% confidence intervals and p values are displayed in the plot captions._
+
+\newpage
+
+```{r fig-symptom-course, fig.width = figur::convert(suppl_figs$symptom_course, to = 'in')$w, fig.height = figur::convert(suppl_figs$symptom_course, to = 'in')$h, fig.cap = 'Frequency of persistent symptoms of relevance for lung function at the consecutive follow-ups in participants stratified by severity of acute COVID-19.'}
+
+suppl_figs$symptom_course$plot
+
+```
+
+__Supplementary Figure S\@ref(fig:fig-symptom-course). Frequency of persistent symptoms of relevance for lung function at the consecutive follow-ups in participants stratified by severity of acute COVID-19.__ 
+
+_Intensity of self-reported dyspnea was assessed with the modified Medical Research Council scale (mMRC) and presence of dyspnea was defined as mMRC > 0. Presence of cough was surveyed by a single 'yes'/'no' item. Impairment of physical performance was assessed with the Eastern Cooperative Oncology Group scale (ECOG, high values indicate more profound impairment) and impaired physical performance was defined as ECOG > 0. Frequency of dyspnea, cough and impairment of physical performance at the consecutive follow-ups after COVID-19 in the CovILD cohort stratified by the severity of acute COVID-19 was presented in stacked bar plots. Numbers of complete observations at the follow-up examinations are displayed above the data bars._
+
+\newpage
+
+```{r fig-modeling-strategy, fig.width = figur::convert(suppl_figs$modeling_strategy, to = 'in')$w, fig.height = figur::convert(suppl_figs$modeling_strategy, to = 'in')$h, fig.cap = 'Modeling strategy.'}
+
+suppl_figs$modeling_strategy$plot
+
+```
+
+__Supplementary Figure S\@ref(fig:fig-modeling-strategy). Modeling strategy.__ 
+
+_DLCO: diffusion capacity for carbon dioxide; FVC: forced vital capacity; FEV1: forced expiratory volume in 1 second; CT: computed tomography; GGO: ground glass opacity; CTSS: human-determined CT severity score; AI opacity and high opacity: artificial intelligence-determined opacity and high opacity of the lung; AUC: area under the receiver-operating characteristic curve._
+
+\newpage
+
+```{r fig-fvc-fev-reduced-models, fig.width = figur::convert(suppl_figs$fvc_fev_reduced_models, to = 'in')$w, fig.height = figur::convert(suppl_figs$fvc_fev_reduced_models, to = 'in')$h, fig.cap = 'Evaluation of performance of machine learning classification models at prediction of insufficient forced vital capacity and forced expiratory volume in one second.'}
+
+suppl_figs$fvc_fev_reduced_models$plot
+
+```
+
+__Supplementary Figure S\@ref(fig:fig-fvc-fev-reduced-models). Evaluation of performance of machine learning classification models at prediction of insufficient forced vital capacity and forced expiratory volume in one second.__ 
+
+_Machine learning classification models of insufficient forced vital capacity (A, FVC < 80% of reference value: n = `r ngroups(bin_models$models$FVC_reduced[[1]])$train$n_outcome[2]`, total observations: n = `r ngroups(bin_models$models$FVC_reduced[[1]])$train$n_outcome %>% sum`) and of insufficient forced expiratory volume in one second (B, FEV1 < 80% of reference value: n = `r ngroups(bin_models$models$FEV1_reduced[[1]])$train$n_outcome[2]`, total observations: n = `r ngroups(bin_models$models$FEV1_reduced[[1]])$train$n_outcome %>% sum`) employing computed tomography readouts, demographic and clinical explanatory variables were trained. The model performance was evaluated in the entire data set and 10-repeats 10-fold cross-validation with overall accuracy metric, Cohen's $\kappa$ as a measure of concordance between predicted and observed outcome, and Brier score as a measure of model's calibration. Left: numeric performance measures of the models (open circles: the entire data set, filled circles: cross-validation); point sizes and point labels represent overall model accuracy, the dashed lines visualize values of Cohen's $\kappa$ and Brier score expected for prediction of insufficient DLCO be chance. Right: receiver-operating characteristic curves for predictions in cross-validation folds, numeric statistics are displayed in the plot. Numbers of complete observations and observations with the particular LFT insufficiency ('events') are displayed in the plot captions._
+
+_FVC: forced vital capacity; FEV1: forced expiratory volume in one second, CV: cross-validation; AUC: are under the receiver-operating characteristic curve; Se: sensitivity; Sp: specificity; GBM: gradient boosted machines; SVM radial: support vector machines with radial kernel._
+
+\newpage
+
+```{r fig-fvc-fev-models, fig.width = figur::convert(suppl_figs$fvc_fev_models, to = 'in')$w, fig.height = figur::convert(suppl_figs$fvc_fev_models, to = 'in')$h, fig.cap = 'Evaluation of performance of machine learning regression models at prediction of forced vital capacity and forced expiratory volume in one second.'}
+
+suppl_figs$fvc_fev_models$plot
+
+```
+
+__Supplementary Figure S\@ref(fig:fig-fvc-fev-models). Evaluation of performance of machine learning regression models at prediction of forced vital capacity and forced expiratory volume in one second.__ 
+
+_Machine learning regression models of forced vital capacity (FVC, total observations: n = `r nobs(reg_models$models$FVC_percent[[1]])`) and of forced expiratory volume in one second (FEV1,  total observations: n = `r nobs(reg_models$models$FVC_percent[[1]])`) employing computed tomography readouts, demographic and clinical explanatory variables were trained. Their performance was evaluated in th entire data set and 10-repeats 10-fold cross-validation with $R^2$ as a measure of explained variation, mean absolute error, and $\rho$ Spearman's coefficient of correlation between the predicted and observed values. Numeric performance measures of the model are presented in bubble plots (open circles: the entire data set, filled circles: cross-validation); point sizes and point labels represent values of $\rho$ correlation coefficient, the dashed line visualizes $R^2$ value expected for a meaningless model. Numbers of complete observations are shown in the plot captions._
+
+_FVC: forced vital capacity; FEV1: forced expiratory volume in one second, CV: cross-validation; MAE: mean absolute error; GBM: gradient boosted machines; SVM radial: support vector machines with radial kernel._
+
+\newpage
+
+```{r fig-residuals, fig.width = figur::convert(suppl_figs$residuals, to = 'in')$w, fig.height = figur::convert(suppl_figs$residuals, to = 'in')$h, fig.cap = "Cohen's kappa and mean absolute error of the machine learning models of insufficiency and percentage of reference of diffusion capacity for carbon monoxide."}
+
+suppl_figs$residuals$plot
+
+```
+
+__Supplementary Figure S\@ref(fig:fig-residuals). Cohen's $\kappa$ and mean error of the machine learning models of insufficiency and percentage of reference of diffusion capacity for carbon monoxide in observations stratified by acute COVID-19 severity and follow-up visit.__ 
+
+_Classification machine learning models of insufficient diffusion capacity for carbon monoxide (A, DLCO < 80% of reference value: n = `r ngroups(bin_models$models$DLCO_reduced[[1]])$train$n_outcome[2]`, total observations: n = `r ngroups(bin_models$models$DLCO_reduced[[1]])$train$n_outcome %>% sum`) and regression models of diffusion capacity for carbon monoxide (DLCO, % of reference value, total observations: n = `r nobs(reg_models$models$DLCO_percent[[1]])`) were trained and evaluated as presented in Figure 2. Cohen's $\kappa$ (A) and mean errors (B) of cross-validated model predictions for observations stratified by severity of acute COVID-19 and the consecutive follow-up visits were investigated. Cohen's $\kappa$ and error values are visualized in heat maps; tiles are labeled with the error values. Global $\kappa$ and mean absolute model errors are indicated in the plot captions._
+
+_DLCO: diffusion capacity for carbon monoxide; SVM radial: support vector machines with radial kernel; GBM: gradient boosted machines; MAE: mean absolute error; A: ambulatory COVID-19; HM: hospitalized, moderate COVID-19; HS: hospitalized, severe COVID-19.._
+
+\newpage
+
+```{r fig-varimp-dlco, fig.width = figur::convert(suppl_figs$varimp_dlco, to = 'in')$w, fig.height = figur::convert(suppl_figs$varimp_dlco, to = 'in')$h, fig.cap = 'Explanatory variable importance for models of diffusion capacity for carbon monoxide measured by Shapley additive explanations.'}
+
+suppl_figs$varimp_dlco$plot
+
+```
+
+__Supplementary Figure S\@ref(fig:fig-varimp-dlco). Explanatory variable importance for models of diffusion capacity for carbon monoxide measured by Shapley additive explanations.__ 
+
+_Importance of explanatory variables for the machine learning models of diffusion capacity for carbon monoxide (% of reference, Figure 2) was investigated by Shapley additive explanations (SHAP). Absolute SHAP values for explanatory variables with the 15 largest mean SHAP values are presented in violin plots. Points represent single observations, point colors code for minimum/maximum scaled value of the explanatory variable. Explanatory variables obtained via computed tomography are highlighted with bold font in the Y axes._
+
+_CT: computed tomography; DLCO: diffusion capacity for carbon monoxide; BMI: body mass index; opacity and high opacity, AI: opacity and high opacity of the lung determined by artificial intelligence; CTSS: human-determined CT severity score, sum for all lobe; ECOG: Eastern Cooperative Oncology Group physical performance score; mMRC: modified Medical Research Council dyspnea scale; ICU: intensive care unit._
+
+\newpage
+
+# References

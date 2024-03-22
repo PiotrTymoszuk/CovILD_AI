@@ -1,0 +1,489 @@
+---
+title: "Artificial intelligence-assisted analysis of CT abnormalities during COVID-19 recovery"
+subtitle: "Manuscript"
+author: "Department of Radiology, Medical University of Innsbruck"
+date: "`r format(Sys.time(), '%Y-%m-%d')`"
+
+output: 
+  bookdown::html_document2:
+    css: "style.css"
+    
+bibliography: ct.bib
+
+csl: frontiers_medical.csl
+
+header-includes:
+  \usepackage{longtable}
+  \usepackage{tabu}
+  \usepackage{caption}
+  \usepackage{makecell}
+  \usepackage{pdflscape}
+  \usepackage{array}
+  \usepackage{booktabs}
+  \usepackage{threeparttable}
+  \usepackage{threeparttablex}
+  \usepackage{wrapfig}
+  \usepackage{multirow}
+  \usepackage[normalem]{ulem}
+  \usepackage{colortbl}
+  \usepackage{xcolor}
+  \usepackage{float} \floatplacement{figure}{H} \floatplacement{table}{H}
+
+---
+
+```{r, setup, include = FALSE}
+
+library(Cairo)
+
+opts_chunk$set(echo = FALSE, 
+                      warning = FALSE, 
+                      message = FALSE, 
+                      dev = "CairoPNG", 
+                      dpi = 600)
+
+set_flextable_defaults(font.family = "Cambria", 
+                       font.size = 10)
+
+
+```
+
+\newpage
+
+# Abstract
+
+\newpage
+
+# Introduction
+
+\newpage
+
+# Methods
+
+## Ethics
+
+The CovILD study was conducted in accordance with the Declaration of Helsinki and the European Data policy. 
+All participants gave written informed consent to participate and to process their data. 
+The study data were processed, stored and analyzed in anonymized form. 
+The study protocol was approved by the ethics committee of the Medical University of Innsbruck, Austria (approval number: 1103/2020). 
+The study was registered at [ClinicalTrials.gov](https://classic.clinicaltrials.gov/ct2/show/NCT04416100) (NCT04416100). 
+
+## Study design and participants
+
+Details on the study design and the cohort are provided in our recent publications [@Sahanic2023; @Sonnweber2020; @Luger2022; @Sonnweber2022]. 
+In brief, the longitudinal observation CovILD study aimed at investigation of symptom, cardiopulmonary and mental health recovery in a cohort of `r length(covild$common_ids)` COVID-19 survivors at two, three, six, and twelve months after COVID-19 diagnosis. 
+The participants were recruited between March and June 2020 among patients of three clinical centers in Tyrol, Austria (Medical University of Innsbruck, St. Vinzenz Hospital in Zams, and Karl-Landsteiner Rehabilitation Center in Münster). 
+The study inclusion criteria were age $\geq$ 18 years, SARS-CoV-2 positivity confirmed by PCR and presence of COVID-19 symptoms. 
+All participants were infected with the wild-type form of SARS-CoV-2. 
+Herein, n = `r nrow(covild$ct)` longitudinal observations from `r length(covild$complete_ids)` participants were analyzed, with complete computed tomography (CT) of the chest and lung function testing (LFT) as analysis inclusion criteria (__Figure \@ref(fig:fig-consort)__, __Supplementary Table S1__). 
+
+## Procedures
+
+Details of study procedures and variables are provided in __Supplementary Methods__, __Supplementary Table S2__, and in our recent publications [@Sahanic2023; @Sonnweber2020; @Luger2022; @Sonnweber2022]. 
+In brief, baseline demographic and clinical data, and data concerning acute COVID-19 course were gathered in an interview and retrieved from electronic patient's record at the two-month follow-up visit. 
+The standard follow-up visit protocol included a survey of symptoms and self-reported physical performance, examination and interview by a physician, determination of standard blood markers (hemoglobin, iron turnover, complete blood count, markers of inflammation and vascular pathology), trans-thoracic echocardiography, LFT, and CT of the chest. 
+
+Acute COVID-19 severity was classified as 
+'ambulatory' (home isolated, WHO ordinal scale for clinical improvement: 1 - 2), 
+'hospitalized moderate' (hospitalized, without oxygen therapy or oxygen by mask or nasal prongs, WHO: 3 - 4), and 
+'hospitalized severe' (hospitalized, high flow oxygen or mechanical ventilation, WHO: 5 - 7). 
+Chest CT scans were evaluated by experienced radiologists blinded to the study design according to the Fleischner society guidelines [@Hansell2008] for presence of ground glass opacity (GGO),  reticulation, consolidations, and bronchiectasis. 
+Severity of lung lesions was scored separately for each lobe with a 0 - 5 scale and CT severity score (CTSS) was calculated as a sum of the scores for the entire organ, as described before [@Sonnweber2020; @Luger2022]. 
+Additionally, percentages of the lung with opacity and high opacity were determined for the chest CT scans with an artificial intelligence (AI) based software (Syngo.via CT Pneumonia Analysis Software, Siemens Healthineers, Erlangen, Germany). 
+In the current report, the following LFT parameters were analyzed: 
+diffusion capacity for carbon monoxide (DLCO), 
+forced vital capacity (FVC), and 
+forced expiratory volume in one second (FEV1). 
+The LFT variables were expressed as percentages of the patient's reference value. 
+Insufficiency was assumed for the LFT parameter value < 80% of reference [@Sahanic2023; @Sonnweber2020; @Sonnweber2022]. 
+The following self-reported COVID-19 related symptoms of potential relevance for LFT results were analyzed: 
+dyspnea (modified Medical Research Council [mMRC] scale > 0), 
+cough (yes/no item), 
+impaired physical performance (Eastern Cooperative Oncology Group [ECOG] scale > 0). 
+
+## Analysis endpoints
+
+The primary analysis endpoint was construction and evaluation of multi-parameter models of the most common LFT abnormalities (each of DLCO < 80%, FVC < 80%, FEV1 < 80% of the patient's reference) and of numeric LFT readouts (DLCO, FVC, FEV1) during COVID-19 convalescence. 
+Such models employed common machine learning algorithms with a wide range of demographic and clinical features, as well as human-determined CT abnormalities, and AI-measured lung opacity and high opacity as explanatory variables. 
+The secondary analysis endpoint was prediction of LFT abnormalities and numeric LFT readouts during COVID-19 recovery by human-determined CTSS and AI-measured lung opacity and high opacity. 
+This endpoint was addressed by statistical hypothesis testing, correlation and receiver-operating characteristic (ROC) analysis.
+
+## Statistical analysis
+
+Details of statistical analysis are provided in __Supplementary Methods__. 
+
+Statistical analysis was performed with R version 4.2.3 (R Foundation for Statistical Computing). 
+Numeric variables were presented as medians with interquartile ranges and ranges. 
+Qualitative variables were presented as percentages and counts of the categories within the complete observations set. 
+Differences in independently distributed numeric variables were analyzed by Mann-Whitney and Kruskal-Wallis test with, respectively, biseral r and $\eta^2$ effect size statistic. 
+Statistical significance for differences in distribution of qualitative variables was determined by $\chi^2$ test with Cramer's V effect size statistic. 
+Co-occurrence of each of LFT findings, CT abnormalities, and symptoms was investigated by two-dimensional correspondence analysis [@Ripley2022]. 
+
+Differences in medians of non-independently distributed, participant matched numeric variables between observations with and without LFT abnormalities were assessed by a blocked bootstrap test with blocks defined by the participant's identifier, and effect size measured by biseral r effect size statistic [@Mangiafico2022]. 
+Correlations of non-independently distributed CT and LFT readouts were assessed by blocked bootstrap Spearman's rank test. 
+Cutoffs of CTSS, opacity and high opacity for detection of LFT abnormalities were found by maximizing the Youden's J statistic. 
+ROC analysis statistics (area under the curve [AUC], sensitivity, specificity, Cohen's $\kappa$) for those optimal cutoffs were computed and their 95% confidence intervals were obtained by blocked bootstrap [@McHugh2012; @Lopez-Raton2014]. 
+
+Presence of reduced DLCO, FVC and FEV1 (each < 80% of reference), as well as values of DLCO, FVC and FEV1 expressed as percentages of the reference value were modeled with `r lft_globals[c("ct_variables", "symptom_variables", "baseline_variables")] %>% reduce(union) %>% length` explanatory variables. 
+The explanatory variables included 
+demographic features (e.g. age, sex, body mass index, smoking, comorbidity), 
+characteristic of acute COVID-19 (severity, medication) and recovery (e.g. weight loss, symptoms of relevance for lung function, time after diagnosis), 
+and presence of human- and AI-rated structural lung abnormalities in CT scans (e.g. GGO, CTSS, opacity and high opacity). 
+The modeling responses and explanatory variables are listed in __Supplementary Table S2__. 
+The models were constructed with four common machine learning algorithms: 
+Random Forest [@Wright2017; @Breiman2001], 
+gradient boosted machines (GBM) [@Greenwell2022; @Friedman2002; @Friedman2001], 
+neural network with a single hidden layer [@Ripley2014], 
+and support vector machines (SVM) with radial kernel [@Weston1998; @Karatzoglou2004]. 
+Selection of the optimal values of parameters controlling model behavior such as number of random trees, neurons in the hidden layer, or cost parameter was motivated by the maximum of Youden's J statistic (classification models of LFT abnormalities) or minimum mean absolute error (MAE, regression models of LFT readouts) in 10-repeats 10-fold cross-validation [@Kuhn2008]. 
+Because of the presence of participant-matched observation, blocked cross-validation design was used both in the model selection and model evaluation, with blocks defined by participant's identifier. 
+Model predictions were evaluated both in the training data and blocked 10-repeats 10-fold cross-validation. 
+Concordance between the model-predicted and observed outcomes for classification models was assessed by Cohen's $\kappa$ inter-rater reliability statistic [@McHugh2012; @Cohen1960]. 
+Accuracy, AUC, specificity and sensitivity of the classification model were investigated by ROC. 
+Calibration of the classification models was assessed by Brier scores [@Brier1950]. 
+Fraction of explained variance in predictions of the regression models was measured by pseudo-R^2^, the regression model error was expressed as MAE. 
+Spearman's $\rho$ coefficients of correlation between the predicted and observed values were used to gauge calibration of the regression models.
+Importance of explanatory variables was estimated by absolute values of SHAP statistics (Shapley additive explanations) [@Covert2020; @Lundberg2017; @Mayer2023a]. 
+
+\newpage
+
+# Results
+
+## Baseline Characteristic of the cohort and course of acute COVID-19
+
+The longitudinal observation CovILD study cohort consisted of n = `r length(covild$common_ids)` convalescents of symptomatic SARS-CoV-2 infection initially enrolled during the fist outbreak of the pandemic (March - June 2020) in three clinical centers in western Austria [@Sahanic2023; @Luger2022; @Sonnweber2022; @Sonnweber2020]. 
+Out of them, n = `r length(covild$complete_ids)` participants with n = `r nrow(covild$ct)` observations with complete CT and LFT data obtained at follow-up visits at the two, three, six and twelve months after COVID-19 diagnosis were included in the current analysis. 
+Please note, that per participant, up to four observations were available. 
+Due to this participant-matching, the observations were not independent, which had consequences for our analysis strategy (__Figure \@ref(fig:fig-consort)__). 
+The majority of analyzed data points were obtained at the two- (n = `r covild$ct %>% filter(follow_up == '2-month follow-up') %>% nrow`) and three-month follow-up (n = `r covild$ct %>% filter(follow_up == '3-month follow-up') %>% nrow`, __Supplementary Table S1__ - __S2__). 
+
+The analyzed participants were grouped according to the severity of acute COVID-19 as 
+convalescents of ambulatory COVID-19 (`r get_percent(cohort$analysis_tbl, 'severity_class')['ambulatory mild']` of the cohort, home-isolated during infection, WHO ordinal scale for clinical improvement: 1 - 2), 
+hospitalized moderate COVID-19 (`r get_percent(cohort$analysis_tbl, 'severity_class')['hospitalized moderate']`, without oxygen or with low-flow oxygen, WHO ordinal scale for clinical improvement: 3 - 4), 
+and hospitalized severe COVID-19 patients (`r get_percent(cohort$analysis_tbl, 'severity_class')['hospitalized severe']`, high-flow oxygen or mechanical ventilation, WHO ordinal scale for clinical improvement: 5 - 7, __Table \@ref(tab:tab-cohort)__). 
+In the analyzed data set, `r get_percent(cohort$analysis_tbl, 'sex')['male']` of participants were male. 
+The percentage of males was significantly higher in moderate and severe COVID as compared with ambulatory COVID-19 individuals (`r get_test(cohort$test, 'sex')`, moderate). 
+The median age at COVID-19 diagnosis was `r signif(median(cohort$analysis_tbl$age), 2)` years, ambulatory COVID-19 patients were significantly younger than hospitalized COVID-19 survivors (`r get_test(cohort$test, 'age')`, moderate). 
+Ex- or current smokers made up to `r sum(get_percent(cohort$analysis_tbl, 'smoking', percent_mark = FALSE)[2:3])`% of the analyzed cohort. 
+There were no significant differences in participants with smoking history between the acute COVID-19 severity subsets. 
+Yet, the pack-year number was the highest in hospitalized moderate COVID-19 convalescents (`r get_test(cohort$test, 'smoking_pack_years')`, small). 
+Based on body mass index (BMI) > 25 kg/m^2^, 
+`r sum(get_percent(cohort$analysis_tbl, 'body_mass_class', percent_mark = FALSE)[2:3])`% of participants were overweight or obese; there were no significant differences in percentages of obese or overweight participants between the acute COVID-19 severity subsets. 
+Endocrine or metabolic conditions (`r get_percent(cohort$analysis_tbl, 'endocrine_metabolic_comorbidity')['yes']` of analyzed participants), 
+cardiovascular diseases (`r get_percent(cohort$analysis_tbl, 'cardiovascular_comorbidity')['yes']`), 
+hypertension (`r get_percent(cohort$analysis_tbl, 'hypertension_comorbidity')['yes']`), 
+hypercholesterolemia (`r get_percent(cohort$analysis_tbl, 'hypercholesterolemia_comorbidity')['yes']`), 
+and type II diabetes (`r get_percent(cohort$analysis_tbl, 'diabetes_comorbidity')['yes']`) 
+were the most common comorbidities at COVID-19 diagnosis. 
+Frequencies of endocrine or metabolic comorbidities (`r get_test(cohort$test, 'endocrine_metabolic_comorbidity')`, small), 
+cardiovascular conditions (`r get_test(cohort$test, 'cardiovascular_comorbidity')`, moderate), 
+hypercholesterolemia (`r get_test(cohort$test, 'hypercholesterolemia_comorbidity')`, small), 
+and diabetes (`r get_test(cohort$test, 'diabetes_comorbidity')`, small) were significantly more common in hospitalized than in ambulatory COVID-19 patients (__Table \@ref(tab:tab-cohort)__). 
+
+The median length of hospital stay for analyzed participants was `r signif(median(cohort$analysis_tbl$hospital_stay_days), 2)` days and was significantly longer for severe that moderate COVID-19 patients (`r get_test(cohort$test, 'hospital_stay_days')`, large). 
+Antibiotic anti-infective treatment was applied to `r get_percent(cohort$analysis_tbl, 'antiinfective_treatment')['yes']` of participants, this percentage was the highest in severe COVID-19 patients 
+(`r get_test(cohort$test, 'antiinfective_treatment')`, large). 
+Macrolides and anti-platelet drugs were administered to 
+`r get_percent(cohort$analysis_tbl, 'macrolide_treatment')['yes']` and 
+`r get_percent(cohort$analysis_tbl, 'antiplatelet_treatment')['yes']` of participants, respectively. 
+Frequency of this treatment was significantly higher in hospitalized than in ambulatory patients 
+(macrolides: `r get_test(cohort$test, 'macrolide_treatment')`, small; 
+anti-platelet: `r get_test(cohort$test, 'antiplatelet_treatment')`, small). 
+Systematic steroid administration was not considered as a treatment of moderate or severe COVID-19 during the first European outbreak of SARS-CoV-2 in 2020. 
+Hence none of the study participants received corticosteroid therapy at the peak of acute COVID-19. 
+Corticosteroids were administered to 
+`r get_percent(cohort$analysis_tbl, 'steroid_treatment')['yes']` of analyzed participants with persistent pneumonia beginning from the third week after diagnosis at the discretion of the physician. 
+Such sub-acute corticosteroid treatment was the most frequent in severe COVID-19 convalescents (`r get_test(cohort$test, 'steroid_treatment')`, moderate). 
+The median weight loss during acute COVID-19 was `r abs(median(cohort$analysis_tbl$weight_change_kg))` kg and was significantly higher in severe as compared with ambulatory or moderate COVID-19 patients 
+(`r get_test(cohort$test, 'weight_change_kg')`, large, __Table \@ref(tab:tab-cohort)__).
+
+## Pulmonary recovery
+
+Frequency of any radiological lung abnormalities, GGO, reticulation, consolidation, and bronchiectasis diagnosed by a human radiologist was the highest in severe COVID-19 survivors followed by moderate COVID-19 patients. 
+GGO and reticulation were the most frequent lesion types, independently of the follow-up and acute disease severity. 
+Resolution of radiological lung findings. 
+Consolidation and bronchiectasis lesions were detected primarily in moderate and severe COVID-19 survivors at the two-month follow-up examination. 
+The increased frequency and severity of structural lung lesions in hospitalized patients as well as gradual resolution of the findings was also evident from analysis of the time course of human-determined CTSS, and AI-measured lung opacity and high opacity (__Supplementary Figures S1__ and __S2__, __Supplementary Table S3__). 
+As demonstrated by correspondence analysis, in the majority of observations with GGO, reticulations were also present (`r covild$ct %>% filter(GGO_finding == 'yes', reticulation_finding == 'yes') %>% nrow` of `r covild$ct %>% filter(GGO_finding == 'yes') %>% nrow` observations with GGO). 
+consolidations co-occurred with GGO lesions only in a minute fractions of observations (`r covild$ct %>% filter(GGO_finding == 'yes', consolidation_finding == 'yes') %>% nrow` of `r covild$ct %>% filter(GGO_finding == 'yes') %>% nrow` observations with  GGO), most frequently at the two-month follow-up (__Supplementary Figure S3A__). 
+A high degree of correlation was observed between human-determined CTSS, and AI-determined lung opacity and high opacity (Spearman's $\rho$: `r corr_lft$test$ct$rho %>% range %>% signif(2) %>% paste(collapse = ' to ')`, __Supplementary Figure S3B__). 
+
+Insufficient DLCO, FVC, and FEV1 defined as values below < 80% of the patient's reference value were the most common abnormalities of lung function. 
+As with the CT findings, their frequency was the highest in severe COVID-19 survivors followed by moderate COVID-19 patients, independently of the follow-up time point. 
+Additionally, lung function recovery reflected by decreasing rates of insufficient DLCO and FVC, and by an improvement of DLCO and FVC values expressed as percentages of the patient's reference was the most evident in severe COVID-19 survivors (__Supplementary Figures S4__ and __S5__, __Supplementary Table S4__). 
+In most of observations with insufficient FVC, insufficient FEV1 was found (`r covild$lft %>% filter(FVC_reduced == 'yes', FEV1_reduced == 'yes') %>% nrow` of `r covild$lft %>% filter(FVC_reduced == 'yes') %>% nrow` observations with reduced FVC). 
+By contrast, in approximately half of observations with insufficient DLCO reduced FVC or FEV1 was diagnosed (`r covild$lft %>% filter(DLCO_reduced == 'yes') %>% filter(FVC_reduced == 'yes' | FEV1_reduced == 'yes') %>% nrow` of `r covild$lft %>% filter(DLCO_reduced == 'yes') %>% nrow` observations with insufficient DLCO, __Supplementary Figure S6A__). 
+Accordingly, numeric values of FVC and FEV1 were strongly correlated (Spearman's $\rho$ = `r corr_lft$test$lft %>% filter(variable1 == 'FVC_percent', variable2 == 'FEV1_percent') %>% .$rho %>% signif(2)`), while correlation of DLCO with FVC or FEV1 was only moderate (Spearman's $\rho$: `r corr_lft$test$lft %>% filter(variable1 == 'DLCO_percent' | variable2 == 'DLCO_percent') %>% .$rho %>% range %>% signif(2) %>% paste(collapse = ' to ')`, __Supplementary Figure S6B__). 
+This may suggest that reduced DLCO in COVID-19 survivors reflects a type of functional lung pathology that is distinct from abnormalities measured by FVC or FEV1. 
+
+Impaired physical performance defined by ECOG > 0 and exertional dyspnea defined by mMRC > 0 were the most frequent persistent COVID-19-related symptoms of potential relevance for pulmonary function, and their rates declined during convalescence in all acute COVID-19 severity subsets.  
+Notably, we could not observe any substantial differences in frequency of physical performance impairment, dyspnea, and persistent cough between severe, moderate and ambulatory COVID-19 convalescents (__Supplementary Figure S7__, __Supplementary Table S5__). 
+
+## Modeling of lung function impairment in COVID-19 convalescents
+
+Prediction of lung function deficits following COVID-19 with demographic, clinical and biochemical explanatory factors and characteristic of acute SARS-CoV-2 infection suffers from low accuracy [@Sonnweber2022]. 
+Additionally, relevance of residual structural lung lesions and severity of lung damage in COVD-19 convalescents for pulmonary function is not entirely clear [@Luger2022; @Sahanic2023]. 
+Herein, we sought to model the major LFT abnormalities, i.e. insufficient DLCO, FVC, and FEV1, and numeric readouts, i.e DLCO, FVC, FEV1 in the CovILD cohort with a broad panel of `r lft_globals[c("ct_variables", "symptom_variables", "baseline_variables")] %>% reduce(union) %>% length` independent variables including baseline demographic and clinical characteristic (e.g. gender, age, smoking history, comorbidity), characteristic of acute COVID-19 (e.g. severity, medication, hospitalization) and convalescence (follow-up time point, persistent symptoms), as well as presence and severity CT abnormalities (e.g. GGO, CTSS, AI-determined opacity and high opacity, __Supplementary Table S2__). 
+To this end, we employed four popular machine learning algorithms, 
+Random Forest [@Breiman2001], 
+gradient boosted machines (GBM) [@Friedman2002; @Friedman2001], 
+neural network with a single hidden layer [@Ripley2014], and 
+support vector machines (SVM) [@Weston1998]. 
+Because the CovILD data set consisted of non-independent, participant-matched observations, blocked cross-validation with participant's identifier serving as the grouping variable was used for model optimization (tuning, __Supplementary Table S6__). 
+Predictions of the models were finally evaluated by comparison with the observed outcome in the training data and the blocked cross-validation folds [@Kuhn2008] (__Supplementary Figure S8__, __Table \@ref(tab:tab-bin-classifiers)__ and __\@ref(tab:tab-reg-models)__,  __Supplementary Tables S7__ and __S8__). 
+
+Among the investigated LFT abnormalities, solely insufficient DLCO defined as values < 80% of the patient's reference could be modeled with satisfactory accuracy in the cross-validation setting independently of the machine learning algorithm (overall accuracy: `r bin_models$stats$DLCO_reduced %>% filter(dataset == 'cv') %>% .$correct_rate %>% range %>% signif(2) %>% paste(collapse = ' to ')`, Cohen's $\kappa$: `r bin_models$stats$DLCO_reduced %>% filter(dataset == 'cv') %>% .$kappa %>% range %>% signif(2) %>% paste(collapse = ' to ')`, AUC: `r bin_models$stats$DLCO_reduced %>% filter(dataset == 'cv') %>% .$AUC %>% range %>% signif(2) %>% paste(collapse = ' to ')`). 
+Low Brier score values for the models of insufficient DLCO indicated good overall calibration (Brier score: `r bin_models$stats$DLCO_reduced %>% filter(dataset == 'cv') %>% .$brier_score %>% range %>% signif(2) %>% paste(collapse = ' to ')`, __Figure \@ref(fig:fig-ml-performance)A__). 
+In turn, models of insufficient FVC and FEV1 exhibited poor predictive performance in the cross-validation setting (overall accuracy: `r bin_models$stats[c("FVC_reduced", "FEV1_reduced")] %>% map(filter, dataset == 'cv') %>% map(~.x$correct_rate) %>% reduce(c) %>% range %>% signif(2) %>% paste(collapse = ' to ')`, Cohen's $\kappa$: `r bin_models$stats[c("FVC_reduced", "FEV1_reduced")] %>% map(filter, dataset == 'cv') %>% map(~.x$kappa) %>% reduce(c) %>% range %>% signif(2) %>% paste(collapse = ' to ')`, AUC: `r bin_models$stats[c("FVC_reduced", "FEV1_reduced")] %>% map(filter, dataset == 'cv') %>% map(~.x$AUC) %>% reduce(c) %>% range %>% signif(2) %>% paste(collapse = ' to ')`, __Supplementary Figure S9__). 
+
+As in case of the LFT abnormalities, solely DLCO expressed as percentages of the patient's reference was modeled with sufficiently low error and substantial explanatory power in cross-validation with the Random Forest, GBM, and SVM algorithms (MAE: `r reg_models$stats$DLCO_percent %>% filter(dataset == 'cv', algorithm != 'nnet') %>%  .$MAE %>% range %>% signif(3) %>% paste(collapse = ' to ')`, pseudo-R^2^: `r reg_models$stats$DLCO_percent %>% filter(dataset == 'cv', algorithm != 'nnet') %>%  .$rsq %>% range %>% signif(2) %>% paste(collapse = ' to ')`). 
+Those models were also characterized by good calibration assessed by Spearman's $\rho$ coefficients of correlation between the predicted and observed DLCO (Spearman's $\rho$: `r reg_models$stats$DLCO_percent %>% filter(dataset == 'cv', algorithm != 'nnet') %>%  .$spearman %>% range %>% signif(2) %>% paste(collapse = ' to ')`). 
+By contrast, the neural network model of DLCO suffered from large error and low fraction of explained variance in the cross-validation setting (MAE = `r reg_models$stats$DLCO_percent %>% filter(dataset == 'cv', algorithm == 'nnet') %>%  .$MAE %>% signif(3)`, pseudo-R^2^ = `r reg_models$stats$DLCO_percent %>% filter(dataset == 'cv', algorithm == 'nnet') %>%  .$rsq %>% signif(2)`, __Figure \@ref(fig:fig-ml-performance)B__). 
+Analogically, no meaningful models of FVC or FEV1 could be developed with any of the machine learning algorithms (cross-validation, R^2^: `r reg_models$stats[c("FVC_percent", "FEV1_percent")] %>% map(filter, dataset == 'cv') %>% map(~.x$rsq) %>% reduce(c) %>% range %>% signif(2) %>% paste(collapse = ' to ')`, __Supplementary Figure S10__). 
+
+Concerning the models of insufficient DLCO, the highest concordance between the predicted and observed DLCO < 80% of the patient's reference was achieved for moderate COVID-19 convalescents at the two- to six-month follow-up examinations (all algorithms, $\kappa$: `r dlco_resid$stats$kappa %>% map(filter, severity_class == 'hospitalized moderate', follow_up %in% c('2-month follow-up', '3-month follow-up', '6-month follow-up')) %>% map(~.x$kappa) %>% reduce(c) %>% range %>% signif(2)`). 
+The accuracy was in turn the poorest for ambulatory patients at the six- and twelve-month follow-up (all algorithms, $\kappa$: `r dlco_resid$stats$kappa %>% map(filter, severity_class == 'ambulatory mild', follow_up %in% c('6-month follow-up', '12-month follow-up')) %>% map(~.x$kappa) %>% reduce(c) %>% range %>% signif(2)`, __Supplementary Figure S11A__). 
+The Random Forest, SVM and GBM models of DLCO expressed as percentage of the patient's reference exhibited the lowest average errors for moderate COVID-19 survivors (mean error: `r dlco_resid$stats$DLCO_residuals[c("ranger", "svmRadial", "gbm")] %>% map(filter, severity_class == 'hospitalized moderate') %>% map(~.x$mean) %>% reduce(c) %>% range %>% signif(2) %>% paste(collapse = ' to ')`). 
+In turn, DLCO values were systematically overestimated for severe COVID-19 patients at the two- to six-month follow-up visits (mean error: `r dlco_resid$stats$DLCO_residuals[c("ranger", "svmRadial", "gbm")] %>% map(filter, severity_class == 'hospitalized severe', follow_up %in% c('2-month follow-up', '3-month follow-up', '6-month follow-up')) %>% map(~.x$mean) %>% reduce(c) %>% range %>% signif(2) %>% paste(collapse = ' to ')`) and underestimated for ambulatory COVID-19 convalescents at the same time points (mean error: `r dlco_resid$stats$DLCO_residuals[c("ranger", "svmRadial", "gbm")] %>% map(filter, severity_class == 'ambulatory mild', follow_up %in% c('2-month follow-up', '3-month follow-up', '6-month follow-up')) %>% map(~.x$mean) %>% reduce(c) %>% range %>% signif(2) %>% paste(collapse = ' to ')`, __Supplementary Figure S11B__). 
+The best performance in the hospitalized moderate subset is likely attributed to the large number of observations and frequent DLCO deficits in this group of participants available for training of the models (n = `r lft_globals$analysis_tbl %>% filter(severity_class == 'hospitalized moderate', DLCO_reduced == 'yes') %>% nrow` observations of DLCO < 80% in `r lft_globals$analysis_tbl %>% filter(severity_class == 'hospitalized moderate') %>% nrow` observations from moderate COVID-19 patients). 
+Conversely, the numbers of observations from ambulatory COVID-19 patients and numbers of observations DLCO insufficiency in this group was low (`r lft_globals$analysis_tbl %>% filter(severity_class == 'ambulatory mild', DLCO_reduced == 'yes') %>% nrow` observations of DLCO < 80% in `r lft_globals$analysis_tbl %>% filter(severity_class == 'ambulatory mild') %>% nrow` observations from ambulatory patients) which resulted in relatively poor performance of the machine learning models.
+
+As investigated by absolute values of SHAP variable importance metrics [@Covert2020; @Lundberg2017], human- and AI-derived ratings of structural lung damage, CTSS, opacity and high opacity, belonged to the most influential explanatory variables of the models of DLCO insufficiency and the meaningful models of DLCO. 
+Other influential explanatory variables were 
+well characterized risk factors of severe COVID-19 (age, male sex, body mass index, pre-existing malignancy and cardiovascular disease), 
+readouts of acute COVID-19 severity (severity class, WHO ordinal severity scale, hospitalization length, ICU treatment, anti-coagulant treatment, and weight change), 
+smoking intensity (pack-years), as well as 
+rating of physical performance impairment (ECOG) and 
+exertional dyspnea (mMRC) (__Figure \@ref(fig:fig-varimp-dlco-red)__, __Supplementary Figure S12__, __Supplementary Table S9__).  
+
+## Rating of structural lung damage by human radiologist and AI, and lung function deficiency
+
+Because CTSS, lung opacity, and high opacity were identified to be crucial for prediction of DLCO insufficiency and DLCO by machine learning, we explored the association of the human- and AI-determined readouts of lung damage with DLCO in more detail. 
+
+Human-determined CTSS (difference of medians: `r blast(lft_uniboot$analysis_tbl, DLCO_reduced) %>% map(~.x$CTSS) %>% map_dbl(median) %>% diff` points, `r filter(lft_uniboot$test, split_factor == 'DLCO_reduced', variable == 'CTSS')$significance`, effect size: `r filter(lft_uniboot$test, split_factor == 'DLCO_reduced', variable == 'CTSS')$eff_size`), 
+AI-determined opacity (difference of medians: `r blast(lft_uniboot$analysis_tbl, DLCO_reduced) %>% map(~.x$opacity_percent) %>% map_dbl(median) %>% diff %>% signif(2)`% of the lung, `r filter(lft_uniboot$test, split_factor == 'DLCO_reduced', variable == 'opacity_percent')$significance`, effect size: `r filter(lft_uniboot$test, split_factor == 'DLCO_reduced', variable == 'opacity_percent')$eff_size`) and 
+high opacity (difference of medians: `r blast(lft_uniboot$analysis_tbl, DLCO_reduced) %>% map(~.x$high_opacity_percent) %>% map_dbl(median) %>% diff %>% signif(2)`, `r filter(lft_uniboot$test, split_factor == 'DLCO_reduced', variable == 'high_opacity_percent')$significance`% of the lung, effect size: `r filter(lft_uniboot$test, split_factor == 'DLCO_reduced', variable == 'high_opacity_percent')$eff_size`) 
+were significantly higher in observations with DLCO < 80% of the patient's reference than in the remaining data points. 
+The effect size of those differences was large (__Figure \@ref(fig:fig-dlco-red-detection)A__). 
+AI-measured opacity of the lung, but not CTSS or high opacity, was found to be significantly higher in observations with insufficient 
+FVC (difference of medians: `r blast(lft_uniboot$analysis_tbl, FVC_reduced) %>% map(~.x$opacity_percent) %>% map_dbl(median) %>% diff %>% signif(2)`, `r filter(lft_uniboot$test, split_factor == 'FVC_reduced', variable == 'opacity_percent')$significance`, effect size: `r filter(lft_uniboot$test, split_factor == 'FVC_reduced', variable == 'opacity_percent')$eff_size`) and 
+insufficient FEV1 (difference of medians: `r blast(lft_uniboot$analysis_tbl, FEV1_reduced) %>% map(~.x$opacity_percent) %>% map_dbl(median) %>% diff %>% signif(2)`, `r filter(lft_uniboot$test, split_factor == 'FEV1_reduced', variable == 'opacity_percent')$significance`, effect size: `r filter(lft_uniboot$test, split_factor == 'FEV1_reduced', variable == 'opacity_percent')$eff_size`); sizes of those effects were, however, small (__Supplementary Table S10__). 
+Furthermore, CTSS, opacity and high opacity correlated negatively with moderate effect size with DLCO expressed as percentage of the patient's reference (p < 0.001, Spearman's $\rho$: `r lft_uniboot$cor_test %>% filter(variable1 == 'DLCO_percent') %>% .$rho %>% range %>% signif(2) %>% paste(collapse = ' to ')`). 
+Interestingly, the CT readouts of structural lung damage also correlated significantly with FVC (Spearman's $\rho$: `r lft_uniboot$cor_test %>% filter(variable1 == 'FVC_percent') %>% .$rho %>% range %>% signif(2) %>% paste(collapse = ' to ')`) and FEV1 (Spearman's $\rho$: `r lft_uniboot$cor_test %>% filter(variable1 == 'FEV1_percent') %>% .$rho %>% range %>% signif(2) %>% paste(collapse = ' to ')`); effect size of those associations was small (__Supplementary Table S11__). 
+
+Finally, in a univariable ROC analysis, 
+human-determined CTSS (AUC = `r lft_roc$stats$optimal_cutoff$DLCO_reduced %>% filter(variable == 'CTSS') %>% .$auc %>% signif(2)`, 95% CI: `r lft_roc$stats$optimal_cutoff$DLCO_reduced %>% filter(variable == 'CTSS') %>% .[c('lower_ci', 'upper_ci')] %>% unlist %>% signif(2) %>% paste(collapse = ' to ')`), and 
+AI-determined lung opacity (AUC = `r lft_roc$stats$optimal_cutoff$DLCO_reduced %>% filter(variable == 'opacity_percent') %>% .$auc %>% signif(2)`, 95% CI: `r lft_roc$stats$optimal_cutoff$DLCO_reduced %>% filter(variable == 'opacity_percent') %>% .[c('lower_ci', 'upper_ci')] %>% unlist %>% signif(2) %>% paste(collapse = ' to ')`) and 
+high opacity (AUC = `r lft_roc$stats$optimal_cutoff$DLCO_reduced %>% filter(variable == 'high_opacity_percent') %>% .$auc %>% signif(2)`, 95% CI: `r lft_roc$stats$optimal_cutoff$DLCO_reduced %>% filter(variable == 'high_opacity_percent') %>% .[c('lower_ci', 'upper_ci')] %>% unlist %>% signif(2) %>% paste(collapse = ' to ')`) 
+were identified as standalone markers of insufficient DLCO in COVID-19 patients. 
+The optimal cutoffs of CTSS, opacity, and high opacity for detection of DLCO < 80% of the patient's reference were, respectively, 
+`r filter(lft_roc$stats$optimal_cutoff$DLCO_reduced, variable == 'CTSS')$cutoff %>% signif(2)` points, 
+`r filter(lft_roc$stats$optimal_cutoff$DLCO_reduced, variable == 'opacity_percent')$cutoff %>% signif(2)`% of the lung, and 
+`r filter(lft_roc$stats$optimal_cutoff$DLCO_reduced, variable == 'high_opacity_percent')$cutoff %>% signif(2)`% of the lung, and 
+allowed for identification of insufficient DLCO with moderate sensitivity and specificity (sensitivity: `r lft_roc$stats$optimal_cutoff$DLCO_reduced$Se %>% range %>% signif(2) %>% paste(collapse = ' to ')`, specificity: `r lft_roc$stats$optimal_cutoff$DLCO_reduced$Sp %>% range %>% signif(2) %>% paste(collapse = ' to ')`, __Figure \@ref(fig:fig-dlco-red-detection)B__). 
+In case of the AI measures of lung opacity and high opacity, the low values of the optimal cutoffs let us infer that event low-grade radiological abnormalities can be associated with clinically relevant functional lung impairment. 
+Yet, concordance between the predicted observed DLCO insufficiency assessed by Cohen's $\kappa$ for CTSS, opacity, and high opacity as standalone markers (blocked bootstrap $\kappa$: `r filter(lft_roc$bootstrap$stats, response == 'DLCO_reduced', statistic == 'kappa')$estimate %>% range %>% signif(2) %>% paste(collapse = ' to ')`, __Table \@ref(tab:tab-ct-roc)__) 
+was substantially lower that 
+in the multi-parameter machine learning models (cross-validated $\kappa$: `r filter(bin_models$stats$DLCO_reduced, dataset == 'cv')$kappa %>% range %>% signif(2) %>% paste(collapse = ' to ')`). 
+This underlines the importance of other CT-unrelated explanatory factors such acute disease course for reliable prediction of functional lung deficits in COVID-19 convalescents.
+
+\newpage
+
+# Discussion
+
+\newpage
+
+# Limitations
+
+Our study has limitations. 
+First, the overall patient and observation number was low, in particular for ambulatory COVID-19 convalescents. 
+Analogically, the study cohort was enriched in hospitalized individuals with in constitute a minute fraction of COVID-19 patients in the real world setting. 
+Second, complete sets of longitudinal CT and LFT measurements at the two-, three-, six- and twelve-month follow-up examinations were available solely for `r covild$ct %>% blast(ID) %>% map_dbl(nrow) %>% map_lgl(~.x == 4) %>% sum` patients. 
+Especially the number of observations obtained with ambulatory and moderate COVID-19 convalescents at the six- and twelve-month follow-up were substantially lower as compared with earlier time points. 
+The incompleteness of the longitudinal data may have hence compromised performance of the machine learning models in particular for ambulatory COVID-19 cases and at the later time points. 
+Third, because of the limited number of participants and observations, we abstained from definition of a test subset of the data used solely for bias-free model evaluation (hold-out strategy). 
+Instead, both model selection and evaluation was done with blocked repeated cross-validation, which may have overestimated performance of the models. 
+Hence, external validation of our findings in an independent cohort is recommended. 
+Finally, the analyzed cohort was recruited in the initial phase of the pandemic and consisted of individuals infected with the wild-type variant of the SARS-CoV-2 virus. 
+For this reason, it is not completely clear, how our findings translate to the recent variants of the pathogen and how the pulmonary recovery is affected by anti-SARS-CoV-2 immunity, improved treatment and care. 
+However, it is feasible, that the CT severity readouts, human-determined CTSS as well as AI-determined opacity and high opacity, are equally applicable in the post-pandemic setting as standalone markers of functional lung impairment during recovery from COVID-19 and other respiratory infections. 
+
+\newpage
+
+# Data and code availability
+
+The entire R analysis pipeline is available as a [GitHub repository](https://github.com/PiotrTymoszuk/CovILD_AI). 
+The [CovILD data set](https://github.com/PiotrTymoszuk/covILD) will be made available on reasonable request to the corresponding author.
+
+\newpage
+
+# Tables
+
+```{r tab-cohort, tab.cap = 'Baseline characteristics and COVID-19 course in the CovILD cohort. Numeric variables are presented as medians with interquartile ranges (IQR) and ranges. Categorical variables are presented as percentages and counts within the complete observation set.'}
+
+flextable::flextable(paper_tabs$cohort) %>% 
+  set_widths(c(2.3, rep(3.3, 4), 2.7, 2.5)) %>% 
+  footnote(1, 1, 
+           value = as_paragraph('age class, young adult: 16 - 40: young adult; 41 - 65: middle aged; 66 and older: elderly; BMI: body mass index; body mass class, normal: BMI \u2264 25, overweight: 25 - 30, obesity: > 30 kg/m\u00B2; COPD: chronic obstructive pulmonary disease; CKD: chronic kidney disease; ICU: intensive care unit; steroids during COVID-19: in cases of non-improving pneumonia, \u2265 3 weeks after diagnosis.'), 
+           part = 'header', 
+           ref_symbols = 'a') %>% 
+  footnote(1, 6:7, 
+           value = as_paragraph('Numeric variables: Kruskal-Wallis test with \u03B7\u00B2 effect size statistic. Categorical variables: \u03C7\u00B2 test with Cramer V effect size statistic. P values corrected for multiple testing with the false discovery rate method.'), 
+           part = 'header',
+           ref_symbols = 'b') %>% 
+  theme_vanilla
+
+```
+
+\newpage
+
+```{r tab-bin-classifiers, tab.cap = 'Cross-validated performance of binary machine learning classifiers at predicting lung function testing (LFT) abnormalities.'}
+
+flextable::flextable(paper_tabs$bin_classifiers) %>% 
+  set_widths(c(2.7, 3.1, rep(2, 6))) %>% 
+  merge_v(1) %>% 
+  footnote(1, 1, 
+           value = as_paragraph('LFT: lung function testing, DLCO: diffusion capacity for CO, FVC: forced vital capacity; FEV1: forced expiratory volume in one second.'), 
+           part = 'header', 
+           ref_symbols = 'a') %>% 
+  footnote(1, 2, 
+           value = as_paragraph('SVM: support vector machines with radial kernel; GBM: gradient boosted machines.'), 
+           part = 'header', 
+           ref_symbols = 'b') %>% 
+  footnote(1, 3, 
+           value = as_paragraph('Ratio of correct predictions to the total observation number.'), 
+           part = 'header', 
+           ref_symbols = 'c') %>% 
+  footnote(1, 4, 
+           value = as_paragraph('Cohen \u03BA statistic of inter-rater reliability between the predicted and observed outcome.'), 
+           part = 'header', 
+           ref_symbols = 'd') %>% 
+  footnote(1, 6, 
+           value = as_paragraph('AUC: are under the receiver-operating characteristic curve.'), 
+           part = 'header', 
+           ref_symbols = 'e') %>% 
+  theme_vanilla
+
+```
+
+\newpage
+
+```{r tab-reg-models, tab.cap = 'Cross-validated performance of regression machine learning models at predicting values of lung function testing parameters.'}
+
+flextable::flextable(paper_tabs$reg_models) %>% 
+  set_widths(c(2.5, 3.1, rep(2.1, 3))) %>% 
+  merge_v(1) %>% 
+  footnote(1, 1, 
+           value = as_paragraph('DLCO: diffusion capacity for CO, FVC: forced vital capacity; FEV1: forced expiratory volume in one second.'), 
+           part = 'header', 
+           ref_symbols = 'a') %>% 
+  footnote(1, 2, 
+           value = as_paragraph('SVM: support vector machines with radial kernel; GBM: gradient boosted machines.'), 
+           part = 'header', 
+           ref_symbols = 'b') %>% 
+  footnote(1, 3, 
+           value = as_paragraph('Defined as 1 - ratio of mean squared error and variance.'), 
+           part = 'header', 
+           ref_symbols = 'c') %>% 
+  footnote(1, 4, 
+           value = as_paragraph('MAE: mean absolute error.'), 
+           part = 'header', 
+           ref_symbols = 'd') %>% 
+  footnote(1, 5, 
+           value = as_paragraph('\u03A1: Spearman coefficient of correlation between the predicted and observed response values.'), 
+           part = 'header', 
+           ref_symbols = 'e') %>% 
+  theme_vanilla
+
+```
+
+\newpage
+
+```{r tab-ct-roc, tab.cap = 'Detection of reduced diffusion capacity for CO DLCO < 80% reference value) by single CT-derived parameters: AI-determined opacity and high opacity, and human-determined CT severity score.'}
+
+flextable::flextable(paper_tabs$ct_roc) %>% 
+  set_widths(c(3, 2.5, 2.7, 3.8)) %>% 
+  merge_v(1) %>% 
+  footnote(1, 1, 
+           value = as_paragraph('CTSS: human-determined CT severity score, sum for al lung lobes; high opacity and opacity, AI: percentage of the lungs with high opacity and opacity determined by artificial intelligence.'), 
+           part = 'header', 
+           ref_symbols = 'a') %>% 
+  footnote(1, 2, 
+           value = as_paragraph('Cutoff of the CT variable corresponding to the maximum of Jouden Y statistic.'), 
+           part = 'header', 
+           ref_symbols = 'b') %>% 
+  footnote(1, 3,
+           value = as_paragraph('AUC: area under the curve of receiver-operating characteristic; \u03BA: Cohen \u03BA statistic of inter-rater reliability between the predicted and observed outcome, computed for the CT variable cutoff; sensitivity and specificity: sensitivity and specificity computed at the CT variable cutoff.'), 
+           part = 'header', 
+           ref_symbols = 'c') %>% 
+  theme_vanilla
+
+```
+
+
+\newpage
+
+# Figures
+
+```{r fig-consort, fig.width = figur::convert(paper_figs$consort, to = 'in')$w, fig.height = figur::convert(paper_figs$consort, to = 'in')$h, fig.cap = 'Analysis inclusion scheme.'}
+
+paper_figs$consort$plot
+
+```
+
+__Figure \@ref(fig:fig-consort). Analysis inclusion scheme.__ 
+
+_The analysis inclusion criterion for participants of the longitudinal observation CovILD study was completeness of visit-matched computed tomography and lung function testing results._
+
+_CT: compute tomography; LFT: lung function testing; GGO: ground glass opacity; AI: artificial intelligence; DLCO: diffusion capacity for carbon monoxide (CO); FVC: forced vital capacity; FEV1: forced expiratory volume in one second._
+
+\newpage
+
+```{r fig-ml-performance, fig.width = figur::convert(paper_figs$ml_performance, to = 'in')$w, fig.height = figur::convert(paper_figs$ml_performance, to = 'in')$h, fig.cap = 'Evaluation of performance of machine learning models of diffusion capacity for CO during COVID-19 convalescence.'}
+
+paper_figs$ml_performance$plot
+
+```
+
+__Figure \@ref(fig:fig-ml-performance). Evaluation of performance of machine learning models of diffusion capacity for CO during COVID-19 convalescence.__ 
+
+_(A) Four machine learning classification models of insufficient diffusion capacity for carbon monoxide (< 80% of reference value: n = `r ngroups(bin_models$models$DLCO_reduced[[1]])$train$n_outcome[2]`, total observations: n = `r ngroups(bin_models$models$DLCO_reduced[[1]])$train$n_outcome %>% sum`) employing computed tomography readouts, demographic and clinical explanatory variables were trained. Their performance was evaluated in the entire data set and 10-repeats 10-fold cross-validation with overall accuracy metric, Cohen's $\kappa$ as a measure of concordance between predicted and observed outcome, and Brier score as a measure of model's calibration. Left: numeric performance measures of the models (open circles: the entire data set, filled circles: cross-validation); point sizes and point labels represent overall model accuracy, the dashed lines visualize values of Cohen's $\kappa$ and Brier score expected for prediction of insufficient DLCO be chance. Right: receiver-operating characteristic curves for predictions in cross-validation folds, numeric statistics are displayed in the plot. Numbers of complete observations and observations witj DLCO insufficiency ('events') are displayed in the plot captions._
+
+_(B) Four machine learning regression models of diffusion capacity for carbon monoxide (percentage of reference values, total observations: n = `r nobs(reg_models$models$DLCO_percent[[1]])`) employing computed tomography readouts, demographic and clinical explanatory variables were trained. Their performance was evaluated in th entire data set and 10-repeats 10-fold cross-validation with $R^2$ as a measure of explained variation, mean absolute error, and $\rho$ Spearman's coefficient of correlation between the predicted and observed values. Bubble plot: numeric performance measures of the model (open circles: the entire data set, filled circles: cross-validation); point sizes and point labels represent values of $\rho$ correlation coefficient, the dashed line visualizes $R^2$ value expected for a meaningless model. Scatter plots: observed and predicted values of diffusion capacity for carbon monoxide in cross-validation folds; the blue dashed lines with slope 1 and intercept 0 represent absolutely accurate predictions, general additive model trends with standard errors are visualized as the solid blue lines with gray ribbons. Numbers of complete observations and Spearman's $\rho$ coeffficients of correlation between the predicted and observed values are displayed in the plot captions._
+
+_DLCO: diffusion capacity for carbon monoxide, CV: cross-validation; AUC: are under the receiver-operating characteristic curve; Se: sensitivity; Sp: specificity; MAE: mean absolute error; GBM: gradient boosted machines; SVM radial: support vector machines with radial kernel._
+
+\newpage
+
+```{r fig-varimp-dlco-red, fig.width = figur::convert(paper_figs$varimp_dlco_red, to = 'in')$w, fig.height = figur::convert(paper_figs$varimp_dlco_red, to = 'in')$h, fig.cap = 'Explanatory variable importance for models of insufficient diffusion capacity for carbon monoxide measured by Shapley additive explanations.'}
+
+paper_figs$varimp_dlco_red$plot
+
+```
+
+__Figure \@ref(fig:fig-varimp-dlco-red). Explanatory variable importance for models of insufficient diffusion capacity for carbon monoxide measured by Shapley additive explanations.__ 
+
+_Importance of explanatory variables for the machine learning models of insufficient diffusion capacity for carbon monoxide (< 80% of reference, Figure \@ref(fig:fig-ml-performance)) was investigated by Shapley additive explanations (SHAP). Absolute SHAP values for explanatory variables with the 15 largest mean SHAP values are presented in violin plots. Points represent single observations, point colors code for minimum/maximum scaled value of the explanatory variable. Explanatory variables obtained via computed tomography are highlighted with bold font in the Y axes._
+
+_CT: computed tomography; DLCO: diffusion capacity for carbon monoxide; opacity and high opacity, AI: opacity and high opacity of the lung determined by artificial intelligence; BMI: body mass index; CTSS: human-determined CT severity score, sum for all lobes; ECOG: Eastern Cooperative Oncology Group physical performance score; mMRC: modified Medical Research Council dyspnea scale; ICU: intensive care unit._
+
+\newpage
+
+```{r fig-dlco-red-detection, fig.width = figur::convert(paper_figs$dlco_red_detection, to = 'in')$w, fig.height = figur::convert(paper_figs$dlco_red_detection, to = 'in')$h, fig.cap = 'Detection of DLCO insufficiency by human- and artificial intelligence-determined CT readouts of severity of structural lung damage.'}
+
+paper_figs$dlco_red_detection$plot
+
+```
+
+__Figure \@ref(fig:fig-dlco-red-detection). Detection of DLCO insufficiency by human- and artificial intelligence-determined CT readouts of severity of structural lung damage.__ 
+
+_Human- and artificial intelligence-determined computed tomography readouts of structural lung damage were identified as influential explanatory variables at prediction of insufficiency of diffusion capacity for carbon monoxide (< 80%) by machine learning._
+
+_(A) Values of the radiological readouts of lung damage severity were compared between data points with and without insufficient diffusion capacity for carbon monoxide by Mann-Whitney test with r effect size statistic. Median values with interquartile ranges are depicted as boxes, whiskers span over 150% of the interquartile ranges, single observations are visualized as points. Effect sizes and p values are displayed in the plot captions. Numbers of observations are indicated in the X axis._
+
+_(B) Quality of detection of insufficient diffusion capacity for carbon monoxide with the radiological readouts of lung damage severity was assessed by receiver-operating characteristic (ROC) analysis. ROC curves are shown, the optimal cutoffs of the severity readuts determined by Youden's criterion are represented by points with numbers. Sensitivity, specificity at the optimal cutoff, and area under the curve statistic with 95% confidence interval are displayed in the plots._
+
+_CT: computed tomography; DLCO: diffusion capacity for carbon monoxide;  CTSS: human-determined CT severity score, sum for all lobes; opacity and high opacity, AI: opacity and high opacity of the lung determined by artificial intelligence; AUC: are under the curve of receiver-operating characteristic; Se: sensitivity; Sp: specificity._
+
+\newpage
+
+# References
