@@ -134,7 +134,7 @@
     
   }
   
-# Plots for explorative analysis ------
+# Plots for exploratory analysis ------
   
   plot_explo_numeric <- function(data, 
                                  outcome, 
@@ -944,16 +944,17 @@
     
   }
   
-  spearman_rho_ <- function(data, 
-                            variables, 
-                            positive = FALSE) {
+  corr_test_ <- function(data, 
+                         variables, 
+                         positive = FALSE, 
+                         method = 'spearman') {
     
-    ## computes Spearman's rho correlation coefficient
+    ## computes a correlation coefficient
     ## used in a bootstrap correlation test
     
     rho <- cor(data[[variables[1]]], 
                data[[variables[2]]], 
-               method = 'spearman')
+               method = method)
     
     if(positive) {
       
@@ -970,20 +971,22 @@
     
   }
   
-  spearman_rho <- function(data, 
-                           variables, 
-                           id_variable = 'ID', 
-                           B = 1, 
-                           positive = FALSE) {
+  corr_test <- function(data, 
+                        variables, 
+                        id_variable = 'ID', 
+                        B = 1, 
+                        positive = FALSE, 
+                        method = 'spearman') {
     
     ## implements a block bootstrap correlation test
     
     boots <- sboot.data.frame(data, B = B, .by = id_variable)
     
     boot_stats <- boots %>% 
-      future_map_dfr(spearman_rho_, 
+      future_map_dfr(corr_test_, 
                      variables = variables, 
                      positive = positive, 
+                     method = method, 
                      .options = furrr_options(seed = TRUE))
     
     tibble(rho = mean(boot_stats$rho), 
@@ -2245,6 +2248,60 @@
     
   }
   
+  plot_learn_curves <- function(data, 
+                                metrics = lft_lcurves$metrics$DLCO_reduced, 
+                                plot_title = NULL, 
+                                metric_labels = lft_lcurves$metric_labels,
+                                data_labels = lft_lcurves$set_labels, 
+                                data_colors = lft_lcurves$set_colors, 
+                                point_size = 2, 
+                                point_shape = 16, 
+                                point_wjitter = 1, 
+                                point_hjitter = 0, 
+                                point_alphas = c(1, 1, 0.25), ...) {
+    
+    ## plots learning curves for the training subset, test subset, and 
+    ## resampling. The plots are generated for metrics specified by the user
+    
+    ## plotting data --------
+    
+    plot_data <- data %>% 
+      select(Training_Size, Data, all_of(metrics))
+    
+    ## plotting ---------
+    
+    list(mt = metrics, 
+         lb = metric_labels[metrics]) %>%
+      pmap(function(mt, lb) plot_data %>% 
+             ggplot(aes(x = Training_Size, 
+                        y = .data[[mt]], 
+                        color = Data)) + 
+             geom_point(aes(alpha = Data, 
+                            fill = Data), 
+                        shape = point_shape, 
+                        size = point_size, 
+                        position = position_jitter(height = point_hjitter, 
+                                                   width = point_wjitter)) + 
+             geom_smooth(...) + 
+             scale_color_manual(values = data_colors, 
+                                labels = data_labels, 
+                                name = '') + 
+             scale_fill_manual(values = data_colors, 
+                               labels = data_labels, 
+                               name = '') + 
+             scale_alpha_manual(values = point_alphas, 
+                                labels = data_labels, 
+                                name = '') + 
+             guides(fill = guide_legend(override.aes = list(alpha = 1)), 
+                    color = guide_legend(override.aes = list(alpha = 1))) + 
+             globals$common_theme + 
+             labs(title = plot_title, 
+                  x = 'training set size, n', 
+                  y = lb)) %>% 
+      set_names(metrics)
+    
+  }
+  
   
 # Variable importance -------
   
@@ -2740,6 +2797,72 @@
       expand_limits(x = limits, 
                     y = limits)
 
+  }
+  
+  plot_loadings <- function(x, 
+                            lexicon = lft_globals$lexicon, 
+                            n_top = 5, 
+                            plot_title = NULL, 
+                            point_color = 'steelblue', 
+                            txt_size = 2.5) {
+    
+    ## customized plot of PCA loadings: 
+    ## variables get user-friendly labels, top n variables with 
+    ## the largest loadings are labeled with their user-friendly names
+    
+    ## top loadings ------
+    
+    loading_tbl <- x$loadings
+    
+    top_loadings <- loading_tbl %>% 
+      mutate(variable_label = exchange(variable, lexicon), 
+             variable_label = unname(variable_label))
+    
+    top_loadings <- c('comp_1', 'comp_2') %>% 
+      map_dfr(~slice_max(top_loadings, .data[[.x]], n = n_top)) %>% 
+      filter(!duplicated(variable)) %>% 
+      select(variable, variable_label)
+    
+    loading_tbl <- 
+      left_join(loading_tbl, top_loadings, by = 'variable') %>% 
+      mutate(top_loading = ifelse(is.na(variable_label), 
+                                  'no', 'yes'))
+    
+    ## variances -----
+    
+    perc_var <- x %>% 
+      var %>% 
+      filter(component %in% c(1, 2)) %>% 
+      .$perc_var
+    
+    ## plot -------
+    
+    loading_tbl %>% 
+      ggplot(aes(x = comp_1, 
+                 y = comp_2, 
+                 fill = top_loading)) + 
+      geom_vline(xintercept = 0, 
+                 linetype = 'dashed') + 
+      geom_hline(yintercept = 0, 
+                 linetype = 'dashed') + 
+      geom_segment(aes(x = 0,
+                       y = 0, 
+                       xend = comp_1, 
+                       yend = comp_2), 
+                   color = 'gray60') + 
+      geom_point(shape = 21, 
+                 size = 2) + 
+      geom_text_repel(aes(label = variable_label), 
+                      size = txt_size, 
+                      color = point_color) + 
+      scale_fill_manual(values = c('no' = 'gray60', 
+                                   'yes' = point_color)) + 
+      globals$common_theme + 
+      labs(title = plot_title, 
+           x = paste0('PCA1, ', signif(perc_var[[1]], 2), '%'),
+           y = paste0('PCA2, ', signif(perc_var[[2]], 2), '%'))
+    
+    
   }
 
 # Markdown helpers -------

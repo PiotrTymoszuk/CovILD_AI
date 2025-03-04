@@ -119,12 +119,24 @@
           globals$common_theme + 
           theme(axis.text.y = element_markdown()))
   
-# A table with mean SHAP values ---------
+# A table with mean absolute SHAP values for the top most influential variables ---------
   
-  insert_msg('A table with mean absolute SHAP values')
+  insert_msg('A table with mean absolute SHAP values, top most influential')
+  
+  ## the top 15 most important explanatory variables, 
+  ## as defined by mean absolute SHAP values
   
   shap_imp$mean_table <- shap_imp$bar_plots %>% 
-    map(map, ~.x$data) %>% 
+    map(map, ~.x$data)
+  
+  shap_imp$top_features <- shap_imp$mean_table %>% 
+    map(map, ~.x$feature) %>% 
+    map(map, as.character)
+  
+  ## mean absolute SHAP values for the top 15 most
+  ## important features
+  
+  shap_imp$mean_table <- shap_imp$mean_table %>% 
     map(~map2(., names(.), 
               ~set_names(.x, c('Variable', globals$algo_labs[.y])))) %>% 
     map(reduce, full_join, by = 'Variable') %>% 

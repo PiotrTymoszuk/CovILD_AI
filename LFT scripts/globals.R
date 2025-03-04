@@ -147,6 +147,33 @@
   lft_globals$lexicon[lft_globals$lexicon$variable == 'severity_WHO', 'format'] <- 
     'factor'
 
+  ## adding classification of the explanatory variables
+  
+  lft_globals$lexicon <- lft_globals$lexicon %>% 
+    mutate(class = ifelse(variable %in% lft_globals$responses, 
+                          'response', 
+                          ifelse(variable %in% lft_globals$ct_variables, 
+                                 'CT readouts and findings', 
+                                 ifelse(variable %in% lft_globals$symptom_variables, 
+                                        'symptoms', 
+                                        ifelse(variable %in% lft_globals$baseline_variables, 
+                                               'risk factors and CoV severity', 
+                                               'time after CoV')))), 
+           class = factor(class, 
+                          c('risk factors and CoV severity', 
+                            'symptoms', 
+                            'time after CoV', 
+                            'CT readouts and findings')))
+  
+  ## colors of the variable classes
+  
+  lft_globals$class_colors <- 
+    c('risk factors and CoV severity' = 'steelblue', 
+      'symptoms' = 'plum4', 
+      'time after CoV' = 'aquamarine3', 
+      'CT readouts and findings' = 'orangered3')
+  
+  
 # CV folds -------
 
   insert_msg('CV folds')

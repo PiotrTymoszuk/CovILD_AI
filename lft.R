@@ -16,11 +16,15 @@
 
   library(exda)
   library(rstatix)
-  library(caret)
-  library(caretExtra)
   library(effectsize)
   library(sciplot)
   library(rcompanion)
+  library(clustTools)
+  library(graphExtra)
+  library(igraph)
+
+  library(caret)
+  library(caretExtra)
 
   library(ranger)
   library(nnet)
@@ -39,6 +43,8 @@
 
   library(OptimalCutpoints)
   library(plotROC)
+
+  library(figur)
 
   explore <- exda::explore
   train <- caret::train
@@ -108,22 +114,44 @@
   
   insert_msg('Assessment of the model performance')
   
+  ## assessment of predictions in the training and CV data
+  
   c('./LFT scripts/binary_performance.R', 
     './LFT scripts/regression_performance.R', 
     './LFT scripts/residuals.R', 
     './LFT scripts/ct_predictions.R') %>% 
     source_all(message = TRUE, crash = TRUE)
 
+  ## assessment of over-fitting by learning curves
+  
+ access_cache(cache_path = './cache/lft_learn.RData',
+              script_path = './LFT scripts/learning_curves.R', 
+              message = 'Assessment of over-fitting by learning curves')
+ 
+ c('./LFT scripts/learning_plots.R') %>% 
+   source_all(message = TRUE, crash = TRUE)
+ 
 # Variable importance ------
   
   insert_msg('Variable importance')
+  
+  ## importance determined by SHAP and algorithm-specific algorithms 
+  ## by caret.
+  ## For the SHAP measures, we're analyzing the co-linearity by PCA
+  ## and investigation of correlation graphs
+  ##
+  ## Co-regulation of the top explanatory variables: 
+  ## PCA and correlation graphs
 
   access_cache(cache_path = './cache/shap_devel.RData', 
                script_path = './LFT scripts/shap_development.R', 
                message = 'Loading cached SHAP importance data')
   
   c('./LFT scripts/shap_importance.R', 
-    './LFT scripts/caret_importance.R') %>% 
+    './LFT scripts/shap_pca.R', 
+    './LFT scripts/caret_importance.R', 
+    './LFT scripts/variable_pca.R', 
+    './LFT scripts/variable_networks.R') %>% 
     source_all(message = TRUE, crash = TRUE)
   
 # ROC analysis for the CT parameters -------

@@ -158,7 +158,7 @@
     mdtable(label = 'table_S6_ml_tuning',
             ref_name = 'tuning', 
             caption = paste('Selection of machine learning algorithm', 
-                            'parameters by cross-validation-mediated tuning.'))
+                            'hyper-parameters by cross-validation-mediated tuning.'))
   
 # Table S7: performance of the machine learning classifiers, training ------
   

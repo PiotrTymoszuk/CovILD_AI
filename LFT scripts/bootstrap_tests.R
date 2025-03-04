@@ -198,7 +198,7 @@
     format_summ_tbl(dict = lft_globals$lexicon) %>% 
     mutate(variable = ifelse(is.na(variable), 
                              'Observations, n', variable), 
-           lft_abnormality = exchange(lft_abnormality, 
+           lft_abnormality = exchange(as.character(lft_abnormality), 
                                       lft_globals$lexicon)) %>% 
     select(lft_abnormality, 
            variable, 

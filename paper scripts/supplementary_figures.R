@@ -6,9 +6,9 @@
   
   suppl_figs <- list()
   
-# Figure S1: time course of CT findings -------
+# time course of CT findings -------
   
-  insert_msg('Figure S1: time course of the CT findings')
+  insert_msg('Time course of the CT findings')
   
   suppl_figs$ct_finding_course <- 
     cohort_ct$plots$factor[c("GGO_finding", 
@@ -25,7 +25,7 @@
                            labs(fill = 'Abnormality')), 
               ncol = 2, 
               rel_widths = c(0.9, 0.1)) %>% 
-    as_figure(label = 'figure_s1_ct_abnormality_time_course', 
+    as_figure(label = 'ct_abnormality_time_course', 
               ref_name = 'ct_finding_course', 
               caption = paste('Frequency of the most common abnormalities in', 
                               'computed tomography of the chest', 
@@ -35,9 +35,9 @@
               w = 180, 
               h = 210)
   
-# Figure S2: time course of numeric CT variables -----
+# time course of numeric CT variables -----
   
-  insert_msg('Figure S2: CT pathology scoring at the follow-ups')
+  insert_msg('CT pathology scoring at the follow-ups')
   
   suppl_figs$ct_numeric_course <- 
     cohort_ct$plots$numeric[c("CTSS", 
@@ -61,9 +61,9 @@
               w = 180, 
               h = 210)
   
-# Figure S3: CT feature overlap --------
+# CT feature overlap --------
   
-  insert_msg('Figure S3: overlap of the CT features')
+  insert_msg('Overlap of the CT features')
   
   ## upper 
   
@@ -91,7 +91,7 @@
               rel_heights = c(1, 2), 
               labels = LETTERS, 
               label_size = 10) %>% 
-    as_figure(label = 'figure_s3_cooccurrence_ct_findings', 
+    as_figure(label = 'cooccurrence_ct_findings', 
               ref_name = 'ct_corr', 
               caption = paste('Co-occurrence of abnormalities of chest', 
                               'computed tomography and correlation of computed', 
@@ -99,11 +99,9 @@
               w = 180, 
               h = 210)
   
+# time course of LFT abnormalities -------
   
-  
-# Figure S4: time course of LFT abnormalities -------
-  
-  insert_msg('Figure S4: time course of LFT abnormalities')
+  insert_msg('Time course of LFT abnormalities')
   
   suppl_figs$lft_finding_course <- 
     cohort_lft$plots$factor[c("DLCO_reduced", 
@@ -120,7 +118,7 @@
                            labs(fill = 'Abnormality')), 
               ncol = 2, 
               rel_widths = c(0.9, 0.1)) %>% 
-    as_figure(label = 'figure_s4_lft_abnormality_time_course', 
+    as_figure(label = 'lft_abnormality_time_course', 
               ref_name = 'lft_finding_course', 
               caption = paste('Frequency of lung function testing abnormalities', 
                               'at the consecutive follow-ups in', 
@@ -129,9 +127,9 @@
               w = 180, 
               h = 210)
   
-# Figure S5: time course of numeric LFT parameters -------
+# time course of numeric LFT parameters -------
   
-  insert_msg('Figure S5: time course of numeric LFT features')
+  insert_msg('Time course of numeric LFT features')
   
   suppl_figs$lft_numeric_course <- 
     cohort_lft$plots$numeric[c("DLCO_percent", 
@@ -142,7 +140,7 @@
     plot_grid(plotlist = ., 
               ncol = 1, 
               align = 'hv') %>% 
-    as_figure(label = 'figure_S5_lft_parameter_time_course', 
+    as_figure(label = 'lft_parameter_time_course', 
               ref_name = 'lft_numeric_course', 
               caption = paste('Time course of numeric lung function testing',  
                               'readouts at the consecutive follow-ups in', 
@@ -151,9 +149,9 @@
               w = 180, 
               h = 210)
   
-# Figure S6: correspondence and correlation of LFT outcomes ---------
+# correspondence and correlation of LFT outcomes ---------
   
-  insert_msg('Figure S6: correlation and correspondence, LFT outcomes')
+  insert_msg('Correlation and correspondence, LFT outcomes')
   
   ## upper 
   
@@ -181,7 +179,7 @@
               rel_heights = c(1, 2), 
               labels = LETTERS, 
               label_size = 10) %>% 
-    as_figure(label = 'figure_s6_cooccurrence_lft_findings', 
+    as_figure(label = 'cooccurrence_lft_findings', 
               ref_name = 'lft_corr', 
               caption = paste('Co-occurrence of abnormalities of lung', 
                               'function testing and correlation of lung', 
@@ -189,9 +187,9 @@
               w = 180, 
               h = 210)
   
-# Figure S7: time course of symptoms of relevance for respiratory function -------
+# time course of symptoms of relevance for respiratory function -------
   
-  insert_msg('Figure S7: time course of symptoms of relevance for lung function')
+  insert_msg('Time course of symptoms of relevance for lung function')
   
   suppl_figs$symptom_course <- 
     cohort_sympt$plots$factor[c("dyspnea_symptom", 
@@ -208,7 +206,7 @@
                            labs(fill = 'Symptom')), 
               ncol = 2, 
               rel_widths = c(0.9, 0.1)) %>% 
-    as_figure(label = 'figure_S7_symptom_time_course', 
+    as_figure(label = 'symptom_time_course', 
               ref_name = 'symptom_course', 
               caption = paste('Frequency of persistent symptoms of relevance',
                               'for lung function', 
@@ -218,22 +216,22 @@
               w = 180, 
               h = 210)
   
-# Figure S8: modeling strategy --------
+# modeling strategy --------
   
-  insert_msg('Figure S8: modeling strategy')
+  insert_msg('Modeling strategy')
   
   suppl_figs$modeling_strategy <- 
     plot_grid(ggdraw() + 
                 draw_image('./aux files/modeling_strategy.png')) %>% 
-    as_figure(label = 'figure_s8_modeling_strategy', 
+    as_figure(label = 'modeling_strategy', 
               ref_name = 'modeling_strategy', 
               caption = paste('Modeling strategy.'), 
               w = 180, 
               h = 2524/3404 * 180)
 
-# Figure S9: evaluation of the models of findings in FVC and FEV ------
+# evaluation of the models of findings in FVC and FEV ------
   
-  insert_msg('Figure S9: models of FVC and FEV1 abnormalities')
+  insert_msg('Models of FVC and FEV1 abnormalities')
   
   suppl_figs$fvc_fev_reduced_models <- 
     list(bin_models$performance_plots$FVC_reduced, 
@@ -259,7 +257,7 @@
   
   suppl_figs$fvc_fev_reduced_models <- 
     suppl_figs$fvc_fev_reduced_models %>% 
-    as_figure(label = 'figure_s9_performance_fvc_fev_findings_models', 
+    as_figure(label = 'performance_fvc_fev_findings_models', 
               ref_name = 'fvc_fev_reduced_models', 
               caption = paste('Evaluation of performance of machine learning', 
                               'classification models at prediction', 
@@ -269,9 +267,9 @@
               w = 180, 
               h = 200)
   
-# Figure S10: evaluation of regressors of FVC and FEV1 -------
+# evaluation of regressors of FVC and FEV1 -------
   
-  insert_msg('Figure S9: models of FVC and FEV1')
+  insert_msg('Models of FVC and FEV1')
   
   suppl_figs$fvc_fev_models <- 
     reg_models$performance_plots[c("FVC_percent", "FEV1_percent")] %>% 
@@ -288,7 +286,7 @@
                                  legend.title = element_blank())), 
               nrow = 2, 
               rel_heights = c(0.9, 0.1)) %>% 
-    as_figure(label = 'figure_s10_performance_fvc_fev_regression', 
+    as_figure(label = 'performance_fvc_fev_regression', 
               ref_name = 'fvc_fev_models', 
               caption = paste('Evaluation of performance of machine learning', 
                               'regression models at prediction of', 
@@ -297,9 +295,9 @@
               w = 180, 
               h = 95)
   
-# Figure S11: residuals of the models at the FUP and severity strata -------
+# residuals of the models at the FUP and severity strata -------
   
-  insert_msg('Figure S11: model residuals, severity and FUP')
+  insert_msg('Model residuals, severity and FUP')
   
   suppl_figs$residuals <- 
     c(dlco_resid$hm_plots$kappa[c("ranger", "nnet", "svmRadial", "gbm")], 
@@ -314,7 +312,7 @@
                          '', '', '', 
                          'B', '', ''), 
               label_size = 10) %>% 
-    as_figure(label = 'figure_s11_model_errors_severity_follow_up', 
+    as_figure(label = 'model_errors_severity_follow_up', 
               ref_name = 'residuals', 
               caption = paste("Cohen's kappa and mean absolute error", 
                               'of the machine learning models of insufficiency', 
@@ -323,9 +321,41 @@
               w = 180, 
               h = 180)
   
-# Figure S12: variable importance for DLCO modeling -------
+# Learning curves for the models of DLCO < 80% and DLCO -------
   
-  insert_msg('Figure S12: variable importance for the DLCO models')
+  insert_msg('Learning curves for the models of reduced and percentage DLCO')
+
+  suppl_figs$learn_curves <- lft_lcurves$plots %>% 
+    map(~.x$gbm) %>% 
+    unlist(recursive = FALSE)
+  
+  suppl_figs$learn_curves <- suppl_figs$learn_curves %>% 
+    map(~.x + theme(legend.position = 'none')) %>% 
+    plot_grid(plotlist = .,
+              ncol = 2, 
+              align = 'hv', 
+              axis = 'tblr', 
+              labels = c('A', '', 
+                         'B', ''), 
+              label_size = 10) %>% 
+    plot_grid(get_legend(suppl_figs$learn_curves[[1]] + 
+                           theme(legend.position = 'bottom')), 
+              nrow = 2, 
+              rel_heights = c(0.9, 0.1))
+  
+  suppl_figs$learn_curves <- suppl_figs$learn_curves %>% 
+    as_figure(label = 'learning_curves_DLCO_models', 
+              ref_name = 'learn_curves', 
+              caption = paste('Learning curves', 
+                              'of the gradient boosted machines models', 
+                              'of insufficiency and percentage of reference', 
+                              'of diffusion capacity for carbon monoxide.'), 
+              w = 180, 
+              h = 180)
+  
+# variable importance for DLCO modeling -------
+  
+  insert_msg('Variable importance for the DLCO models')
 
   suppl_figs$varimp_dlco <- 
     shap_imp$violin_bee_plots$DLCO_percent[c("ranger", "svmRadial", "gbm")] %>% 
@@ -341,19 +371,78 @@
               ncol = 2, 
               align = 'hv', 
               axis = 'tblr') %>% 
-    as_figure(label = 'figure_s12_dlco_shap_importance', 
+    as_figure(label = 'dlco_shap_importance', 
               ref_name = 'varimp_dlco',
               caption = paste('Explanatory variable importance for models', 
                               'of diffusion capacity for carbon monoxide', 
                               'measured by Shapley additive explanations.'), 
               w = 180, 
               h = 200)
+  
+# Associations between the most influential explanatory variables --------
+  
+  insert_msg('Correlations between the top influential explanatory variables')
+  
+  ## upper panel: the correlation graph
+  
+  suppl_figs$top_corr$upper <- lft_net$plots$all
+  
+  ## middle panel: scatter plots for visualization of correlations
+  
+  suppl_figs$top_corr$middle <- corr_lft$plots$ct %>% 
+    map(~.x + theme(plot.title.position = 'plot')) %>% 
+    plot_grid(plotlist = .,
+              ncol = 3, 
+              align = 'hv', 
+              axis = 'tblr')
+  
+  ## bottom panel: comparison of CTSS, and AI measures between observations 
+  ## with and without GGO and reticulation
+  
+  suppl_figs$top_corr$bottom <- 
+    list(x = comp_ct$box_plots[c("GGO_finding.CTSS", 
+                                 "reticulation_finding.CTSS", 
+                                 "GGO_finding.opacity_percent", 
+                                 "reticulation_finding.opacity_percent")], 
+         y =  c(rep('identity', 2), rep('sqrt', 2)), 
+         z = list(c('steelblue2', 'steelblue4'), 
+                  c('steelblue2', 'steelblue4'),
+                  c('orangered2', 'orangered4'), 
+                  c('orangered2', 'orangered4'))) %>% 
+    pmap(function(x, y, z) x + 
+           scale_y_continuous(trans = y) + 
+           scale_fill_manual(values = z) + 
+           theme(plot.title.position = 'plot')) %>% 
+    plot_grid(plotlist = .,
+              ncol = 4, 
+              align = 'hv', 
+              axis = 'tblr')
+  
+  ## the entire figure
+  
+  suppl_figs$top_corr <- 
+    plot_grid(suppl_figs$top_corr$upper, 
+              suppl_figs$top_corr$middle, 
+              suppl_figs$top_corr$bottom, 
+              nrow = 3, 
+              rel_heights = c(1.25, 1, 1), 
+              labels = LETTERS, 
+              label_size = 10) %>% 
+    as_figure(label = 'top_variables_co_linearity', 
+              ref_name = 'top_corr', 
+              caption =paste('Co-linearity of the most influential computed', 
+                             'tomography-related variables for prediction of', 
+                             'insufficiency and percentage of reference of', 
+                             'diffusion capacity for carbon monoxide.'), 
+              w = 190, 
+              h = 230)
     
 # Saving figures on the disc --------
   
   insert_msg('Saving figures on the disc')
   
   suppl_figs %>% 
+    number_figures(prefix = 'figure_s') %>%
     walk(pickle, 
          path = './paper/supplementary figures', 
          format = 'pdf',

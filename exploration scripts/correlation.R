@@ -1,5 +1,5 @@
 # Correlation of numeric LFT readouts and CT readouts. Because the observations 
-# are not independent, we're resorting to a blocked bootstrap Spearman's test.
+# are not independent, we're resorting to a blocked bootstrap Kendall's test.
 
   insert_head()
   
@@ -41,7 +41,8 @@
 
   corr_lft$titles <- corr_lft$pairs %>% 
     map(map, exchange, corr_lft$lexicon) %>% 
-    map(map, paste, collapse = ' and ')
+    map(map, paste, collapse = ' and ') %>% 
+    map(map, capitalize_first_char)
   
 # Correlation coefficients ---------
   
@@ -50,12 +51,13 @@
   for(i in names(corr_lft$pairs)) {
     
     corr_lft$test[[i]] <- corr_lft$pairs[[i]] %>% 
-      map_dfr(spearman_rho, 
+      map_dfr(corr_test, 
               data = corr_lft$analysis_tbl[[i]], 
               B = 2000, 
-              positive = TRUE) %>% 
+              positive = TRUE, 
+              method = 'kendall') %>% 
       re_adjust %>% 
-      mutate(est_lab = paste0('\u03C1 = ', signif(rho, 2), 
+      mutate(est_lab = paste0('\u03C4 = ', signif(rho, 2), 
                               ' [', signif(lower_ci, 2), 
                               ' - ', signif(upper_ci, 2), ']'), 
              n = nrow(corr_lft$analysis_tbl[[i]]), 

@@ -1,0 +1,5 @@
+1) work on explanations for the table with hyperparameter tuning: the hyperparameters need to be explained
+
+2) add explanations of the hyperparameters in Supplementary Methods; stress how they were found (repeated cross-validation)
+
+3) Supplementary Methods for the learning curves, network analyses, and bootstrap tests for correlations and comparisons

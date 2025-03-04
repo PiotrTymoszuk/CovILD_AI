@@ -166,7 +166,7 @@ Effects with p < 0.05 were considered significant.
 
 The following effect size metrics were used to assess differences between analysis groups and to evaluate performance of machine learning models [@McHugh2012; @Cohen2013; @Cohen1960]:
 
-* biseral r was used for two-group comparisons of numeric variables: < 0.3: small, 0.3 - 0.5: moderate, $\geq$ 0.5: large effect size
+* biserial r was used for two-group comparisons of numeric variables: < 0.3: small, 0.3 - 0.5: moderate, $\geq$ 0.5: large effect size
 
 * $\eta^2$ was used for multi-group comparison of numeric variables: < 0.13: small, 0.13 - 0.26: moderate, $\geq$ 0.26: large effect size
 
@@ -260,7 +260,7 @@ Visualization of the mean SHAP values for the top most influential explanatory v
 ## Comparison of CT readouts between observations with and without LFT abnormality, correlation analysis
 
 Because observations were non-independent, i.e. participant-matched, comparison of CTSS, opacity and high opacity of the lung between data points with and without LFT abnormalities could not be investigated by standard statistical tests (e.g. Mann-Whitney test) and required instead a special approach. 
-Differences in median of the CT parameters between observations with and without a LFT abnormality were investigated with blocked bootstrap test with biseral r effect size statistic (H0: no difference in CT parameter, H1: CT parameter values are higher in observations with the LFT abnormality). 
+Differences in median of the CT parameters between observations with and without a LFT abnormality were investigated with blocked bootstrap test with biserial r effect size statistic (H0: no difference in CT parameter, H1: CT parameter values are higher in observations with the LFT abnormality). 
 The blocked bootstrap scheme involved re-sampling with repetition of the participants instead of single observations (B = 2000 re-samples). 
 P values were obtained by counting re-samples in which the test hypothesis H1 was not met and dividing the count by the total re-sample number. 
 The effect size statistic was computed as an arithmetic average of effect sizes in the re-samples. 
@@ -363,7 +363,7 @@ flextable::flextable(suppl_tabs$cohort_symptoms) %>%
 
 \newpage
 
-```{r tab-tuning, tab.cap = 'Selection of machine learning algorithm parameters by cross-validation-mediated tuning.'}
+```{r tab-tuning, tab.cap = 'Selection of machine learning algorithm hyper-parameters by cross-validation-mediated tuning.'}
 
 flextable::flextable(suppl_tabs$tuning) %>% 
   set_widths(c(3, 4, 4.5)) %>% 
@@ -466,7 +466,7 @@ flextable::flextable(suppl_tabs$lft_binary_uni) %>%
            part = 'header', 
            ref_symbols = 'b') %>% 
   footnote(1, 5:6, 
-           value = as_paragraph('Blocked bootstrap test with biseral r effect size statistic. P values corrected for multiple testing with the false discovery rate method.'), 
+           value = as_paragraph('Blocked bootstrap test with biserial r effect size statistic. P values corrected for multiple testing with the false discovery rate method.'), 
            part = 'header', 
            ref_symbols = 'c') %>% 
   theme_vanilla
@@ -643,6 +643,20 @@ _DLCO: diffusion capacity for carbon monoxide; SVM radial: support vector machin
 
 \newpage
 
+```{r fig-learn-curves, fig.width = figur::convert(suppl_figs$learn_curves, to = 'in')$w, fig.height = figur::convert(suppl_figs$learn_curves, to = 'in')$h, fig.cap = 'Learning curves of the gradient boosted machines models of insufficiency and percentage of reference of diffusion capacity for carbon monoxide.'}
+
+suppl_figs$learn_curves$plot
+
+```
+
+__Figure \@ref(fig:fig-learn-curves). Learning curves of the gradient boosted machines models of insufficiency and percentage of reference of diffusion capacity for carbon monoxide.__ 
+
+_Gradient boosted machines (GBM) was the best performing algorithm at modeling of insufficiency of diffusion capacity for carbon monoxide (DLCO < 80% of reference) and diffusion capacity for carbon monoxide expressed as percentage of the reference value (DLCO, Figure 2)._ 
+_Over-fitting behavior of the GBM models was investigated by examination of learning curves, i.e. curves of model performance metrics (A, DLCO < 80%: accuracy and Cohen's $\kappa$, B, DLCO: mean absolute error [MAE] and $R^2$) for models trained in subsets of observations with increasing sizes._ 
+_The performance metrics were computed for the training subsets, test subsets (size of each corresponded to 25% of the training subsets) and 10-repeats 10-fold cross-validation, and were visualized in scatter plots. Each point represents a single prediction in the training or test subset, or an out-of-fold prediction in the cross-validation. Locally estimated scatterplot smoothing (LOESS) trends with standard error regions are visualized as solid lines with gray ribbons._
+
+\newpage
+
 ```{r fig-varimp-dlco, fig.width = figur::convert(suppl_figs$varimp_dlco, to = 'in')$w, fig.height = figur::convert(suppl_figs$varimp_dlco, to = 'in')$h, fig.cap = 'Explanatory variable importance for models of diffusion capacity for carbon monoxide measured by Shapley additive explanations.'}
 
 suppl_figs$varimp_dlco$plot
@@ -654,6 +668,24 @@ __Supplementary Figure S\@ref(fig:fig-varimp-dlco). Explanatory variable importa
 _Importance of explanatory variables for the machine learning models of diffusion capacity for carbon monoxide (% of reference, Figure 2) was investigated by Shapley additive explanations (SHAP). Absolute SHAP values for explanatory variables with the 15 largest mean SHAP values are presented in violin plots. Points represent single observations, point colors code for minimum/maximum scaled value of the explanatory variable. Explanatory variables obtained via computed tomography are highlighted with bold font in the Y axes._
 
 _CT: computed tomography; DLCO: diffusion capacity for carbon monoxide; BMI: body mass index; opacity and high opacity, AI: opacity and high opacity of the lung determined by artificial intelligence; CTSS: human-determined CT severity score, sum for all lobe; ECOG: Eastern Cooperative Oncology Group physical performance score; mMRC: modified Medical Research Council dyspnea scale; ICU: intensive care unit._
+
+\newpage
+
+```{r fig-top-corr, fig.width = figur::convert(suppl_figs$top_corr, to = 'in')$w, fig.height = figur::convert(suppl_figs$top_corr, to = 'in')$h, fig.cap = 'Co-linearity of the most influential computed tomography-related variables for prediction of insufficiency and percentage of reference of diffusion capacity for carbon monoxide.'}
+
+suppl_figs$top_corr$plot
+
+```
+
+__Supplementary Figure S\@ref(fig:fig-top-corr). Co-linearity of the most influential computed tomography-related variables for prediction of insufficiency and percentage of reference of diffusion capacity for carbon monoxide.__ 
+
+_The most influential variables for prediction of insufficiency and percentage of reference of diffusion capacity for carbon monoxide by machine learning models were identified as features with the largest mean absolute Shapley additive explanations (SHAP) as presented in Figure 3 and Supplementary Figure S\@ref(fig:fig-varimp-dlco).__
+
+_(A) Weighted graph of correlations between the most influential explanatory variables. The graph edges are defined by correlations with Kendall's $\tau \geq$ 0.3, the edge weights correspond to the $\tau$ values. Isolated vertices, i.e. explanatory variables without any correlations with $\tau \geq$ 0.3, were removed. The graph was visualized with the Fruchterman-Reingold algorithm. The explanatory variables, i.e. vertices of the graph, are depicted as points; point color codes for classification of the explanatory variable. Edges are represented by lines; line width and color codes for $\tau$ value._ 
+
+_(B) Correlations between computed tomography (CT) readouts of lung damage, the human-determined CT severity score and software-determined lung opacity and high opacity, were assessed by blocked bootstrap Kendall's correlation test. Ranks of the CT readouts are presented in scatter plots. Each point represents a single observation, blue straight lines are visualizations of linear trends. Correlation coefficients $\tau$ with bootstrap confidence intervals, p values, and numbers of observations are displayed in the plot captions._
+
+_(C) Comparison of CTSS and lung opacity between observations with and without ground glass opacity (GGO) and reticulations. Statistical significance was determined by blocked bootstrap test with r effect size statistic. Median values with interquartile ranges are depicted as boxes, whiskers span over 150% of the interquartile ranges, single observations are visualized as points. Effect sizes and p values are displayed in the plot captions. Numbers of observations are indicated in the X axes._
 
 \newpage
 

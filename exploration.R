@@ -11,6 +11,7 @@
   library(exda)
   library(rstatix)
   library(rcompanion)
+  library(fastTest)
 
   library(clustTools)
   library(ggvenn)
@@ -37,7 +38,8 @@
     './exploration scripts/distribution_longitudinal.R', 
     './exploration scripts/distribution_baseline.R', 
     './exploration scripts/correspondence.R', 
-    './exploration scripts/correlation.R') %>% 
+    './exploration scripts/correlation.R', 
+    './exploration scripts/comparison.R') %>% 
     source_all(message = TRUE, crash = TRUE)
   
 # END ------
