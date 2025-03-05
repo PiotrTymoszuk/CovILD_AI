@@ -19,7 +19,7 @@ High resolution figures, supplementary figures and an Excel file with supplement
 
 ## Terms of use
 
-Please cite the repository and the peer-reviewed publication, when available. The raw data files will be made upon request to the senior study authors, [Dr. Christoph Schwabl](mailto:christoph.schwabl@i-med.ac.at) and [Dr. Gerlig Widmann](mailto:gerlig.widmann@i-med.ac.at).
+Please cite the repository and the peer-reviewed publication, when available. The raw data files will be made upon request to the study authors, [Dr. Anna Luger](mailto:Anna.Luger@i-med.ac.at), [Dr. Christoph Schwabl](mailto:christoph.schwabl@i-med.ac.at), [Dr. Gerlig Widmann](mailto:gerlig.widmann@i-med.ac.at).
 
 ## Usage
 
@@ -33,7 +33,8 @@ devtools::install_github('PiotrTymoszuk/figur') ## management of figures and tab
 devtools::install_github('PiotrTymoszuk/trafo') ## handling of tabular data
 devtools::install_github('PiotrTymoszuk/caretExtra') ## performance stats and visualization of caret models
 devtools::install_github('PiotrTymoszuk/clustTools') ## used in correspondence analysis
-devtools::install_github('PiotrTymoszuk/bootStat') ## boostrap/blocked bootstrap for ROC, interr-rater reliability stats and hypothesis testing
+devtools::install_github('PiotrTymoszuk/bootStat') ## boostrap/blocked bootstrap for ROC, inter-rater reliability stats and hypothesis testing
+devtools::install_github('PiotrTymoszuk/graphExtra') ## correlation graphs
 
 devtools::install_github('PiotrTymoszuk/somKernels') ## a dependency of `caretExtra`
 
