@@ -62,6 +62,25 @@
          lft_net$attr_tbl, 
          set_vertex_attributes)
   
+# Graph communities -------
+  
+  insert_msg('Graph communities')
+  
+  ## communities with single features are lumped
+  
+  set.seed(12345687)
+  
+  lft_net$communities <- lft_net$graph_obj %>% 
+    map(cluster_leiden, 
+        objective_function = 'modularity', 
+        n_iterations = 100) %>% 
+    map(comm_lump, cutoff = 1)
+  
+  lft_net$graph_obj <- 
+    map2(lft_net$graph_obj, 
+         lft_net$communities, 
+         add_communities)
+  
 # Fruchterman-Reingold network plots --------
   
   insert_msg('Network plots')
@@ -91,6 +110,30 @@
          show.legend = FALSE, 
          seed = 12345)
   
+  ## vertex color codes for assignment to the communities
+  
+  lft_net$community_plots <- 
+    list(x = lft_net$graph_obj, 
+         plot_title = lft_net$graph_titles) %>% 
+    pmap(plot, 
+         layout = layout.fruchterman.reingold, 
+         vertex_fill_variable = 'community_id', 
+         vertex_color_variable = 'community_id', 
+         weighting_order = 1, 
+         vertex_size = 2, 
+         label_vertices = TRUE, 
+         vertex_label_variable = 'variable_label', 
+         vertex_txt_color_variable = 'community_id', 
+         vertex_txt_size = 2.5, 
+         cust_theme = theme_void() + 
+           theme(plot.title = element_text(size = 8, face = 'bold'), 
+                 plot.subtitle = globals$common_text, 
+                 legend.text = globals$common_text, 
+                 legend.title = globals$common_text, 
+                 plot.margin = globals$common_margin), 
+         show.legend = FALSE, 
+         seed = 12345)
+  
   ## additional styling by setting color and line width scales
   
   lft_net$plots <- lft_net$plots %>% 
@@ -101,6 +144,15 @@
           scale_color_manual(values = lft_globals$class_colors, 
                              name = 'variable\nclassifcation', 
                              drop = FALSE) + 
+          scale_linewidth(range = c(0.25, 1.5), 
+                          limits = c(0.3, 1), 
+                          name = "Kendall's \u03C4") + 
+          scale_alpha_continuous(range = c(0.15, 0.6), 
+                                 limits = c(0.3, 1), 
+                                 name = "Kendall's \u03C4"))
+  
+  lft_net$community_plots <- lft_net$community_plots %>% 
+    map(~.x +
           scale_linewidth(range = c(0.25, 1.5), 
                           limits = c(0.3, 1), 
                           name = "Kendall's \u03C4") + 

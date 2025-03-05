@@ -6,9 +6,9 @@
   
   suppl_tabs <- list()
   
-# Table S1: numbers of samples and participants per time point -------
+# Numbers of samples and participants per time point -------
   
-  insert_msg('Table s1: numbers of samples and participants')
+  insert_msg('Numbers of samples and participants')
   
   suppl_tabs$n_numbers <- cohort_ct$analysis_tbl %>% 
     blast(cohort_split) %>% 
@@ -20,15 +20,15 @@
                 'Ambulatory, mild COVID-19', 
                 'Hospitalized, moderate COVID-19', 
                 'Hospitalized, severe COVID-19')) %>%
-    mdtable(label = 'table_s1_observation_n_numbers', 
+    mdtable(label = 'observation_n_numbers', 
             ref_name = 'n_numbers', 
             caption = paste('Numbers of observations included in the analysis', 
                             'split by acute COVID-19 severity and the follow-up', 
                             'examination.'))
 
-# Table S2: study variables --------
+# Study variables --------
   
-  insert_msg('Table S2: Study variables')
+  insert_msg('Study variables')
   
   suppl_tabs$study_variables <- 
     list(lft = tibble(variable = lft_globals$responses), 
@@ -64,14 +64,14 @@
                 'Unit'))
   
   suppl_tabs$study_variables <- suppl_tabs$study_variables %>% 
-    mdtable(label = 'table_S2_study_variables', 
+    mdtable(label = 'study_variables', 
             ref_name = 'study_variables', 
             caption = paste('Study variables. The table is available in a', 
                             'supplementary Excel file.'))
   
-# Tables S3 - 5: CT, LFT and symptom variables at follow-ups -------
+# CT, LFT and symptom variables at follow-ups -------
   
-  insert_msg('Tables S3 - S5: CT, LFT and symptom variables at follow-ups')
+  insert_msg('CT, LFT and symptom variables at follow-ups')
   
   suppl_tabs[c("cohort_ct", 
                "cohort_lft", 
@@ -106,9 +106,9 @@
                  "cohort_lft", 
                  "cohort_symptoms")] %>% 
     list(x = ., 
-         label = c('table_S3_cohort_ct_variables', 
-                   'table_S4_cohort_lft_variables', 
-                   'table_S5_cohort_symptom_variables'), 
+         label = c('cohort_ct_variables', 
+                   'cohort_lft_variables', 
+                   'cohort_symptom_variables'), 
          ref_name = names(.), 
          caption = c(paste('Chest computed tomography variables', 
                            'at consecutive follow-ups.', 
@@ -133,13 +133,14 @@
                            'and counts within the complete observation set.'))) %>% 
     pmap(mdtable)
   
-# Table S6: tuning of the machine learning models ---------
+# Tuning of the machine learning models ---------
   
-  insert_msg('Table S6: tuning of the machine learning models')
+  insert_msg('tuning of the machine learning models')
   
   suppl_tabs$tuning <- c(bin_models$models, 
                          reg_models$models) %>% 
     map(map, ~.x$bestTune) %>% 
+    map(map, map_dfc, function(x) if(is.numeric(x)) signif(x, 3) else x) %>% 
     map(map, ~map2_chr(names(.x), .x, paste, sep = ' = ')) %>% 
     map(map_chr, paste, collapse = '\n') %>% 
     map(compress, names_to = 'algorithm', values_to = 'parameter') %>% 
@@ -155,14 +156,14 @@
                                     replacement = 'Gradient boosted machines')) %>% 
     select(response, algorithm, parameter) %>% 
     set_names(c('Response', 'Algorithm', 'Parameters')) %>% 
-    mdtable(label = 'table_S6_ml_tuning',
+    mdtable(label = 'ml_tuning',
             ref_name = 'tuning', 
             caption = paste('Selection of machine learning algorithm', 
                             'hyper-parameters by cross-validation-mediated tuning.'))
   
-# Table S7: performance of the machine learning classifiers, training ------
+# Performance of the machine learning classifiers, training ------
   
-  insert_msg('Table S7: performance of machine learning classifiers, training')
+  insert_msg('Performance of machine learning classifiers, training')
   
   suppl_tabs$bin_classifiers <- bin_models$stats %>% 
     compress(names_to = 'response') %>% 
@@ -183,16 +184,16 @@
                 'Brier score', 'AUC', 
                 'Sensitivity', 'Specificity')) %>% 
     map_dfc(function(x) if(is.numeric(x)) signif(x, 2) else x) %>%
-    mdtable(label = 'table_S7_binary_classifier_performance', 
+    mdtable(label = 'binary_classifier_performance', 
             ref_name = 'bin_classifiers', 
             caption = paste('Performance', 
                             'of binary machine learning', 
                             'classifiers at predicting lung function testing', 
                             '(LFT) abnormalities in the entire data set.'))
   
-# Table S8: Train data performance of the regressors ---------
+# Train data performance of the regressors ---------
   
-  insert_msg('Table S8: train data performance of the regressors')
+  insert_msg('Train data performance of the regressors')
   
   suppl_tabs$reg_models <- reg_models$stats %>% 
     compress(names_to = 'response') %>% 
@@ -211,53 +212,85 @@
                 'pseudo-R\u00B2', 'MAE', 
                 "\u03C1")) %>% 
     map_dfc(function(x) if(is.numeric(x)) signif(x, 2) else x) %>% 
-    mdtable(label = 'table_S8_regression_model_performance', 
+    mdtable(label = 'regression_model_performance', 
             ref_name = 'reg_models', 
             caption = paste('Performance of regression machine', 
                             'learning models at predicting values', 
                             'of lung function testing parameters', 
                             'in the entire data set.'))
   
-# Table S9: SHAP importance for DLCO -------
+# SHAP importance for DLCO -------
   
-  insert_msg('Table S9: SHAP importance for DLCO')
+  insert_msg('SHAP importance for DLCO')
   
   suppl_tabs$mean_shap <- shap_imp$mean_table %>% 
     map_dfc(function(x) if(is.numeric(x)) signif(x, 3) else x) %>% 
-    mdtable(label = 'table_s9_variable_importance_shap', 
+    mdtable(label = 'variable_importance_shap', 
             ref_name = 'mean_shap', 
             caption = paste('Mean values of SHAP', 
                             '(Shapley additive explanations) variable', 
                             'importance statistic for the models of reduced', 
-                            'diffusion capacity for CO', 
-                            'and of diffusion capacity for CO', 
+                            'diffusion capacity for carbon monoxide', 
+                            'and of diffusion capacity for carboon monoxide', 
                             '< 80% of reference.', 
                             'The table is available as a supplementary Excel', 
                             'file.'))
   
-# Table S10: AI and CTSS differences for LFT abnormalities -------
+# Correlations between CT readouts of lung damage --------
   
-  insert_msg('Table S10: CT opacity and CTSS in LFT abnormalities')
+  insert_msg('Correlations between CT readouts of lung damage')
+  
+  suppl_tabs$ct_correlations <- corr_lft$test$ct %>% 
+    transmute(`Variable 1` = exchange(variable1, covild$ct_lexicon), 
+              `Variable 2` = exchange(variable2, covild$ct_lexicon), 
+              N = n, 
+              `Correlation coefficient` = est_lab,
+              Significance = significance) %>% 
+    mdtable(label = 'ct_correlations', 
+            ref_name = 'ct_correlations', 
+            caption = paste('Correlations between chest computed tomography', 
+                            'severity score, and AI-determined opacity and', 
+                            'high opacity.'))
+  
+# CT readouts in observations with and without GGO and reticulations --------
+  
+  insert_msg('CT readouts, samples with and without GGO and reticulations')
+  
+  suppl_tabs$ct_comparisons <- comp_ct$result_tbl %>% 
+    filter(`CT abnormality` %in% c('GGO', 'reticulation')) %>% 
+    mdtable(label = 'ct_comparisons', 
+            ref_name = 'ct_comparisons', 
+            caption = paste('Differences in chest computed tomography', 
+                            'severity score (CTSS), and AI-determined', 
+                            'lung opacity and high opacity', 
+                            'in CovILD study participants with and without', 
+                            'ground glass opacities (GGO) and reticulation.', 
+                            'Numeric variables are presented as medians', 
+                            'with interquartile ranges (IQR) and ranges.'))
+  
+# AI and CTSS differences for LFT abnormalities -------
+  
+  insert_msg('CT opacity and CTSS in LFT abnormalities')
   
   suppl_tabs$lft_binary_uni <- lft_uniboot$binary_result_tbl %>%
     filter(`LFT abnormality` != 'any LFT findings') %>% 
-    mdtable(label = 'table_s9_lft_univariate_binary', 
+    mdtable(label = 'lft_univariate_binary', 
             ref_name = 'lft_binary_uni', 
             caption = paste('Differences in chest computed tomography', 
                             'severity score (CTSS), and AI-determined', 
                             'lung opacity and high opacity', 
                             'in CovILD study participants with and without', 
                             'lung function testing (LFT) abnormalities.', 
-                            'Numeric variariables are presented as medians', 
+                            'Numeric variables are presented as medians', 
                             'with interquartile ranges (IQR) and ranges.'))
   
-# Table S11: correlation of opacity and CTSS with LFT variables ------
+# Correlation of opacity and CTSS with LFT variables ------
   
-  insert_msg('Table S11: correlation of CTSS and opacity with LFT variables')
+  insert_msg('Correlation of CTSS and opacity with LFT variables')
 
   suppl_tabs$lft_correlation_uni <- 
     lft_uniboot$cor_result_tbl %>% 
-    mdtable(label = 'table_S11_lft_ct_correlation', 
+    mdtable(label = 'lft_ct_correlation', 
             ref_name = 'lft_correlation_uni', 
             caption = paste('Correlation of LFT variables with', 
                             'chest computed tomography severity score, and', 
@@ -267,17 +300,9 @@
   
   insert_msg('Saving the supplementary tables')
   
-  suppl_tabs$cover <- suppl_tabs %>% 
-    map_chr(attr, 'caption') %>% 
-    tibble(Table = paste0('Table S', 1: length(suppl_tabs)), 
-           Caption = .)
-  
-  suppl_tabs <- 
-    suppl_tabs[c('cover', names(suppl_tabs)[names(suppl_tabs) != 'cover'])]
-  
   suppl_tabs %>% 
-    set_names(c('Cover', paste0('Table S', 1:(length(suppl_tabs) - 1)))) %>% 
-    write_xlsx(path = './paper/supplementary tables.xlsx')
+    save_excel(path = './paper/supplementary tables.xlsx', 
+               prefix = 'Supplementary Table S')
   
 # END ------
   

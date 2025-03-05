@@ -118,12 +118,12 @@ Differences in independently distributed numeric variables were analyzed by Mann
 Statistical significance for differences in distribution of qualitative variables was determined by $\chi^2$ test with Cramer's V effect size statistic. 
 Co-occurrence of each of LFT findings, CT abnormalities, and symptoms was investigated by two-dimensional correspondence analysis [@Ripley2022]. 
 
-Differences in medians of non-independently distributed, participant matched numeric variables between observations with and without LFT abnormalities were assessed by a blocked bootstrap test with blocks defined by the participant's identifier, and effect size measured by biseral r effect size statistic [@Mangiafico2022]. 
+Differences in medians of non-independently distributed, participant matched numeric variables between observations with and without LFT and CT abnormalities were assessed by a blocked bootstrap test with blocks defined by the participant's identifier, and effect size measured by biseral r effect size statistic [@Mangiafico2022]. 
 Correlations of non-independently distributed CT and LFT readouts were assessed by blocked bootstrap Spearman's rank test. 
 Cutoffs of CTSS, opacity and high opacity for detection of LFT abnormalities were found by maximizing the Youden's J statistic. 
 ROC analysis statistics (area under the curve [AUC], sensitivity, specificity, Cohen's $\kappa$) for those optimal cutoffs were computed and their 95% confidence intervals were obtained by blocked bootstrap [@McHugh2012; @Lopez-Raton2014]. 
 
-Presence of reduced DLCO, FVC and FEV1 (each < 80% of reference), as well as values of DLCO, FVC and FEV1 expressed as percentages of the reference value were modeled with `r lft_globals[c("ct_variables", "symptom_variables", "baseline_variables")] %>% reduce(union) %>% length` explanatory variables. 
+Reduced DLCO, FVC and FEV1 (each < 80% of reference), as well as values of DLCO, FVC and FEV1 expressed as percentages of the reference value were modeled with `r lft_globals[c("ct_variables", "symptom_variables", "baseline_variables")] %>% reduce(union) %>% length` explanatory variables. 
 The explanatory variables included 
 demographic features (e.g. age, sex, body mass index, smoking, comorbidity), 
 characteristic of acute COVID-19 (severity, medication) and recovery (e.g. weight loss, symptoms of relevance for lung function, time after diagnosis), 
@@ -141,8 +141,10 @@ Concordance between the model-predicted and observed outcomes for classification
 Accuracy, AUC, specificity and sensitivity of the classification model were investigated by ROC. 
 Calibration of the classification models was assessed by Brier scores [@Brier1950]. 
 Fraction of explained variance in predictions of the regression models was measured by pseudo-R^2^, the regression model error was expressed as MAE. 
-Spearman's $\rho$ coefficients of correlation between the predicted and observed values were used to gauge calibration of the regression models.
+Spearman's $\rho$ coefficients of correlation between the predicted and observed values were used to gauge calibration of the regression models. 
+Over- and under-fitting was assessed by learning curves [@Viering2023]. 
 Importance of explanatory variables was estimated by absolute values of SHAP statistics (Shapley additive explanations) [@Covert2020; @Lundberg2017; @Mayer2023a]. 
+Co-linearity of the most influential explanatory variables was assessed by weighted correlation graph, whose edge weights corresponded to Kendall's $\tau$ coefficients of pairwise correlations [@Csardi2006].
 
 \newpage
 
@@ -247,13 +249,21 @@ In turn, DLCO values were systematically overestimated for severe COVID-19 patie
 The best performance in the hospitalized moderate subset is likely attributed to the large number of observations and frequent DLCO deficits in this group of participants available for training of the models (n = `r lft_globals$analysis_tbl %>% filter(severity_class == 'hospitalized moderate', DLCO_reduced == 'yes') %>% nrow` observations of DLCO < 80% in `r lft_globals$analysis_tbl %>% filter(severity_class == 'hospitalized moderate') %>% nrow` observations from moderate COVID-19 patients). 
 Conversely, the numbers of observations from ambulatory COVID-19 patients and numbers of observations DLCO insufficiency in this group was low (`r lft_globals$analysis_tbl %>% filter(severity_class == 'ambulatory mild', DLCO_reduced == 'yes') %>% nrow` observations of DLCO < 80% in `r lft_globals$analysis_tbl %>% filter(severity_class == 'ambulatory mild') %>% nrow` observations from ambulatory patients) which resulted in relatively poor performance of the machine learning models.
 
+To assess under- and over-fitting, we resorted to analyses of learning curves of the models of DLCO and reduced DLCO. With this approach, we evaluated performance of the models re-trained in subsets of the modeling data set of varying sizes. 
+The performance evaluation was done for the training subsets, test subsets (one-forth of observations not used for the model training), and 10-repeats 10-fold cross-validation [@Viering2023]. 
+The learning curves for the best-performing GBM models are presented in __Supplementary Figure S12__, for the remaining algorithms comparable results were obtained (not shown). 
+As inferred from substantial differences of accuracy and Cohen's $\kappa$ between the training, test, and cross-validation subsets even for the largest sizes of the training data, models of insufficient DLCO suffer from over-fitting, i.e. poor generalizability for unseen data. 
+The generalizability of the models of DLCO expressed as percentage of the patient#s reference was substantially better. 
+
 As investigated by absolute values of SHAP variable importance metrics [@Covert2020; @Lundberg2017], human- and AI-derived ratings of structural lung damage, CTSS, opacity and high opacity, belonged to the most influential explanatory variables of the models of DLCO insufficiency and the meaningful models of DLCO. 
 Other influential explanatory variables were 
 well characterized risk factors of severe COVID-19 (age, male sex, body mass index, pre-existing malignancy and cardiovascular disease), 
 readouts of acute COVID-19 severity (severity class, WHO ordinal severity scale, hospitalization length, ICU treatment, anti-coagulant treatment, and weight change), 
 smoking intensity (pack-years), as well as 
 rating of physical performance impairment (ECOG) and 
-exertional dyspnea (mMRC) (__Figure \@ref(fig:fig-varimp-dlco-red)__, __Supplementary Figure S12__, __Supplementary Table S9__).  
+exertional dyspnea (mMRC) (__Figure \@ref(fig:fig-varimp-dlco-red)__, __Supplementary Figure S13__, __Supplementary Table S9__).  
+
+***placeholder for colinearity of the explanatory varibales***
 
 ## Rating of structural lung damage by human radiologist and AI, and lung function deficiency
 
@@ -266,9 +276,9 @@ were significantly higher in observations with DLCO < 80% of the patient's refer
 The effect size of those differences was large (__Figure \@ref(fig:fig-dlco-red-detection)A__). 
 AI-measured opacity of the lung, but not CTSS or high opacity, was found to be significantly higher in observations with insufficient 
 FVC (difference of medians: `r blast(lft_uniboot$analysis_tbl, FVC_reduced) %>% map(~.x$opacity_percent) %>% map_dbl(median) %>% diff %>% signif(2)`, `r filter(lft_uniboot$test, split_factor == 'FVC_reduced', variable == 'opacity_percent')$significance`, effect size: `r filter(lft_uniboot$test, split_factor == 'FVC_reduced', variable == 'opacity_percent')$eff_size`) and 
-insufficient FEV1 (difference of medians: `r blast(lft_uniboot$analysis_tbl, FEV1_reduced) %>% map(~.x$opacity_percent) %>% map_dbl(median) %>% diff %>% signif(2)`, `r filter(lft_uniboot$test, split_factor == 'FEV1_reduced', variable == 'opacity_percent')$significance`, effect size: `r filter(lft_uniboot$test, split_factor == 'FEV1_reduced', variable == 'opacity_percent')$eff_size`); sizes of those effects were, however, small (__Supplementary Table S10__). 
+insufficient FEV1 (difference of medians: `r blast(lft_uniboot$analysis_tbl, FEV1_reduced) %>% map(~.x$opacity_percent) %>% map_dbl(median) %>% diff %>% signif(2)`, `r filter(lft_uniboot$test, split_factor == 'FEV1_reduced', variable == 'opacity_percent')$significance`, effect size: `r filter(lft_uniboot$test, split_factor == 'FEV1_reduced', variable == 'opacity_percent')$eff_size`); sizes of those effects were, however, small (__Supplementary Table S12__). 
 Furthermore, CTSS, opacity and high opacity correlated negatively with moderate effect size with DLCO expressed as percentage of the patient's reference (p < 0.001, Spearman's $\rho$: `r lft_uniboot$cor_test %>% filter(variable1 == 'DLCO_percent') %>% .$rho %>% range %>% signif(2) %>% paste(collapse = ' to ')`). 
-Interestingly, the CT readouts of structural lung damage also correlated significantly with FVC (Spearman's $\rho$: `r lft_uniboot$cor_test %>% filter(variable1 == 'FVC_percent') %>% .$rho %>% range %>% signif(2) %>% paste(collapse = ' to ')`) and FEV1 (Spearman's $\rho$: `r lft_uniboot$cor_test %>% filter(variable1 == 'FEV1_percent') %>% .$rho %>% range %>% signif(2) %>% paste(collapse = ' to ')`); effect size of those associations was small (__Supplementary Table S11__). 
+Interestingly, the CT readouts of structural lung damage also correlated significantly with FVC (Spearman's $\rho$: `r lft_uniboot$cor_test %>% filter(variable1 == 'FVC_percent') %>% .$rho %>% range %>% signif(2) %>% paste(collapse = ' to ')`) and FEV1 (Spearman's $\rho$: `r lft_uniboot$cor_test %>% filter(variable1 == 'FEV1_percent') %>% .$rho %>% range %>% signif(2) %>% paste(collapse = ' to ')`); effect size of those associations was small (__Supplementary Table S13__). 
 
 Finally, in a univariable ROC analysis, 
 human-determined CTSS (AUC = `r lft_roc$stats$optimal_cutoff$DLCO_reduced %>% filter(variable == 'CTSS') %>% .$auc %>% signif(2)`, 95% CI: `r lft_roc$stats$optimal_cutoff$DLCO_reduced %>% filter(variable == 'CTSS') %>% .[c('lower_ci', 'upper_ci')] %>% unlist %>% signif(2) %>% paste(collapse = ' to ')`), and 
@@ -303,6 +313,9 @@ The incompleteness of the longitudinal data may have hence compromised performan
 Third, because of the limited number of participants and observations, we abstained from definition of a test subset of the data used solely for bias-free model evaluation (hold-out strategy). 
 Instead, both model selection and evaluation was done with blocked repeated cross-validation, which may have overestimated performance of the models. 
 Hence, external validation of our findings in an independent cohort is recommended. 
+Fourth, as inferred from the analysis of learning curves, the models of insufficient DLCO suffered for substantial over-fitting. 
+While this problem can be partially traced back to an unsharp distinction between sufficient and reduced DLCO with the 80% reference cutoff, a modeling approach employing regularized machine learning algorithm like XGBoost or regularized neural networks may further improve quality of predictions. 
+Furthermore, most of the highly influential explanatory variables for predictions of DLCO and reduced DLCO, and in particular the CT readouts of lung damage were strongly inter-correlated, which raises questions about redundancy of explanatory variables. 
 Finally, the analyzed cohort was recruited in the initial phase of the pandemic and consisted of individuals infected with the wild-type variant of the SARS-CoV-2 virus. 
 For this reason, it is not completely clear, how our findings translate to the recent variants of the pathogen and how the pulmonary recovery is affected by anti-SARS-CoV-2 immunity, improved treatment and care. 
 However, it is feasible, that the CT severity readouts, human-determined CTSS as well as AI-determined opacity and high opacity, are equally applicable in the post-pandemic setting as standalone markers of functional lung impairment during recovery from COVID-19 and other respiratory infections. 
@@ -418,7 +431,6 @@ flextable::flextable(paper_tabs$ct_roc) %>%
   theme_vanilla
 
 ```
-
 
 \newpage
 

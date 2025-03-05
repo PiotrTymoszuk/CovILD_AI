@@ -120,7 +120,7 @@
     unlist(recursive = FALSE)
   
   lft_uniboot$cor_test <- lft_uniboot$cor_pairs %>% 
-    map_dfr(spearman_rho, 
+    map_dfr(corr_test, 
             data = lft_uniboot$analysis_tbl, 
             B = 2000)
   

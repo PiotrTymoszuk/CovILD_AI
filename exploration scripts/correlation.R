@@ -1,5 +1,5 @@
 # Correlation of numeric LFT readouts and CT readouts. Because the observations 
-# are not independent, we're resorting to a blocked bootstrap Kendall's test.
+# are not independent, we're resorting to a blocked bootstrap Spearman's test.
 
   insert_head()
   
@@ -55,9 +55,9 @@
               data = corr_lft$analysis_tbl[[i]], 
               B = 2000, 
               positive = TRUE, 
-              method = 'kendall') %>% 
+              method = 'spearman') %>% 
       re_adjust %>% 
-      mutate(est_lab = paste0('\u03C4 = ', signif(rho, 2), 
+      mutate(est_lab = paste0('\u03C1 = ', signif(rho, 2), 
                               ' [', signif(lower_ci, 2), 
                               ' - ', signif(upper_ci, 2), ']'), 
              n = nrow(corr_lft$analysis_tbl[[i]]), 

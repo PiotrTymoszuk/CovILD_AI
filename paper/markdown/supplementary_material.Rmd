@@ -138,7 +138,8 @@ Tabular data and code pipelines were handled by tools provided by the packages _
 Text data were handled with _stringi_ [@Gagolewski2021]. 
 Parallelization was accomplished with _furrr_ [@Vaughan2022] and _doParallel_ [@Folashade2022].
 
-In exploratory data analysis, statistical hypothesis testing and analysis of correspondence and correlations, the packages _rstatix_ [@Kassambara2021], _rcompanion_ [@Mangiafico2022], _MASS_ [@Ripley2022], [_clustTools_](https://github.com/PiotrTymoszuk/clustTools), and [_ExDA_](https://github.com/PiotrTymoszuk/ExDA) were used. 
+In exploratory data analysis, statistical hypothesis testing and analysis of correspondence and correlations, the packages _rstatix_ [@Kassambara2021], _rcompanion_ [@Mangiafico2022], _MASS_ [@Ripley2022], [_clustTools_](https://github.com/PiotrTymoszuk/clustTools), and [_ExDA_](https://github.com/PiotrTymoszuk/ExDA) were used. Graph analyses were done with _igraph_ [@Csardi2006] and development package [_graphExtra_](https://github.com/PiotrTymoszuk/graphExtra). 
+
 Receiver-operating characteristic (ROC), confusion matrix analysis and inter-rater reliability analyses were done with _caret_ [@Kuhn2008], _OptimalCutpoints_ [@Lopez-Raton2014] and [_bootStat_](https://github.com/PiotrTymoszuk/bootStat). 
 
 For machine learning modeling of lung function testing outcomes, the packages _caret_ [@Kuhn2008] and [_caretExtra_](https://github.com/PiotrTymoszuk/caretExtra) were utilized, which provide wrappers around the R implementations of the random forest algorithm (_ranger_) [@Wright2017; @Breiman2001], 
@@ -148,7 +149,7 @@ and gradient boosted machines (GBM, _gbm_) [@Greenwell2022; @Friedman2002; @Frie
 Model diagnostic statistics and performance evaluation metrics were computed with the development package [_caretExtra_](https://github.com/PiotrTymoszuk/caretExtra). 
 SHAP (Shapley additive explanations) as a metric of global variance importance in machine learning models was calculated with the package _kernelshap_ [@Covert2020; @Lundberg2017; @Mayer2023]. 
 
-Analysis results were visualized with _ggplot_ [@Wickham2016] and [_ExDA_](https://github.com/PiotrTymoszuk/ExDA) (scatter, stack and box plots), [_clustTools_](https://github.com/PiotrTymoszuk/clustTools) (visualization of results of correspondence analysis), _ggvenn_ [@Yan2021] (Venn plots), [_caretExtra_](https://github.com/PiotrTymoszuk/caretExtra) (plots for machine learning model diagnostic and evaluation), _plotROC_ [@Sachs2017] (ROC curves) and _shapviz_ [@Mayer2023a; @Mayer2023] (violin/scatter plots of absolute SHAP values). 
+Analysis results were visualized with _ggplot_ [@Wickham2016] and [_ExDA_](https://github.com/PiotrTymoszuk/ExDA) (scatter, stack and box plots), [_clustTools_](https://github.com/PiotrTymoszuk/clustTools) (visualization of results of correspondence analysis), _ggvenn_ [@Yan2021] (Venn plots), [_caretExtra_](https://github.com/PiotrTymoszuk/caretExtra) (plots for machine learning model diagnostic and evaluation), _plotROC_ [@Sachs2017] (ROC curves), _shapviz_ [@Mayer2023a; @Mayer2023] (violin/scatter plots of absolute SHAP values), and [_graphExtra_](https://github.com/PiotrTymoszuk/graphExtra) (graph visualizations, re-implementation of tools from _igraph_ and _ggnetwork_) [@Csardi2006; @Briatte2021]. 
 Result tables were created with _flextable_ [@Gohel2022]. 
 Figures were generated with _cowplot_ [@Wilke2019]. 
 Parts of the manuscript and supplementary material were written in the _rmarkdown_ environment [@Allaire2022] with the _bookdown_ package [@Xie2016]. 
@@ -174,12 +175,14 @@ The following effect size metrics were used to assess differences between analys
 
 * Spearman's $\rho$ coefficient of correlation: < 0.3: small, 0.3 - 0.5: moderate, $\geq$ 0.5: large effect size
 
+* Kendall's $\tau$ coefficient of correlation: < 0.1: small, 0.1 - 0.3: moderate, $\geq$ 0.3: large effect size
+
 * pseudo-R^2^ was used as a measure of explained variance of a model: < 0.13: small, 0.13 - 0.26: moderate, $\geq$ 0.26: large effect size
 
 * Cohen's $\kappa$ inter-rater reliability statistic: < 0.20: no effect, 0.2 - 0.4: fair, 0.4 - 0.6: moderate, 0.6 - 0.8: good, $\geq$ 0.8: excellent concordance
 
 Statistical significance and effect sizes for comparisons and correlations of independent observations was assessed with the functions `compare_variables()` and `correlate_variables()` (package [_ExDA_](https://github.com/PiotrTymoszuk/ExDA)). 
-Because of non-independent observations included in the analysis, pairwise correlations of numeric LFT or CT variables were investigated with blocked bootstrap Spearman's rank test described below. 
+Because of non-independent observations included in the analysis, pairwise correlations of numeric LFT or CT variables were investigated with blocked bootstrap Spearman's rank and Kendall' tests described below. 
 Analogically, for comparison of medians between two subsets of non-independent observations, blocked bootstrap test was utilized. 
 Please refer to __Comparison of CT readouts between observations with and without LFT abnormality, correlation analysis__ for details. 
 
@@ -207,7 +210,7 @@ This concerned:
 
 * _`r exchange('anticoagulant_treatment', lft_globals$lexicon)`_ which subsumed anti-coagulation and anti-platelet treatment during acute COVID-19
 
-* _`r exchange('antiinfective_treatment', lft_globals$lexicon)`_ which subsumed anti-infective and anti-macrolide treatment during acute COVID-19
+* _`r exchange('antiinfective_treatment', lft_globals$lexicon)`_ which subsumed anti-infective and macrolide treatment during acute COVID-19
 
 * _`r exchange('smoking', lft_globals$lexicon)`_, where ex- and active smokers were grouped together
 
@@ -216,26 +219,39 @@ The response and explanatory variables are listed in __Supplementary Table S\@re
 
 Multi-parameter models were constructed with four machine learning algorithms employing diverse mathematical principles: 
 canonical random forest (implemented in R by the _ranger_ package, caret's method name: 'ranger') [@Wright2017; @Breiman2001], 
-GBM (_gbm_ package, caret's method name: 'gbm') [@Greenwell2022; @Friedman2002; @Friedman2001], 
+GBM (gradient boosted machines, _gbm_ package, caret's method name: 'gbm') [@Greenwell2022; @Friedman2002; @Friedman2001], 
 neural network with a single hidden layer (_nnet_ package, caret's method name: 'nnet') [@Ripley2014], 
-and SVM with radial kernel (_kernlab_ package, caret's method name: 'svmRadial') [@Weston1998; @Karatzoglou2004]. 
+and SVM with radial kernel (support vector machines, _kernlab_ package, caret's method name: 'svmRadial') [@Weston1998; @Karatzoglou2004]. 
 For random forest models, 1000 random trees per model were generated. 
 Bernoulli and Gaussian loss functions were implemented in classification and regression GBM models, respectively. 
-Optimal values of parameters controlling the algorithm's behavior such as number of observations in terminal nodes of tree models in the random forest models or cost penalty in the SVM models were found by maximizing the Youden's J statistic 
-($J = Sensitivity + Specificity - 1$, classification models of binary LFT outcomes) or by minimizing mean absolute error (MAE, regression models of numeric LFT outcomes) in 10-repeats 10-fold cross-validation. 
-To account for the participant matching of the observations, a blocked cross-validation workflow was designed to keep all observations obtained from a particular participant either in the training or in the test portion of the cross-validation split. 
-Construction of such 'participant-wise' blocked cross-validation folds was done with an in-house-developed script employing the `createMultiFolds()` function (package _caret_). 
+
+Hyper-parameters that control the modeling algorithm's behavior were found by maximizing the Youden's J statistic 
+($J = Sensitivity + Specificity - 1$, classification models of binary LFT outcomes) or by minimizing mean absolute error (MAE, regression models of numeric LFT outcomes) in 10-repeats 10-fold cross-validation, in a process called tuning. 
+The tunable hyper-parameters were: 
+
+* for random forest, `mtry`: number of randomly chosen explanatory variables pre decision tree in the random forest ensemble, `splitrule`: criterion for splits of the explanatory variables at branches of the decision trees, `min.node.size`: minimal size of the node (leaf) of the decision tree
+
+* for GBM, `n.trees`: number of decision trees in the GBM ensemble, `interaction.depth`: number of splits in the decision trees, `shrinkage`: regularization penalty applied to predictions made by single decision trees, `n.minobsinnode`: minimal size of the node (leaf) of the decision tree
+
+* for neural network, `size`: number of neurons in the hidden layer, `decay`: reduction of weights during algorithm iteration
+
+* for SVM, `sigma`: width of the radial kernel, `C`: cost/penalty applied to misclassified observations
+
+To account for the participant matching of the observations in the cross-validated tuning of hyper-parameters, a blocked cross-validation design was applied to keep all observations obtained from a particular participant either in the training or in the test portion of the cross-validation split. 
+Construction of such 'participant-wise' blocked cross-validation folds was done with an in-house-developed wrapper around `createMultiFolds()` function (package _caret_). 
 For tuning and training of the machine learning models, the `train()` wrapper from the _caret_ package was employed [@Kuhn2008]. 
 The optimal values of the tuning parameters are listed in __Supplementary Table S\@ref(tab:tab-tuning)__. 
 
-Performance of the machine learning models was evaluated by comparison of the model predictions with the observed outcome in the genuine training data set and in 10-repeats 10-fold cross-validation with the observed outcomes. 
-Performance of the classification models was assessed by Cohen's $\kappa$ as a measure of concordance between the predicted and observed outcome [@McHugh2012; @Cohen1960], 
+Performance of the machine learning models was evaluated by comparison of the model predictions with the observed outcome in the genuine training data set and in participant-wise blocked 10-repeats 10-fold cross-validation. 
+Performance of the classification models was assessed by 
+accuracy statistic defined as a fraction of correct predictions, 
+Cohen's $\kappa$ as a measure of concordance between the predicted and observed outcome [@McHugh2012; @Cohen1960], 
 standard receiver operating characteristic metrics (AUC, overall accuracy, sensitivity, specificity) to assess the ability of the model to detect the pathological outcome [@Kuhn2008], and with 
 Brier score to investigate credibility of the predictions and model calibration [@Brier1950; @Goldstein-Greenwood2021] (__Table 2__ and __Supplementary Table S\@ref(tab:tab-bin-classifiers)__). 
 Performance of the regression models was assessed with 
 mean absolute error (MAE) as a measure of fit quality, 
 pseudo-R^2^ as a metric of explained variance and 
-Spearman's $\rho$ for correlation between the predicted and observed outcome as as measure of overall model calibration [@Kuhn2008] (__Table 3__ and __Table \@ref(tab:tab-reg-models)__). 
+Spearman's $\rho$ for correlation between the predicted and observed outcome as as measure of overall model calibration [@Kuhn2008] (__Table 3__ and __Supplementary Table S\@ref(tab:tab-reg-models)__). 
 Pseudo-R^2^ was computed with the following formulas:
 
 $$pseudo R^2 = 1 - \frac{MSE(y)}{Var(y)}$$
@@ -248,6 +264,11 @@ Visualization of the model tuning and evaluation results was accomplished with t
 In order to assess the model accuracy as a function of acute COVID-19 severity and time after diagnosis, we computed Cohen's $\kappa$ (classification models) and MAE (regression models) of out-of-fold predictions for observations stratified by acute COVID-19 severity (mild, moderate, severe) and follow-up visit (2-, 3-, 6- and 12-month follow-up). 
 The error values were subsequently visualized as heat maps. 
 
+For assessment of potential over- and under-fitting of predictions made by the machine learning models, we resorted to visualizations of learning curves [@Viering2023]. 
+The learning curves were constructed as values of model performance metrics (classification models: accuracy and Cohen's $\kappa$,regression models: mean absolute error and pseudo-R^2^) as functions of increasing size of the training data derived from the genuine COVILD cohort data set used for model construction. 
+The performance metrics were computed for the training subset, a test subset (1/4 of observations not used for training), and out-of-fold predictions in 10-repeats 10-fold cross-validation. 
+The learning curves were computed with `learning_curve_dat()` function from _caret_ package and visualized as LOESS trends (Locally Estimated/weighted Scatterplot Smoothing).
+
 ## Variable importance for multi-parameter models of lung function
 
 Shapley additive explanations (SHAP) were used as a global importance statistic for the model's explanatory variables. 
@@ -257,10 +278,20 @@ As a background for SHAP calculation, a single observation data frame was used w
 For mean absolute SHAP values of the most influential explanatory variables in the Random Forest, neural network, SVM, and GBM models, see: __Table \@ref(tab:tab-mean-shap)__. 
 Visualization of the mean SHAP values for the top most influential explanatory variables was accomplished with the `shapviz()`, `sv_importance()` (package _shapviz_) [@Mayer2023], and in-house developed functions. 
 
-## Comparison of CT readouts between observations with and without LFT abnormality, correlation analysis
+## Co-linearity of the most influential explanatory variables
 
-Because observations were non-independent, i.e. participant-matched, comparison of CTSS, opacity and high opacity of the lung between data points with and without LFT abnormalities could not be investigated by standard statistical tests (e.g. Mann-Whitney test) and required instead a special approach. 
-Differences in median of the CT parameters between observations with and without a LFT abnormality were investigated with blocked bootstrap test with biserial r effect size statistic (H0: no difference in CT parameter, H1: CT parameter values are higher in observations with the LFT abnormality). 
+The most influential explanatory factors for predictions of DLCO (algorithms: random forest, GBM, neuronal network, and SVM radial) and DLCO < 80% of reference (algorithms: random forest, GBM, SVM radial) were identified as top 15 variables with the largest mean absolute SHAP importance values for each of the modeling algorithms. 
+Associations between these highly influential variables were assessed with a correlation graph [@Csardi2006]. 
+For construction of the correlation graph, ordered categorical variables (i.e. factors in R) were converted to integers. 
+The graph edges were defined by pairwise correlations between the variables with Kendall's $\tau \geq 0.3$. 
+The edge weights corresponded to values of the $\tau$ correlation coefficients. 
+The graph was constructed with `as_iGraph()` function; isolated vertices, i.e. variables without any correlations with $\tau \geq$ 0.3 were removed from the graph with `prune_degree()` (both functions from [_graphExtra_](https://github.com/PiotrTymoszuk/graphExtra)). 
+The graph was visualized with Fruchterman-Reingold algorithm (method `plot()`, package [_graphExtra_](https://github.com/PiotrTymoszuk/graphExtra)). 
+
+## Comparison and correlation of CT readouts
+
+Because observations were non-independent, i.e. participant-matched, comparison of CTSS, opacity and high opacity of the lung between data points with and without LFT and CT abnormalities could not be investigated by standard statistical tests (e.g. Mann-Whitney test) and required instead a special approach. 
+Differences in median of the CT parameters between observations with and without LFT or CT abnormalities were investigated with blocked bootstrap test with biserial r effect size statistic (H0: no difference in CT parameter, H1: CT parameter values are higher in observations with the LFT abnormality). 
 The blocked bootstrap scheme involved re-sampling with repetition of the participants instead of single observations (B = 2000 re-samples). 
 P values were obtained by counting re-samples in which the test hypothesis H1 was not met and dividing the count by the total re-sample number. 
 The effect size statistic was computed as an arithmetic average of effect sizes in the re-samples. 
@@ -272,8 +303,8 @@ Spearman's $\rho$ correlation coefficients were computed for the bootstrap re-sa
 The p values were obtained by counting re-samples with $\rho \geq$ 0 and dividing the count by the total re-sample number. 
 The $\rho$ values were averaged and their confidence values were calculated as the 2.5 - 97.5 percentile range. 
 
-Bootstrap tests were performed with a functional interface implemented in the development package [_bootStat_](https://github.com/PiotrTymoszuk/bootStat). 
-The analysis results are listed in __Supplementary Table S\@ref(tab:tab-lft-binary-uni)__ and __\@ref(tab:tab-lft-correlation-uni)__.
+Bootstrap tests were performed with a functional programming interface implemented in the development package [_bootStat_](https://github.com/PiotrTymoszuk/bootStat). 
+The analysis results are listed in __Supplementary Tables S\@ref(tab:tab-ct-correlations)__ and __S\@ref(tab:tab-lft-correlation-uni)__.
 
 ## Inter-rater reliability and receiver-operating characteristic analysis
 
@@ -301,7 +332,6 @@ flextable::flextable(suppl_tabs$n_numbers) %>%
   theme_vanilla
 
 ```
-
 
 \newpage
 
@@ -366,12 +396,16 @@ flextable::flextable(suppl_tabs$cohort_symptoms) %>%
 ```{r tab-tuning, tab.cap = 'Selection of machine learning algorithm hyper-parameters by cross-validation-mediated tuning.'}
 
 flextable::flextable(suppl_tabs$tuning) %>% 
-  set_widths(c(3, 4, 4.5)) %>% 
+  set_widths(c(3, 7, 5.5)) %>% 
   merge_v(1) %>% 
   footnote(1, 1, 
            value = as_paragraph('LFT: lung function testing; DLCO: diffusion capacity for carbon monoxide; FVC: forced vital capacity; FEV1: forced expiratory volume in one second.'), 
            part = 'header', 
            ref_symbols = 'a') %>% 
+  footnote(1, 3, 
+           value = as_paragraph('mtry: number of randomly choosen explanatory variables for construction of decision trees; splitrule: rule used for splitting of explanatory variable at branches of decision trees; min.node.size: minimal size of the decision tree node; size: number of neurons in the hidden layer of the neuronal network; decay: decay of weights in the the neuronal network; sigma: sigma parameter that defines width of the radial kernel; C: cost/penalty applied to misclassified observations; n.tree: number of decision trees; interaction.depth: number of splits in the decision tree; shrinkage: regularization penalty applied to predictions by single decision trees; n.minobsinnode: minimal size of the decision tree node.'), 
+           part = 'header', 
+           ref_symbols = 'b') %>% 
   theme_vanilla
 
 ```
@@ -449,6 +483,48 @@ suppl_tabs$mean_shap[1, 1] %>%
   set_widths(16)
 
 ```
+
+\newpage
+
+```{r tab-ct-correlations, tab.cap = 'Correlations between chest computed tomography severity score, and AI-determined opacity and high opacity.'}
+
+flextable::flextable(suppl_tabs$ct_correlations) %>% 
+  set_widths(c(3.5, 3.5, 1.8, 4, 2.7)) %>% 
+  footnote(1, 1:2, 
+           value = as_paragraph('CTSS: CT severity score determined by a human radiologist, sum for al lobes; opacity and high opacity, AI: opacity and high opacity of the lungs determined by artificial intelligence.'), 
+           part = 'header', 
+           ref_symbols = 'a') %>% 
+  footnote(1, 4:5, 
+           value = as_paragraph('Blocked bootstrap Spearman correlation test; \u03C1 correlation coefficients with 95% confidence intervals. P values were corrected for multiple testing with the false discovery rate method.'), 
+           part = 'header', 
+           ref_symbols = 'b') %>% 
+  theme_vanilla
+
+```
+
+\newpage
+
+```{r tab-ct-comparisons, tab.cap = 'Differences in chest computed tomography severity score (CTSS), and AI-determined lung opacity and high opacity in CovILD study participants with and without ground glass opacity (GGO) and reticulation. Numeric variables are presented as medians with interquartile ranges (IQR) and ranges.'}
+
+flextable::flextable(suppl_tabs$ct_comparisons) %>% 
+  set_widths(c(2.5, 3, rep(4, 2), 2.7, 2.5)) %>% 
+  merge_v(1) %>% 
+  footnote(1, 1, 
+           value = as_paragraph('LFT: lung function testing; DLCO: diffusion capacity for carbon monoxide; FVC: forced vital capacity; FEV1: forced expiratory volume in one second.'), 
+           part = 'header', 
+           ref_symbols = 'a') %>% 
+  footnote(1, 2, 
+           value = as_paragraph('CTSS: CT severity score determined by a human radiologist, sum for all lobes; opacity and high opacity, AI: opacity and high opacity of the lungs determined by artificial intelligence.'), 
+           part = 'header', 
+           ref_symbols = 'b') %>% 
+  footnote(1, 5:6, 
+           value = as_paragraph('Blocked bootstrap test with biserial r effect size statistic. P values corrected for multiple testing with the false discovery rate method.'), 
+           part = 'header', 
+           ref_symbols = 'c') %>% 
+  theme_vanilla
+
+```
+
 
 \newpage
 
