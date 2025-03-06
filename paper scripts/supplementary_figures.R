@@ -387,14 +387,15 @@
   
   suppl_figs$top_corr$upper <- lft_net$plots$all
   
-  ## middle panel: scatter plots for visualization of correlations
+  ## middle panel: scatter plots for visualization of correlations, 
+  ## redundant, already present in Supplemetary Figure S3B
   
-  suppl_figs$top_corr$middle <- corr_lft$plots$ct %>% 
-    map(~.x + theme(plot.title.position = 'plot')) %>% 
-    plot_grid(plotlist = .,
-              ncol = 3, 
-              align = 'hv', 
-              axis = 'tblr')
+  #suppl_figs$top_corr$middle <- corr_lft$plots$ct %>% 
+   # map(~.x + theme(plot.title.position = 'plot')) %>% 
+    #plot_grid(plotlist = .,
+     #         ncol = 3, 
+      #        align = 'hv', 
+       #       axis = 'tblr')
   
   ## bottom panel: comparison of CTSS, and AI measures between observations 
   ## with and without GGO and reticulation
@@ -422,11 +423,13 @@
   
   suppl_figs$top_corr <- 
     plot_grid(suppl_figs$top_corr$upper, 
-              suppl_figs$top_corr$middle, 
+              ggdraw(), #suppl_figs$top_corr$middle, 
               suppl_figs$top_corr$bottom, 
               nrow = 3, 
-              rel_heights = c(1.25, 1, 1), 
-              labels = LETTERS, 
+              rel_heights = c(1.4, 
+                              0.1, 
+                              1), 
+              labels = c('A', '', 'B'), #LETTERS, 
               label_size = 10) %>% 
     as_figure(label = 'top_variables_co_linearity', 
               ref_name = 'top_corr', 
@@ -435,7 +438,7 @@
                              'insufficiency and percentage of reference of', 
                              'diffusion capacity for carbon monoxide.'), 
               w = 190, 
-              h = 230)
+              h = 160)
     
 # Saving figures on the disc --------
   

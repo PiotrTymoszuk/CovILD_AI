@@ -144,7 +144,8 @@ Fraction of explained variance in predictions of the regression models was measu
 Spearman's $\rho$ coefficients of correlation between the predicted and observed values were used to gauge calibration of the regression models. 
 Over- and under-fitting was assessed by learning curves [@Viering2023]. 
 Importance of explanatory variables was estimated by absolute values of SHAP statistics (Shapley additive explanations) [@Covert2020; @Lundberg2017; @Mayer2023a]. 
-Co-linearity of the most influential explanatory variables was assessed by weighted correlation graph, whose edge weights corresponded to Kendall's $\tau$ coefficients of pairwise correlations [@Csardi2006].
+Co-linearity of the most influential explanatory variables (top 15 mean absolute SHAP for each of the models of DLCO and DLCO < 80%) was assessed by soft-threshold weighted graph of correlations [@Csardi2006; @Zhang2005]. 
+The graph edges were defined by pairwise correlations with Kendall's $\tau \geq$ 0.3 and edge weights corresponded to $\tau$ coefficient values.
 
 \newpage
 
@@ -253,7 +254,7 @@ To assess under- and over-fitting, we resorted to analyses of learning curves of
 The performance evaluation was done for the training subsets, test subsets (one-forth of observations not used for the model training), and 10-repeats 10-fold cross-validation [@Viering2023]. 
 The learning curves for the best-performing GBM models are presented in __Supplementary Figure S12__, for the remaining algorithms comparable results were obtained (not shown). 
 As inferred from substantial differences of accuracy and Cohen's $\kappa$ between the training, test, and cross-validation subsets even for the largest sizes of the training data, models of insufficient DLCO suffer from over-fitting, i.e. poor generalizability for unseen data. 
-The generalizability of the models of DLCO expressed as percentage of the patient#s reference was substantially better. 
+The generalizability of the models of DLCO expressed as percentage of the patient's reference was substantially better. 
 
 As investigated by absolute values of SHAP variable importance metrics [@Covert2020; @Lundberg2017], human- and AI-derived ratings of structural lung damage, CTSS, opacity and high opacity, belonged to the most influential explanatory variables of the models of DLCO insufficiency and the meaningful models of DLCO. 
 Other influential explanatory variables were 
@@ -263,7 +264,17 @@ smoking intensity (pack-years), as well as
 rating of physical performance impairment (ECOG) and 
 exertional dyspnea (mMRC) (__Figure \@ref(fig:fig-varimp-dlco-red)__, __Supplementary Figure S13__, __Supplementary Table S9__).  
 
-***placeholder for colinearity of the explanatory varibales***
+Analysis of a correlation graph of the most influential explanatory factors for the predictions of DLCO and insufficient DLCO revealed associations between CT readouts of lung damage severity (CTSS, opacity, and high opacity, presence of any lesions, GGO and reticulations) and between readouts of acute COVID-19 severity (COVID-19 severity, ICU stay, hospital stay, anti-infective treatment during acute infection) (__Supplementary Figure S14A__). 
+In particular, CTSS and opacity (correlation coefficient, Spearman's $\rho$ = `r corr_lft$test$ct %>% filter(variable1 == 'CTSS', variable2 == 'opacity_percent') %>% .$rho %>% signif(2)`), CTSS and high opacity ($\rho$ = `r corr_lft$test$ct %>% filter(variable1 == 'CTSS', variable2 == 'high_opacity_percent') %>% .$rho %>% signif(2)`), and opacity and high opacity (`r corr_lft$test$ct %>% filter(variable1 == 'opacity_percent', variable2 == 'high_opacity_percent') %>% .$rho %>% signif(2)`) were strongly inter-correlated. 
+CTSS values were significantly higher in observations with than without 
+GGO (difference of medians: `r blast(comp_ct$analysis_tbl, GGO_finding) %>% map(~.x$CTSS) %>% map_dbl(median) %>% diff` points, `r comp_ct$test %>% filter(variable == 'CTSS', split_factor == 'GGO_finding') %>% .$significance`, effect size: `r comp_ct$test %>% filter(variable == 'CTSS', split_factor == 'GGO_finding') %>% .$eff_size`) and 
+reticulation (difference of medians: `r blast(comp_ct$analysis_tbl, reticulation_finding) %>% map(~.x$CTSS) %>% map_dbl(median) %>% diff` points, `r comp_ct$test %>% filter(variable == 'CTSS', split_factor == 'reticulation_finding') %>% .$significance`, effect size: `r comp_ct$test %>% filter(variable == 'CTSS', split_factor == 'reticulation_finding') %>% .$eff_size`) (__Supplementary Figure S3B__, __Supplementary Table S10__). 
+Analogically, significantly higher opacity was detected in observations with than without 
+GGO (difference of medians: `r blast(comp_ct$analysis_tbl, GGO_finding) %>% map(~.x$opacity_percent) %>% map_dbl(median) %>% diff %>% signif(2)`% of lung, `r comp_ct$test %>% filter(variable == 'opacity_percent', split_factor == 'GGO_finding') %>% .$significance`, effect size: `r comp_ct$test %>% filter(variable == 'opacity_percent', split_factor == 'GGO_finding') %>% .$eff_size`) and 
+reticulation (difference of medians: `r blast(comp_ct$analysis_tbl, reticulation_finding) %>% map(~.x$opacity_percent) %>% map_dbl(median) %>% diff %>% signif(2)`% of lung, `r comp_ct$test %>% filter(variable == 'opacity_percent', split_factor == 'reticulation_finding') %>% .$significance`, effect size: `r comp_ct$test %>% filter(variable == 'opacity_percent', split_factor == 'reticulation_finding') %>% .$eff_size`). 
+Effect sizes of these differences were large (__Supplementary Figure S14B__, __Supplementary Tables S11__).
+Collectively, the high co-linearity of the most important explanatory variables points suggests their redundancy. 
+Tackling this redundancy e.g. by regularization may control the over-fitting and improve accuracy of predictions of DLCO and reduced DLCO by machine learning algorithms.
 
 ## Rating of structural lung damage by human radiologist and AI, and lung function deficiency
 

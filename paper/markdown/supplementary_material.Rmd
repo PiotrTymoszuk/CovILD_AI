@@ -278,10 +278,10 @@ As a background for SHAP calculation, a single observation data frame was used w
 For mean absolute SHAP values of the most influential explanatory variables in the Random Forest, neural network, SVM, and GBM models, see: __Table \@ref(tab:tab-mean-shap)__. 
 Visualization of the mean SHAP values for the top most influential explanatory variables was accomplished with the `shapviz()`, `sv_importance()` (package _shapviz_) [@Mayer2023], and in-house developed functions. 
 
-## Co-linearity of the most influential explanatory variables
+## Co-linearity of explanatory variables
 
 The most influential explanatory factors for predictions of DLCO (algorithms: random forest, GBM, neuronal network, and SVM radial) and DLCO < 80% of reference (algorithms: random forest, GBM, SVM radial) were identified as top 15 variables with the largest mean absolute SHAP importance values for each of the modeling algorithms. 
-Associations between these highly influential variables were assessed with a correlation graph [@Csardi2006]. 
+Associations between these highly influential variables were assessed with a soft-threshold weighted graph of correlations, a method widely used in omics and system biology [@Csardi2006; @Zhang2005]. 
 For construction of the correlation graph, ordered categorical variables (i.e. factors in R) were converted to integers. 
 The graph edges were defined by pairwise correlations between the variables with Kendall's $\tau \geq 0.3$. 
 The edge weights corresponded to values of the $\tau$ correlation coefficients. 
@@ -554,7 +554,7 @@ flextable::flextable(suppl_tabs$lft_binary_uni) %>%
 ```{r tab-lft-correlation-uni, tab.cap = 'Correlation of LFT variables with chest computed tomography severity score, and AI-determined opacity and high opacity.'}
 
 flextable::flextable(suppl_tabs$lft_correlation_uni) %>% 
-  set_widths(c(2.5, 2.5, 1.8, 4, 2.7)) %>% 
+  set_widths(c(3.5, 3.5, 1.8, 5, 2.7)) %>% 
   merge_v(1) %>% 
   footnote(1, 1, 
            value = as_paragraph('DLCO: diffusion capacity for carbon monoxide; FVC: forced vital capacity; FEV1: forced expiratory volume in one second.'), 
@@ -755,13 +755,11 @@ suppl_figs$top_corr$plot
 
 __Supplementary Figure S\@ref(fig:fig-top-corr). Co-linearity of the most influential computed tomography-related variables for prediction of insufficiency and percentage of reference of diffusion capacity for carbon monoxide.__ 
 
-_The most influential variables for prediction of insufficiency and percentage of reference of diffusion capacity for carbon monoxide by machine learning models were identified as features with the largest mean absolute Shapley additive explanations (SHAP) as presented in Figure 3 and Supplementary Figure S\@ref(fig:fig-varimp-dlco).__
+_The most influential variables for prediction of insufficiency and percentage of reference of diffusion capacity for carbon monoxide by machine learning models were identified as features with the largest mean absolute Shapley additive explanations (SHAP) as presented in Figure 3 and Supplementary Figure S\@ref(fig:fig-varimp-dlco)._
 
 _(A) Weighted graph of correlations between the most influential explanatory variables. The graph edges are defined by correlations with Kendall's $\tau \geq$ 0.3, the edge weights correspond to the $\tau$ values. Isolated vertices, i.e. explanatory variables without any correlations with $\tau \geq$ 0.3, were removed. The graph was visualized with the Fruchterman-Reingold algorithm. The explanatory variables, i.e. vertices of the graph, are depicted as points; point color codes for classification of the explanatory variable. Edges are represented by lines; line width and color codes for $\tau$ value._ 
 
-_(B) Correlations between computed tomography (CT) readouts of lung damage, the human-determined CT severity score and software-determined lung opacity and high opacity, were assessed by blocked bootstrap Kendall's correlation test. Ranks of the CT readouts are presented in scatter plots. Each point represents a single observation, blue straight lines are visualizations of linear trends. Correlation coefficients $\tau$ with bootstrap confidence intervals, p values, and numbers of observations are displayed in the plot captions._
-
-_(C) Comparison of CTSS and lung opacity between observations with and without ground glass opacity (GGO) and reticulations. Statistical significance was determined by blocked bootstrap test with r effect size statistic. Median values with interquartile ranges are depicted as boxes, whiskers span over 150% of the interquartile ranges, single observations are visualized as points. Effect sizes and p values are displayed in the plot captions. Numbers of observations are indicated in the X axes._
+_(B) Comparison of CTSS and lung opacity between observations with and without ground glass opacity (GGO) and reticulations. Statistical significance was determined by blocked bootstrap test with r effect size statistic. Median values with interquartile ranges are depicted as boxes, whiskers span over 150% of the interquartile ranges, single observations are visualized as points. Effect sizes and p values are displayed in the plot captions. Numbers of observations are indicated in the X axes._
 
 \newpage
 
