@@ -42,7 +42,7 @@ opts_chunk$set(echo = FALSE,
                       dpi = 600)
 
 set_flextable_defaults(font.family = "Cambria", 
-                       font.size = 10)
+                       font.size = 9)
 
 
 ```
@@ -148,6 +148,7 @@ support vector machines (SVM, _kernlab_) [@Weston1998; @Karatzoglou2004],
 and gradient boosted machines (GBM, _gbm_) [@Greenwell2022; @Friedman2002; @Friedman2001]. 
 Model diagnostic statistics and performance evaluation metrics were computed with the development package [_caretExtra_](https://github.com/PiotrTymoszuk/caretExtra). 
 SHAP (Shapley additive explanations) as a metric of global variance importance in machine learning models was calculated with the package _kernelshap_ [@Covert2020; @Lundberg2017; @Mayer2023]. 
+Moving averages of statistics of performance of machine learning models were computed with _zoo_ [@Zeileis2022]. 
 
 Analysis results were visualized with _ggplot_ [@Wickham2016] and [_ExDA_](https://github.com/PiotrTymoszuk/ExDA) (scatter, stack and box plots), [_clustTools_](https://github.com/PiotrTymoszuk/clustTools) (visualization of results of correspondence analysis), _ggvenn_ [@Yan2021] (Venn plots), [_caretExtra_](https://github.com/PiotrTymoszuk/caretExtra) (plots for machine learning model diagnostic and evaluation), _plotROC_ [@Sachs2017] (ROC curves), _shapviz_ [@Mayer2023a; @Mayer2023] (violin/scatter plots of absolute SHAP values), and [_graphExtra_](https://github.com/PiotrTymoszuk/graphExtra) (graph visualizations, re-implementation of tools from _igraph_ and _ggnetwork_) [@Csardi2006; @Briatte2021]. 
 Result tables were created with _flextable_ [@Gohel2022]. 
@@ -264,6 +265,15 @@ Visualization of the model tuning and evaluation results was accomplished with t
 In order to assess the model accuracy as a function of acute COVID-19 severity and time after diagnosis, we computed Cohen's $\kappa$ (classification models) and MAE (regression models) of out-of-fold predictions for observations stratified by acute COVID-19 severity (mild, moderate, severe) and follow-up visit (2-, 3-, 6- and 12-month follow-up). 
 The error values were subsequently visualized as heat maps. 
 
+Performance of the machine learning models at prediction of reduced DLCO < 80% of the patient's reference was assessed in observations with increasing values of DLCO expressed as percentage of the patient's reference. 
+To this end, we sorted the observations by increasing DLCO values and computed moving averages of accuracy and squared distance to 0/1-coded DLCO < 80% outcome. 
+The moving averages were computed with the sliding window of k = 20 observations (function `rollmean()` package _zoo_). 
+The squared distance to the outcome were calculated with the following formula: 
+
+$$SqDist = (p - o)^2$$
+
+where $p$ stands for probability of DLCO < 80%, and $o$ equals to 1 for DLCO < 80% and 0 for DLCO $\geq$ 80%. 
+
 For assessment of potential over- and under-fitting of predictions made by the machine learning models, we resorted to visualizations of learning curves [@Viering2023]. 
 The learning curves were constructed as values of model performance metrics (classification models: accuracy and Cohen's $\kappa$,regression models: mean absolute error and pseudo-R^2^) as functions of increasing size of the training data derived from the genuine COVILD cohort data set used for model construction. 
 The performance metrics were computed for the training subset, a test subset (1/4 of observations not used for training), and out-of-fold predictions in 10-repeats 10-fold cross-validation. 
@@ -350,7 +360,7 @@ suppl_tabs$study_variables[1, 1] %>%
 ```{r tab-cohort-ct, tab.cap = 'Chest computed tomography variables at consecutive follow-ups. Numeric variables are presented as medians with interquartile ranges (IQR) and ranges. Categorical variables are presented as percentages and counts within the complete observation set.'}
 
 flextable::flextable(suppl_tabs$cohort_ct) %>% 
-  set_widths(c(2.3, 2.7, rep(3.9, 4))) %>% 
+  set_widths(c(2, 2.4, rep(3.2, 5))) %>% 
   merge_v(1) %>% 
   footnote(1, 2, 
            value = as_paragraph('any CT findings: any CT findings diagnosed by a human pathologist; GGO: ground glass opacity; CTSS: human-determined CT severity score; reticulation, consolidation, bronchiectasis: diagnosed by a human radiologist; opacity and high opacity, AI: opacity and high opacity determined by artificial intelligence.'), 
@@ -365,7 +375,7 @@ flextable::flextable(suppl_tabs$cohort_ct) %>%
 ```{r tab-cohort-lft, tab.cap = 'Lung function testing variables at consecutive follow-ups. Numeric variables are presented as medians with interquartile ranges (IQR) and ranges. Categorical variables are presented as percentages and counts within the complete observation set.'}
 
 flextable::flextable(suppl_tabs$cohort_lft) %>% 
-  set_widths(c(2.3, 2.7, rep(3.7, 4))) %>% 
+  set_widths(c(2, 2.4, rep(3.2, 5))) %>% 
   merge_v(1) %>% 
   footnote(1, 2, 
            value = as_paragraph('LFT: lung function testing; FVC: forced vital capacity; FEV1: forced expiratory volume in one second; DLCO: diffusion capacity for carbon monoxide.'), 
@@ -380,7 +390,7 @@ flextable::flextable(suppl_tabs$cohort_lft) %>%
 ```{r tab-cohort-symptoms, tab.cap = 'Presence and rating of symptoms of relevance for lung function at consecutive follow-ups. Numeric variables are presented as medians with interquartile ranges (IQR) and ranges. Categorical variables are presented as percentages and counts within the complete observation set.'}
 
 flextable::flextable(suppl_tabs$cohort_symptoms) %>% 
-  set_widths(c(2.3, 3.5, rep(3.7, 4))) %>% 
+  set_widths(c(2, 2.4, rep(3.2, 5))) %>% 
   merge_v(1) %>% 
   footnote(1, 2, 
            value = as_paragraph('mMRC: modified Medical Research Council scale; ECOG: Eastern Cooperative Oncology Group performance scale.'), 
@@ -716,6 +726,22 @@ __Supplementary Figure S\@ref(fig:fig-residuals). Cohen's $\kappa$ and mean erro
 _Classification machine learning models of insufficient diffusion capacity for carbon monoxide (A, DLCO < 80% of reference value: n = `r ngroups(bin_models$models$DLCO_reduced[[1]])$train$n_outcome[2]`, total observations: n = `r ngroups(bin_models$models$DLCO_reduced[[1]])$train$n_outcome %>% sum`) and regression models of diffusion capacity for carbon monoxide (DLCO, % of reference value, total observations: n = `r nobs(reg_models$models$DLCO_percent[[1]])`) were trained and evaluated as presented in Figure 2. Cohen's $\kappa$ (A) and mean errors (B) of cross-validated model predictions for observations stratified by severity of acute COVID-19 and the consecutive follow-up visits were investigated. Cohen's $\kappa$ and error values are visualized in heat maps; tiles are labeled with the error values. Global $\kappa$ and mean absolute model errors are indicated in the plot captions._
 
 _DLCO: diffusion capacity for carbon monoxide; SVM radial: support vector machines with radial kernel; GBM: gradient boosted machines; MAE: mean absolute error; A: ambulatory COVID-19; HM: hospitalized, moderate COVID-19; HS: hospitalized, severe COVID-19.._
+
+\newpage
+
+```{r fig-dlco-class, fig.width = figur::convert(suppl_figs$dlco_class, to = 'in')$w, fig.height = figur::convert(suppl_figs$dlco_class, to = 'in')$h, fig.cap = "Accuracy of prediction of insufficient diffusion capacity for carbon monoxide by the GBM model as a function of diffusion capacity for carbon monoxide expressed as percentage of patient's reference."}
+
+suppl_figs$dlco_class$plot
+
+```
+
+__Supplementary Figure S\@ref(fig:fig-dlco-class). Accuracy of prediction of insufficient diffusion capacity for carbon monoxide by the GBM model as a function of diffusion capacity for carbon monoxide expressed as percentage of patient's reference.__ 
+
+_Predictions made by the best performing model of reduced diffusion capacity for carbon monoxide (DLCO < 80% of the patient's reference) were investigated in observations with increasing DLCO values expressed as percentage of the patient's reference._
+
+_(A) The actual DLCO values expressed as percentages of the patient's reference are displayed in violin plots. Single observations are depicted as points, point color codes for the predicted reduced DLCO <80% in the training data and 10-repeats 10-fold cross-validation (CV). The dashed line represents the 80% cutoff used for definition of reduced DLCO,_ 
+
+_(B) Moving averages of accuracy (fraction of correct predictions) at prediction of DLCO < 80% and squared distances to the 0/1-coded DLCO < 80% in the training data set and 10-repeats 10-fold CV. The moving averages calculated with the sliding window of 20 observations are displayed as solid lines. The dashed lines represent the 80% cutoff used for definition of reduced DLCO._ 
 
 \newpage
 

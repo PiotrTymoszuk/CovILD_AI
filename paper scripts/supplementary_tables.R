@@ -9,12 +9,15 @@
 # Numbers of samples and participants per time point -------
   
   insert_msg('Numbers of samples and participants')
-  
+
   suppl_tabs$n_numbers <- cohort_ct$analysis_tbl %>% 
     blast(cohort_split) %>% 
     map(count, follow_up) %>% 
     reduce(left_join, by = 'follow_up') %>% 
-    mutate(follow_up = stri_extract(follow_up, regex = '\\d{1}-month')) %>% 
+    mutate(follow_up = stri_extract(follow_up, regex = '\\d+-month'), 
+           follow_up = ifelse(is.na(follow_up), 
+                              'all time points', 
+                              follow_up)) %>% 
     set_names(c('Follow-up, months', 
                 'Cohort', 
                 'Ambulatory, mild COVID-19', 

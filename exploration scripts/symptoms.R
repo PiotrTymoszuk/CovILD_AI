@@ -18,10 +18,6 @@
   cohort_sympt$lexicon <- covild$symptoms_lexicon %>% 
     filter(variable != 'follow_up')
 
-  cohort_sympt$short_fup_labs <- globals$fup_labels %>% 
-    stri_replace(fixed = ' mo', replacement = '') %>% 
-    set_names(names(globals$fup_labels))
-  
   ## numeric and categorical variables
 
   cohort_sympt$variables <- cohort_sympt$lexicon %>% 
@@ -29,7 +25,7 @@
     map(~.x$variable)
 
   ## analysis table, introducing the severity variable
-  ## removing the acute timepoint - there was no study CT but just 
+  ## removing the acute time point - there was no study CT but just 
   ## a diagnostic scan for some participants
 
   cohort_sympt$analysis_tbl <- covild$symptoms %>% 
@@ -45,8 +41,22 @@
            cohort_split = factor(cohort_split, 
                                  c('cohort', 
                                    levels(cohort_sympt$analysis_tbl$severity_class))), 
-           follow_up = droplevels(follow_up), 
-           analysis_split = interaction(follow_up, cohort_split)) %>% 
+           follow_up = droplevels(follow_up))
+  
+  ## dummy factor for all follow-up points: all time points
+  
+  cohort_sympt$analysis_tbl <- cohort_sympt$analysis_tbl %>% 
+    rbind(cohort_sympt$analysis_tbl, 
+          mutate(cohort_sympt$analysis_tbl, 
+                 follow_up = 'all time points')) %>% 
+    mutate(follow_up = factor(follow_up,
+                              c('all time points', 
+                                levels(cohort_sympt$analysis_tbl$follow_up))))
+  
+  ## specification of the analysis splits
+  
+  cohort_sympt$analysis_tbl <- cohort_sympt$analysis_tbl %>% 
+    mutate(analysis_split = interaction(follow_up, cohort_split)) %>% 
     relocate(cohort_split) %>% 
     relocate(analysis_split) %>% 
     relocate(ID)
@@ -123,7 +133,7 @@
     map2(c('mMRC', 'ECOG'), 
          ~.x + 
           scale_fill_brewer(palette = 'Purples') + 
-          scale_x_discrete(labels = cohort_sympt$short_fup_labs)) %>% 
+          scale_x_discrete(labels = globals$short_fup_labs)) %>% 
     set_names(cohort_sympt$variables$numeric)
   
   ## categorical numeric variables
@@ -145,7 +155,7 @@
          txt_color = 'white') %>% 
     map(~.x + 
           scale_fill_manual(values = c('steelblue', 'coral3')) + 
-          scale_x_discrete(labels = cohort_sympt$short_fup_labs)) %>% 
+          scale_x_discrete(labels = globals$short_fup_labs)) %>% 
     set_names(cohort_sympt$variables$factor)
 
 # END -----

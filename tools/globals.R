@@ -86,14 +86,20 @@
                          '3-month follow-up' = 'coral3', 
                          '6-month follow-up' = 'steelblue2', 
                          '12-month follow-up' = 'steelblue4', 
-                         'cohort' = 'plum4')
+                         'cohort' = 'plum4', 
+                         'all time points' = 'plum4')
   
   globals$fup_labels = c('acute COVID-19' = 'acute CoV', 
                          '2-month follow-up' = '2 mo', 
                          '3-month follow-up' = '3 mo', 
                          '6-month follow-up' = '6 mo', 
                          '12-month follow-up' = '12 mo', 
-                         'cohort' = 'CovILD cohort')
+                         'cohort' = 'CovILD cohort', 
+                         'all time points' = 'all')
+  
+  globals$short_fup_labs <- globals$fup_labels %>% 
+    stri_replace(fixed = ' mo', replacement = '') %>% 
+    set_names(names(globals$fup_labels))
   
 # Algorithm labels and colors ------
   

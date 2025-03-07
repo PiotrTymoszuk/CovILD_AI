@@ -321,6 +321,55 @@
               w = 180, 
               h = 180)
   
+# Performance of the classification models of DLCO for DLCO percentages ------
+  
+  insert_msg('Performnce of DLCO classifiers for DLCO percentages')
+  
+  ## upper panel: class assignment and DLCO values
+  
+  suppl_figs$dlco_class$upper <- 
+    plot_grid(dlco_class$class_plots$class$gbm + 
+                labs(title = 'DLCO < 80%, GBM predictions'), 
+              ncol = 2, 
+              rel_widths = c(0.8, 0.2))
+  
+  ## bottom panel: moving accuracy and moving Brier square
+  
+  suppl_figs$dlco_class$bottom <- 
+    map2(dlco_class$moving_plots$gbm, 
+         c('DLCO < 80%, GBM prediction accuracy', ''), 
+         ~.x + 
+           labs(title = .y) + 
+           theme(legend.position = 'none')) %>% 
+    plot_grid(plotlist = ., 
+              ncol = 2, 
+              align = 'hv', 
+              axis = 'tblr') %>% 
+    plot_grid(get_legend(dlco_class$moving_plots$gbm[[1]] + 
+                           theme(legend.position = 'bottom')), 
+              nrow = 2, 
+              rel_heights = c(0.85, 0.15))
+  
+  ## the entire figure
+  
+  suppl_figs$dlco_class <- 
+    plot_grid(suppl_figs$dlco_class$upper, 
+              suppl_figs$dlco_class$bottom, 
+              nrow = 2, 
+              rel_heights = c(1, 1.25), 
+              labels = LETTERS, 
+              label_size = 10) %>% 
+    as_figure(label = 'reduced_dlco_predictions_dlco_percentage', 
+              ref_name = 'dlco_class', 
+              caption = paste('Accuracy of prediction of insufficient', 
+                              'diffusion capacity for carbon monoxide', 
+                              'by the GBM model as a function of', 
+                              'diffusion capacity for carbon monoxide', 
+                              'expressed as percentage of', 
+                              "patient's reference."), 
+              w = 180, 
+              h = 160)
+  
 # Learning curves for the models of DLCO < 80% and DLCO -------
   
   insert_msg('Learning curves for the models of reduced and percentage DLCO')

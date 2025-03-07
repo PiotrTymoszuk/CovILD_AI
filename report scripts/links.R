@@ -17,7 +17,8 @@
          'caretExtra' = 'https://github.com/PiotrTymoszuk/caretExtra', 
          'lmqc' = 'https://github.com/PiotrTymoszuk/lmqc', 
          'bootStat' = 'https://github.com/PiotrTymoszuk/bootStat', 
-         'clustTools' = 'https://github.com/PiotrTymoszuk/clustTools') %>% 
+         'clustTools' = 'https://github.com/PiotrTymoszuk/clustTools', 
+         'graphExtra' = 'https://github.com/PiotrTymoszuk/graphExtra') %>% 
     compress(names_to = 'obj_name', 
              values_to = 'x') %>% 
     mutate(ref_name = paste0('_', obj_name, '_'))

@@ -20,6 +20,8 @@
   library(sciplot)
   library(rcompanion)
   library(clustTools)
+  library(zoo)
+
   library(graphExtra)
   library(igraph)
 
@@ -48,6 +50,7 @@
 
   explore <- exda::explore
   train <- caret::train
+  components <- generics::components
 
   c('./tools/tools.R', 
     './tools/globals.R') %>% 
@@ -119,7 +122,8 @@
   c('./LFT scripts/binary_performance.R', 
     './LFT scripts/regression_performance.R', 
     './LFT scripts/residuals.R', 
-    './LFT scripts/ct_predictions.R') %>% 
+    './LFT scripts/ct_predictions.R', 
+    './LFT scripts/dlco_classification.R') %>% 
     source_all(message = TRUE, crash = TRUE)
 
   ## assessment of over-fitting by learning curves

@@ -155,11 +155,7 @@
                 'Effect size'))
 
 # END -------
-  
-  comp_ct$analysis_tbl <- NULL
-  
-  comp_ct <- compact(comp_ct)
-  
+
   plan('sequential')
   
   insert_tail()

@@ -23,6 +23,15 @@
                                         reference_docx = 'ms_template.docx'), 
          output_dir = './paper')
   
+# Rendering the Rebuttal Letter -------
+  
+  insert_msg('Rendering the rebuttal letter')
+  
+  render('./paper/markdown/rebuttal_letter.Rmd', 
+         output_format = word_document2(number_sections = FALSE, 
+                                        reference_docx = 'ms_template.docx'), 
+         output_dir = './paper')
+  
 # END ----
   
   insert_tail()

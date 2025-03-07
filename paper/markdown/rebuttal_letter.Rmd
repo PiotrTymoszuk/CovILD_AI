@@ -1,0 +1,203 @@
+---
+title: "Artificial intelligence-assisted analysis of CT abnormalities during COVID-19 recovery"
+subtitle: "Rebuttal Letter"
+author: "Department of Radiology, Medical University of Innsbruck"
+date: "`r format(Sys.time(), '%Y-%m-%d')`"
+
+output: 
+  bookdown::html_document2:
+    css: "style.css"
+    
+bibliography: ct.bib
+
+csl: frontiers_medical.csl
+
+header-includes:
+  \usepackage{longtable}
+  \usepackage{tabu}
+  \usepackage{caption}
+  \usepackage{makecell}
+  \usepackage{pdflscape}
+  \usepackage{array}
+  \usepackage{booktabs}
+  \usepackage{threeparttable}
+  \usepackage{threeparttablex}
+  \usepackage{wrapfig}
+  \usepackage{multirow}
+  \usepackage[normalem]{ulem}
+  \usepackage{colortbl}
+  \usepackage{xcolor}
+  \usepackage{float} \floatplacement{figure}{H} \floatplacement{table}{H}
+
+---
+
+```{r, setup, include = FALSE}
+
+library(Cairo)
+
+opts_chunk$set(echo = FALSE, 
+                      warning = FALSE, 
+                      message = FALSE, 
+                      dev = "CairoPNG", 
+                      dpi = 600)
+
+set_flextable_defaults(font.family = "Cambria", 
+                       font.size = 10)
+
+
+```
+
+\newpage
+
+# Reviewer 1
+
+## Point 1
+
+### Issue
+
+Add results in the abstract as well.
+
+### Response
+
+## Point 2
+
+### Issue
+
+The introduction is not sufficient.
+
+### Response
+
+## Point 3
+
+### Issue
+
+The literature review part needs to be added.
+
+### Response
+
+## Point 4
+
+### Issue
+
+After adding the literature review, add a summary table and clearly mention this study's research gaps and contributions. 
+
+### Response
+
+## Point 5
+
+### Issue
+
+More details, such as features, are required in the study data. 
+
+### Response
+
+## Point 6
+
+### Issue
+
+The paper lacks details about hyper-parameters for machine learning models. 
+For example, what was the C and class weight value for the SVM model?  
+
+### Response
+
+## Point 7
+
+### Issue
+
+Have you considered the GridSearchCV for model hyper-parameters or set it manually?  
+
+### Response
+
+## Point 8
+
+### Issue
+
+Comparison with state-of-the-art studies is missing. 
+
+### Response
+
+## Point 9
+
+### Issue
+
+The Practical Implication of the study is missing.  
+
+### Response
+
+## Point 10
+
+### Issue
+
+Conclusion also not well presented.  
+
+### Response
+
+# Reviewer 2
+
+## Point 11
+
+### Issue
+
+The introduction does not sufficiently contextualize how other published multi-parameter or machine learning approaches have succeeded or failed. What specific gaps remain? A more detailed table is needed to perform the literature review. 
+
+### Response
+
+## Point 12
+
+### Issue
+
+What is new or improved about your multi-parameter modeling approach compared to existing frameworks? 
+
+### Response 
+
+## Point 13
+
+### Issue
+
+More details about selection and potential biases (e.g., dropouts, missing visits) are needed for the data set. 
+
+### Response
+
+## Point 14
+
+### Issue
+
+It remains unclear how each scoring system aligns, differs, or complements the other.
+
+### Response
+
+Overemphasis on “satisfactory accuracy” without deeper clinical context. 
+
+## Point 15
+
+### Issue
+
+The neural network model performed poorly for DLCO. 
+
+### Response
+
+## Point 16
+
+### Issue
+
+The SHAP analysis identifies “top 15” predictors. However, the manuscript does not address correlations among those predictors or discuss whether certain features might be redundant. 
+
+### Response
+
+## Point 17
+
+### Issue
+
+With “opacity cutoff: 0.12%” or “high opacity cutoff: 0.002%” appear extremely small. The clinical significance of such minimal changes in lung volume being “abnormal” is unclear—are these thresholds truly meaningful in practice? 
+
+### Response
+
+## Point 18
+
+### Issue
+
+The paper concedes “model overfitting” could be an issue. However, it lacks any systematic attempt (e.g., a learning-curve analysis or thorough regularization strategy) to demonstrate that overfitting is minimal or under control. 
+
+### Response
+
+# References

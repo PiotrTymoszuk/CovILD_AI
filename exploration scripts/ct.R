@@ -16,11 +16,7 @@
   insert_msg('Analysis globals')
   
   cohort_ct$lexicon <- covild$ct_lexicon
-  
-  cohort_ct$short_fup_labs <- globals$fup_labels %>% 
-    stri_replace(fixed = ' mo', replacement = '') %>% 
-    set_names(names(globals$fup_labels))
-  
+
   ## numeric and categorical variables
   
   cohort_ct$variables <- cohort_ct$lexicon %>% 
@@ -44,8 +40,22 @@
            cohort_split = factor(cohort_split, 
                                  c('cohort', 
                                    levels(cohort_ct$analysis_tbl$severity_class))), 
-           follow_up = droplevels(follow_up), 
-           analysis_split = interaction(follow_up, cohort_split)) %>% 
+           follow_up = droplevels(follow_up))
+  
+  ## appending the table with the dummy follow-up for all time points
+  
+  cohort_ct$analysis_tbl <- 
+    rbind(cohort_ct$analysis_tbl, 
+          mutate(cohort_ct$analysis_tbl, 
+                 follow_up = 'all time points')) %>% 
+    mutate(follow_up = factor(follow_up, 
+                              c('all time points', 
+                                levels(cohort_ct$analysis_tbl$follow_up))))
+  
+  ## defining the splitting factor
+  
+  cohort_ct$analysis_tbl <- cohort_ct$analysis_tbl %>% 
+    mutate(analysis_split = interaction(follow_up, cohort_split)) %>% 
     relocate(cohort_split) %>% 
     relocate(analysis_split) %>% 
     relocate(ID)
@@ -123,7 +133,7 @@
     map(~.x + 
           scale_fill_manual(values = globals$sev_colors) + 
           scale_color_manual(values = globals$sev_colors) + 
-          scale_x_discrete(labels = cohort_ct$short_fup_labs) + 
+          scale_x_discrete(labels = globals$short_fup_labs) + 
           theme(legend.position = 'none')) %>% 
     set_names(cohort_ct$variables$numeric)
   
@@ -146,7 +156,7 @@
          txt_color = 'white') %>% 
     map(~.x + 
           scale_fill_manual(values = c('steelblue', 'coral3')) + 
-          scale_x_discrete(labels = cohort_ct$short_fup_labs)) %>% 
+          scale_x_discrete(labels = globals$short_fup_labs)) %>% 
     set_names(cohort_ct$variables$factor)
 
 # END -----
