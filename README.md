@@ -14,7 +14,9 @@ The anaylsis report is available from a [Dropbox](https://www.dropbox.com/scl/fo
 
 ### Manuscript draft
 
-Draft of the manuscript in Word format is available [here](https://github.com/PiotrTymoszuk/CovILD_AI/blob/main/paper/manuscript.docx). Supplementary material is provided as a [Word](https://github.com/PiotrTymoszuk/CovILD_AI/blob/main/paper/supplementary_material.docx) file. 
+Draft of the manuscript in Word format is available [here](https://github.com/PiotrTymoszuk/CovILD_AI/blob/main/paper/manuscript.docx). 
+Supplementary material is provided as a [Word file](https://github.com/PiotrTymoszuk/CovILD_AI/blob/main/paper/supplementary_material.docx). 
+Backbone of the rebuttal letter is available as a [Word file](https://github.com/PiotrTymoszuk/CovILD_AI/blob/main/paper/rebuttal_letter.docx).
 High resolution figures, supplementary figures and an Excel file with supplementary tables are provided in [paper folder](https://github.com/PiotrTymoszuk/CovILD_AI/tree/main/paper).
 
 ## Terms of use
