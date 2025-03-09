@@ -6,6 +6,12 @@
   
   paper_figs <- list()
   
+# Figure globals --------
+  
+  insert_msg('Figure globals')
+  
+  dlco_range <- range(lft_globals$analysis_tbl$DLCO_percent)
+  
 # Figure 1: analysis inclusion scheme -------
   
   insert_msg('Figure 1: analysis inclusion scheme')
@@ -24,12 +30,15 @@
   insert_msg('Figure 2: model performance')
   
   paper_figs$ml_performance <- 
-    list(bin_models$performance_plots$DLCO_reduced, 
-         bin_models$roc_plots$DLCO_reduced$cv, 
-         reg_models$performance_plots$DLCO_percent, 
-         reg_models$scatter_plots$DLCO_percent$cv$gbm,
-         reg_models$scatter_plots$DLCO_percent$cv$ranger, 
-         reg_models$scatter_plots$DLCO_percent$cv$svmRadial) %>% 
+    c(list(bin_models$performance_plots$DLCO_reduced, 
+           bin_models$roc_plots$DLCO_reduced$cv, 
+           reg_models$performance_plots$DLCO_percent), 
+      reg_models$scatter_plots$DLCO_percent$cv[c("gbm", 
+                                                 "ranger", 
+                                                 "svmRadial")] %>% 
+        map(~.x + 
+              scale_x_continuous(limits = dlco_range) + 
+              scale_y_continuous(limits = dlco_range))) %>% 
     map(~.x + 
           theme(legend.position = 'none', 
                 legend.title = element_blank())) %>% 
@@ -154,5 +163,7 @@
          device = cairo_pdf)
   
 # END ------
+  
+  rm(dlco_range)
   
   insert_tail()

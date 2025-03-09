@@ -226,7 +226,7 @@ and SVM with radial kernel (support vector machines, _kernlab_ package, caret's 
 For random forest models, 1000 random trees per model were generated. 
 Bernoulli and Gaussian loss functions were implemented in classification and regression GBM models, respectively. 
 
-Hyper-parameters that control the modeling algorithm's behavior were found by maximizing the Youden's J statistic 
+Hyper-parameters that control the modeling algorithm's behavior were found by searching grids of hyper-parameter values with maximizing the Youden's J statistic 
 ($J = Sensitivity + Specificity - 1$, classification models of binary LFT outcomes) or by minimizing mean absolute error (MAE, regression models of numeric LFT outcomes) in 10-repeats 10-fold cross-validation, in a process called tuning. 
 The tunable hyper-parameters were: 
 
@@ -240,7 +240,7 @@ The tunable hyper-parameters were:
 
 To account for the participant matching of the observations in the cross-validated tuning of hyper-parameters, a blocked cross-validation design was applied to keep all observations obtained from a particular participant either in the training or in the test portion of the cross-validation split. 
 Construction of such 'participant-wise' blocked cross-validation folds was done with an in-house-developed wrapper around `createMultiFolds()` function (package _caret_). 
-For tuning and training of the machine learning models, the `train()` wrapper from the _caret_ package was employed [@Kuhn2008]. 
+For tuning and training of the machine learning models, the `train()` wrapper from the _caret_ package was employed; the tuning/training setting such as participant-blocked indexes for cross-validation folds and Youden's J cost function was specified by via a `trainControl()` object provided to the `train()` function [@Kuhn2008]. 
 The optimal values of the tuning parameters are listed in __Supplementary Table S\@ref(tab:tab-tuning)__. 
 
 Performance of the machine learning models was evaluated by comparison of the model predictions with the observed outcome in the genuine training data set and in participant-wise blocked 10-repeats 10-fold cross-validation. 
@@ -293,9 +293,10 @@ Visualization of the mean SHAP values for the top most influential explanatory v
 The most influential explanatory factors for predictions of DLCO (algorithms: random forest, GBM, neuronal network, and SVM radial) and DLCO < 80% of reference (algorithms: random forest, GBM, SVM radial) were identified as top 15 variables with the largest mean absolute SHAP importance values for each of the modeling algorithms. 
 Associations between these highly influential variables were assessed with a soft-threshold weighted graph of correlations, a method widely used in omics and system biology [@Csardi2006; @Zhang2005]. 
 For construction of the correlation graph, ordered categorical variables (i.e. factors in R) were converted to integers. 
-The graph edges were defined by pairwise correlations between the variables with Kendall's $\tau \geq 0.3$. 
+The graph edges were defined by pairwise correlations between the variables with tie-adjusted Kendall's $\tau \geq 0.3$. 
 The edge weights corresponded to values of the $\tau$ correlation coefficients. 
-The graph was constructed with `as_iGraph()` function; isolated vertices, i.e. variables without any correlations with $\tau \geq$ 0.3 were removed from the graph with `prune_degree()` (both functions from [_graphExtra_](https://github.com/PiotrTymoszuk/graphExtra)). 
+The graph was constructed with `as_iGraph()` function, the correlation matrix was computed with `cor()` function from _stats_ package passed to`as_iGraph()`. 
+Isolated vertices, i.e. variables without any correlations with $\tau \geq$ 0.3 were removed from the graph with `prune_degree()` (both functions from [_graphExtra_](https://github.com/PiotrTymoszuk/graphExtra)). 
 The graph was visualized with Fruchterman-Reingold algorithm (method `plot()`, package [_graphExtra_](https://github.com/PiotrTymoszuk/graphExtra)). 
 
 ## Comparison and correlation of CT readouts

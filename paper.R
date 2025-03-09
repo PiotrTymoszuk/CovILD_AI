@@ -38,6 +38,7 @@
     './paper scripts/supplementary_tables.R', 
     './paper scripts/figures.R', 
     './paper scripts/supplementary_figures.R', 
+    './paper scripts/reviewer_figures.R', 
     './paper scripts/render.R') %>% 
     source_all(message = TRUE, crash = TRUE)
   
