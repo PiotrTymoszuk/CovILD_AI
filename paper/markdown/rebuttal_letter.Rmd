@@ -85,9 +85,9 @@ The literature review part needs to be added.
 
 ### Response
 
-_Anna and Gerlig: as above. Below some papersa I found interesting._ 
+_Anna and Gerlig: as above. Below some papers I found interesting._ 
 _https://pubs.rsna.org/doi/full/10.1148/radiol.222888: no modeling but reduced DLCO in COVID-19 survivors without or delayed radiological resolution._ 
-_https://aapm.onlinelibrary.wiley.com/doi/10.1002/mp.16915: a deep learning approach to modeling LFT, including DLCO with CT data in large data sets (s8K+ for training) of CT scans, allows for DLO predictions for single lobes; please have a look at Figure 3, where they report correlations between the observed and predicted DLCO - they are not so much better than our best GBM model of DLCO._
+_https://aapm.onlinelibrary.wiley.com/doi/10.1002/mp.16915: a deep learning approach to modeling LFT, including DLCO with CT data in large data sets (8K+ for training) of CT scans, allows for DLCO predictions for single lobes; please have a look at Figure 3, where they report correlations between the observed and predicted DLCO - they are not so much better than our best GBM model of DLCO._
 _https://pubs.rsna.org/doi/full/10.1148/radiol.221488: they succeeded at predictions of FEV1, FVC, and FEV1:FVC using deep learning (neuronal network) and a large data set of CT images._
 _https://pmc.ncbi.nlm.nih.gov/articles/PMC8264499/: a nice review with a short description of algorithms._
 
@@ -114,7 +114,7 @@ More details, such as features, are required in the study data.
 ### Response
 
 Our manuscript is accompanied by a thorough information on patients, procedures, and study variables provided in __Supplementary Methods__. 
-Please refer to __Supplementary Table S2__ for a detailed listing of modeling response and explanatory variables with their format and descriptions. 
+Please refer to __Supplementary Table S2__ for a detailed listing of modeling responses and explanatory variables with their format and descriptions. 
 
 ## Point 6
 
@@ -212,7 +212,7 @@ More details about selection and potential biases (e.g., dropouts, missing visit
 ### Response
 
 We appreciate this point. 
-While the CovILD cohort has been already extensively described in our previous papers [@Luger2022; @Sonnweber2022; @Sonnweber2020; @Sahanic2023], we provided in the revised manuscript information on the drop-ou rates at particular time points as compared with the initial collective of n = 145 patients. 
+While the CovILD cohort has been already extensively described in our previous papers [@Luger2022; @Sonnweber2022; @Sonnweber2020; @Sahanic2023], we provided in the revised manuscript information on the drop-out rates at particular time points as compared with the initial collective of n = 145 patients. 
 We also references numbers and percentages for the categorical modeling responses (DLCO < 80%, FEV1 < 80%, and FVC < 80%). 
 
 ## Point 14
@@ -246,8 +246,8 @@ The neural network model performed poorly for DLCO.
 
 In __Review Figure \@ref(fig:fig-dlco-correlations)__ we present correlations between the observed DLCO expressed as percentages of the patient's reference and the out-of-fold predictions of DLCO in participant-blocked 10-repeats 10-fold cross-validation for all four machine learning algorithm. 
 To facilitate the comparison, we set ranges of the X and Y axes to the range of observed DLCO values - we applied this transformation to the respective scatter plots in __Figure 2__ as well. 
-From this visualization it is that predictions by the neural network algorithm were shrunk to the 75% - 100% range and the neural network algorithm failed to predict cases with very low and very high values of DLCO. 
-We can only speculate on the reasons for this behavior, yet, inclusion of more observations with at the lowest and the highest tail of DLCO is expected to improve performance of not only the neural net but also of the remaining models. 
+In this visualization it is clear that predictions by the neural network algorithm were shrunk to the 75% - 100% range and the neural network algorithm failed to predict cases with very low and very high values of DLCO. 
+We can only speculate on the reasons for this behavior, yet, inclusion of more observations with at the lowest and the highest tail of DLCO is expected would likely improve performance of not only the neural net but also of the remaining models. 
 
 ## Point 17
 
@@ -259,12 +259,12 @@ However, the manuscript does not address correlations among those predictors or 
 ### Response
 
 Thanks for this is a very good point. 
-In the initial manuscript, we presented results of exploratory analysis of the modeling data set including the overlap between radiological lung findings, and correlations between opacity, high opacity and CTSS (__Supplementary Figure S3__) - which were also identified as highly influential explanatory factors for prediction of DLCOP < 80% and DLCO (__Figure 3__ and __Supplementary Figure S14__). 
-In the revised manuscript, we specifically addressed associations between the most influential explanatory variables with an analysis of correlations graph [@Csardi2006; @Zhang2005] (__Supplementary Figure S15__). 
+In the initial manuscript, we presented results of exploratory analysis of the modeling data set including the overlap between radiological lung findings, and correlations between opacity, high opacity and CTSS (__Supplementary Figure S3__) - which were also identified as highly influential explanatory factors for prediction of DLCO < 80% and DLCO (__Figure 3__ and __Supplementary Figure S14__). 
+In the revised manuscript, we specifically addressed associations between the most influential explanatory variables with an analysis of a correlation graph [@Csardi2006; @Zhang2005] (__Supplementary Figure S15__). 
 The graph edges were defined by pairwise correlations between the explanatory factors with Kendall's $\tau \geq$ 0.3 and weighted by $\tau$ values. 
-For computation of the correlations, ordinal factors such as presence of GGS of severity of acute COVID-19 were transformed to integers. 
-This analysis supports the findings of the initial manuscript version that the CT readouts: CTSS, opacity, high opacity, GGO and reticulations are tightly inter-correlated. 
-Another cluster of tightly associated features was formed by readouts of severity of ACUTE COVID-19 such as acute COVID-19 severity, hospital and ICU stay, and anti-infective treatment during acute COVID-19. 
+For computation of the correlations, ordinal factors such as presence of GGO or severity of acute COVID-19 were transformed to integers. 
+This analysis supports the findings of the initial manuscript version that the CT readouts, CTSS, opacity, high opacity, GGO and reticulations, are tightly inter-correlated. 
+Another cluster of tightly associated features was formed by readouts of severity of acute COVID-19 such as acute COVID-19 severity, hospital and ICU stay, and anti-infective treatment during acute COVID-19. 
 Another community of the influential features was made up by known risk factors of severe COVID-19 course (age, cardiovascular disease, hypercholesterolemia, and endocrine/metabolic disease). 
 This leads us to the conclusion that there was indeed some redundancy between the modeling variables and a potential for pruning e.g. by regularization. 
 These new results were also briefly discussed. 
@@ -298,8 +298,8 @@ We we will certainly consider such algorithms in future studies.
 
 In order to investigate the over-fitting behavior of the models of DLCO < 80%, we resorted to an analysis of the cross-validated model's performance as a function of increasing DLCO percentages. 
 As shown in __Supplementary Figure S12__, we found out that the models made uncertain/erroneous predictions - and hence generalized poorly - for observations with DLCO ranging from 70% - 80% of the patient's reference. 
-This phenomenon can be explained by the observation that the 80% DLCO cutoff - used in multiple COVID-19 papers [@Zhang2022a; @Sonnweber2020] did not yielded two clearly separated groups of observations in our modeling data set and may not correspond to differences in demographic and clinical background. 
-In addition, we believe that expansion observations with DLCO < 80%, either be increasing the cohort size or augmentation of the data set, e.g. by SMOTE [@Chawla2002], may at least partly correct this behavior. 
+This phenomenon can be explained by the observation that the 80% DLCO cutoff used in multiple COVID-19 papers [@Zhang2022a; @Sonnweber2020] did not yielded two clearly separated groups of observations in our modeling data set and may not correspond to substantial differences in demographic and clinical background. 
+In addition, we believe that expansion of observations with DLCO < 80%, either be increasing the cohort size or augmentation of the data set, e.g. by SMOTE [@Chawla2002], would at least partly correct this behavior. 
 
 # Review Figures
 

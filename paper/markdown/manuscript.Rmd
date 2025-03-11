@@ -104,8 +104,8 @@ impaired physical performance (Eastern Cooperative Oncology Group [ECOG] scale >
 
 The primary analysis endpoint was construction and evaluation of multi-parameter models of the most common LFT abnormalities (each of DLCO < 80%, FVC < 80%, FEV1 < 80% of the patient's reference) and of numeric LFT readouts (DLCO, FVC, FEV1) during COVID-19 convalescence. 
 Such models employed common machine learning algorithms with a wide range of demographic and clinical features, as well as human-determined CT abnormalities, and AI-measured lung opacity and high opacity as explanatory variables. 
-The secondary analysis endpoint was prediction of LFT abnormalities and numeric LFT readouts during COVID-19 recovery by human-determined CTSS and AI-measured lung opacity and high opacity. 
-This endpoint was addressed by statistical hypothesis testing, correlation and receiver-operating characteristic (ROC) analysis.
+The secondary analysis endpoints were assessment of importance of explanatory variables for the machine learning predictions of impaired lung function and prediction of LFT abnormalities and numeric LFT readouts during COVID-19 recovery by human-determined CTSS and AI-measured lung opacity and high opacity. 
+These endpoints were addressed by Shapley additive explanations (SHAP) as well as statistical hypothesis testing, correlation and receiver-operating characteristic (ROC) analysis.
 
 ## Statistical analysis
 
@@ -482,7 +482,7 @@ paper_figs$ml_performance$plot
 
 ```
 
-__Figure \@ref(fig:fig-ml-performance). Evaluation of performance of machine learning models of diffusion capacity for carbomn monoxide during COVID-19 convalescence.__ 
+__Figure \@ref(fig:fig-ml-performance). Evaluation of performance of machine learning models of diffusion capacity for carbon monoxide during COVID-19 convalescence.__ 
 
 _(A) Four machine learning classification models of insufficient diffusion capacity for carbon monoxide (< 80% of reference value: n = `r ngroups(bin_models$models$DLCO_reduced[[1]])$train$n_outcome[2]`, total observations: n = `r ngroups(bin_models$models$DLCO_reduced[[1]])$train$n_outcome %>% sum`) employing time after COVID-19 diagnosis, computed tomography readouts, demographic and clinical explanatory variables were trained. Their performance was evaluated in the entire data set and 10-repeats 10-fold cross-validation with overall accuracy metric, Cohen's $\kappa$ as a measure of concordance between predicted and observed outcome, and Brier score as a measure of model's calibration. Left: numeric performance measures of the models (open circles: the entire data set, filled circles: cross-validation); point sizes and point labels represent overall model accuracy, the dashed lines visualize values of Cohen's $\kappa$ and Brier score expected for prediction of insufficient DLCO be chance. Right: receiver-operating characteristic curves for predictions in cross-validation folds, numeric statistics are displayed in the plot. Numbers of complete observations and observations witj DLCO insufficiency ('events') are displayed in the plot captions._
 
