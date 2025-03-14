@@ -1162,7 +1162,7 @@
     
   }
   
-# Tuning plots ------
+# Tuning plots and tuning results tables ------
   
   plot_ranger_tuning <- function(model, 
                                  plot_title = NULL) {
@@ -1439,6 +1439,79 @@
            subtitle = '10-repeats 10-fold cross-validation', 
            x = x_lab,
            y = y_lab)
+    
+  }
+  
+  format_tune_grid_ <- function(tune_df, 
+                                cost_name = 'J', 
+                                hyper_parmeters = names(tune_df)[names(tune_df) != cost_name], 
+                                signif_digits = 3) {
+    
+    ## converts a data frame with tuning results to a two-column 
+    ## data frame. The first column, `grid_condition` contains named values 
+    ## of the hyper-parameters as a string (hyper_parameter = value). 
+    ## The second column contains values of the cost function, whose name is 
+    ## defined by `cost_name` argument. 
+    ## `signif_digits` specifies significant digits used for rounding of the 
+    ## hyper-parameter values and the cost function values. 
+    
+    tune_df <- tune_df %>% 
+      select(all_of(c(cost_name, hyper_parmeters))) %>% 
+      map_dfc(function(x) if(is.numeric(x)) signif(x, signif_digits) else x)
+    
+    tune_df[hyper_parmeters] <- 
+      map2_dfc(hyper_parmeters, 
+               tune_df[hyper_parmeters], 
+               paste, sep = ' = ')
+    
+    tune_df$grid_condition <- tune_df[hyper_parmeters] %>% 
+      as.list %>% 
+      map(as.list) %>% 
+      transpose %>% 
+      map(reduce, paste, sep = ', ') %>% 
+      reduce(c)
+    
+    tune_df[c('grid_condition', cost_name)]
+    
+  }
+  
+  format_tune_grid <- function(model_lst, 
+                               cost_name = 'J', 
+                               signif_digits = 3) {
+    
+    ## creates a data frame with values of the cost function 
+    ## (its name is provided by `cost_name` argument) for combinations 
+    ## of the hype-parameters parameters. 
+    ## `model_lst` is a list of caret models fitted with different algorithms 
+    ## for one response
+    
+    ## metadata ---------
+    
+    grid_tbl <- model_lst %>% 
+      map(~.x$result)
+    
+    stat_names <- grid_tbl %>% 
+      map(names) %>% 
+      reduce(intersect)
+    
+    stopifnot(cost_name %in% stat_names)
+    
+    hyper_params <- grid_tbl %>% 
+      map(names) %>% 
+      map(~.x[!.x %in% stat_names])
+    
+    ## tuning grids in a long format ------
+    
+    grid_tbl <- 
+      map2(grid_tbl, 
+           hyper_params, 
+           format_tune_grid_, 
+           cost_name = cost_name, 
+           signif_digits = signif_digits)
+    
+    grid_tbl %>% 
+      compress(names_to = 'algorithm') %>%
+      select(algorithm, grid_condition, all_of(cost_name))
     
   }
   

@@ -236,11 +236,12 @@ The tunable hyper-parameters were:
 
 * for neural network, `size`: number of neurons in the hidden layer, `decay`: reduction of weights during algorithm iteration
 
-* for SVM, `sigma`: width of the radial kernel, `C`: cost/penalty applied to misclassified observations
+* for SVM, `sigma`: width of the radial kernel, `C`: cost/penalty applied to misclassified observations. For the SVM algorithm, the optimal value of `sigma` was selected by running `sigest()` function from _kernlab_ package [@Karatzoglou2004] on the modeling data set and kept constant in the tuning grid.
 
 To account for the participant matching of the observations in the cross-validated tuning of hyper-parameters, a blocked cross-validation design was applied to keep all observations obtained from a particular participant either in the training or in the test portion of the cross-validation split. 
 Construction of such 'participant-wise' blocked cross-validation folds was done with an in-house-developed wrapper around `createMultiFolds()` function (package _caret_). 
 For tuning and training of the machine learning models, the `train()` wrapper from the _caret_ package was employed; the tuning/training setting such as participant-blocked indexes for cross-validation folds and Youden's J cost function was specified by via a `trainControl()` object provided to the `train()` function [@Kuhn2008]. 
+The complete tuning grids, i.e. all investigated combinations of the ghyper-parameters, with the corresponding values of Youden's J and MAE cost functions are listed in __Supplementary Table S\@ref(tab:tab-tune-grids)__. 
 The optimal values of the tuning parameters are listed in __Supplementary Table S\@ref(tab:tab-tuning)__. 
 
 Performance of the machine learning models was evaluated by comparison of the model predictions with the observed outcome in the genuine training data set and in participant-wise blocked 10-repeats 10-fold cross-validation. 
@@ -404,7 +405,20 @@ flextable::flextable(suppl_tabs$cohort_symptoms) %>%
 
 \newpage
 
-```{r tab-tuning, tab.cap = 'Selection of machine learning algorithm hyper-parameters by cross-validation-mediated tuning.'}
+```{r tab-tune-grids, tab.cap = "Selection of machine learning algorithm hyper-parameters by cross-validation-mediated tuning: the complete tuning grids. The selection criteria were the maximum of Youden's J statistic for the classification models. and the minimum of mean absolute error for the regression models. The table is available as a supplementary Excel file."}
+
+suppl_tabs$tune_grids[1, 1] %>% 
+  mutate(`Model type` = '') %>%
+  set_names(' ') %>% 
+  flextable %>% 
+  set_widths(18)
+
+```
+
+
+\newpage
+
+```{r tab-tuning, tab.cap = 'Selection of machine learning algorithm hyper-parameters by cross-validation-mediated tuning: the optimal combinations of the hyper-parameters.'}
 
 flextable::flextable(suppl_tabs$tuning) %>% 
   set_widths(c(3, 7, 5.5)) %>% 
@@ -413,10 +427,14 @@ flextable::flextable(suppl_tabs$tuning) %>%
            value = as_paragraph('LFT: lung function testing; DLCO: diffusion capacity for carbon monoxide; FVC: forced vital capacity; FEV1: forced expiratory volume in one second.'), 
            part = 'header', 
            ref_symbols = 'a') %>% 
-  footnote(1, 3, 
-           value = as_paragraph('mtry: number of randomly choosen explanatory variables for construction of decision trees; splitrule: rule used for splitting of explanatory variable at branches of decision trees; min.node.size: minimal size of the decision tree node; size: number of neurons in the hidden layer of the neuronal network; decay: decay of weights in the the neuronal network; sigma: sigma parameter that defines width of the radial kernel; C: cost/penalty applied to misclassified observations; n.tree: number of decision trees; interaction.depth: number of splits in the decision tree; shrinkage: regularization penalty applied to predictions by single decision trees; n.minobsinnode: minimal size of the decision tree node.'), 
+  footnote(1, 1, 
+           value = as_paragraph("Tuning criteria in participant-blocked 10-repeats cross-validation: maximum of Youden's J for DLCO < 80%, FVC < 80%, FEV1 < 80%; minimum of mean absolute error for DLCO, FVC, FEV1."), 
            part = 'header', 
            ref_symbols = 'b') %>% 
+  footnote(1, 3, 
+           value = as_paragraph('mtry: number of randomly chosen explanatory variables for construction of decision trees; splitrule: rule used for splitting of explanatory variable at branches of decision trees; min.node.size: minimal size of the decision tree node; size: number of neurons in the hidden layer of the neuronal network; decay: decay of weights in the neuronal network; sigma: sigma parameter that defines width of the radial kernel; C: cost/penalty applied to misclassified observations; n.tree: number of decision trees; interaction.depth: number of splits in the decision tree; shrinkage: regularization penalty applied to predictions by single decision trees; n.minobsinnode: minimal size of the decision tree node.'), 
+           part = 'header', 
+           ref_symbols = 'c') %>% 
   theme_vanilla
 
 ```
@@ -685,6 +703,38 @@ suppl_figs$modeling_strategy$plot
 __Supplementary Figure S\@ref(fig:fig-modeling-strategy). Modeling strategy.__ 
 
 _DLCO: diffusion capacity for carbon dioxide; FVC: forced vital capacity; FEV1: forced expiratory volume in 1 second; CT: computed tomography; GGO: ground glass opacity; CTSS: human-determined CT severity score; AI opacity and high opacity: artificial intelligence-determined opacity and high opacity of the lung; AUC: area under the receiver-operating characteristic curve._
+
+\newpage
+
+```{r fig-class-tune, fig.width = figur::convert(suppl_figs$class_tune, to = 'in')$w, fig.height = figur::convert(suppl_figs$class_tune, to = 'in')$h, fig.cap = 'Choice of hyper-parameters for machine learning classification models of reduced diffusion capacity for carbon monoxide.'}
+
+suppl_figs$class_tune$plot
+
+```
+
+__Supplementary Figure S\@ref(fig:fig-class-tune). Choice of hyper-parameters for machine learning classification models of reduced diffusion capacity for carbon monoxide.__ 
+
+_Classification machine learning models of abnormalities of lung function testing (diffusion capacity of carbon monoxide [DLCO] < 80%, forced vital capacity [FVC] < 80%, forced expiratory volume in one second [FEV1] < 80% of the patient's reference) were constructed with the neural network, random forest, support vector machines with radial kernel (SVM), and gradient boosted machines (GBM) algorithms. The explanatory variables included demographic information, information on course of acute COVID-19, longitudinally recorded persistent symptoms, and longitudinally recorded readouts of structural lung damage via computed tomography of the chest._ 
+_Choice of the algorithms' hyper-parameters (tuning) was accomplished by maximizing Youden's J statistic ($J = sensitivity + specificity - 1$) for out-of-fold predictions in patient-blocked 10-repeats 10-fold cross-validation._ 
+_Trajectories of J values for combinations of the hyper-parameters of the models of DLCO < 80% are presented in line plots. The optimal combinations of the hyper-parameters used for training of the final models are displayed in the plot captions. The full results of tuning are presented in Supplementary Tables S\@ref(tab:tab-tune-grids) and S\@ref(tab:tab-tuning)._ 
+
+_size: number of neurons in the hidden layer of the neuronal model; decay: decay of weights in the neuronal network; mtry: number of randomly chosen explanatory variables for construction of decision trees; splitrule: rule used for splitting of explanatory variable at branches of decision trees; min.node.size: minimal size of the decision tree node;  sigma: sigma parameter that defines width of the radial kernel; C: cost/penalty applied to misclassified observations; n.tree: number of decision trees; interaction.depth/int: number of splits in the decision tree; shrinkage: regularization penalty applied to predictions by single decision trees; n.minobsinnode: minimal size of the decision tree node._
+
+\newpage
+
+```{r fig-reg-tune, fig.width = figur::convert(suppl_figs$reg_tune, to = 'in')$w, fig.height = figur::convert(suppl_figs$reg_tune, to = 'in')$h, fig.cap = 'Choice of hyper-parameters for machine learning regression models of diffusion capacity for carbon monoxide.'}
+
+suppl_figs$reg_tune$plot
+
+```
+
+__Supplementary Figure S\@ref(fig:fig-reg-tune). Choice of hyper-parameters for machine learning regression models of diffusion capacity for carbon monoxide.__ 
+
+_Regression machine learning models of parameters of lung function testing (diffusion capacity of carbon monoxide [DLCO], forced vital capacity [FVC], forced expiratory volume in one second [FEV1]) were constructed with the neural network, random forest, support vector machines with radial kernel (SVM), and gradient boosted machines (GBM) algorithms. The explanatory variables included demographic information, information on course of acute COVID-19, longitudinally recorded persistent symptoms, and longitudinally recorded readouts of structural lung damage via computed tomography of the chest._ 
+_Choice of the algorithms' hyper-parameters (tuning) was accomplished by minimizing mean absolute errors (MAE) for out-of-fold predictions in patient-blocked 10-repeats 10-fold cross-validation._ 
+_Trajectories of MAE values for combinations of the hyper-parameters of the models of DLCO are presented in line plots. The optimal combinations of the hyper-parameters used for training of the final models are displayed in the plot captions. The full results of tuning are presented in Supplementary Tables S\@ref(tab:tab-tune-grids) and S\@ref(tab:tab-tuning)._ 
+
+_size: number of neurons in the hidden layer of the neuronal model; decay: decay of weights in the neuronal network; mtry: number of randomly chosen explanatory variables for construction of decision trees; splitrule: rule used for splitting of explanatory variable at branches of decision trees; min.node.size: minimal size of the decision tree node;  sigma: sigma parameter that defines width of the radial kernel; C: cost/penalty applied to misclassified observations; n.tree: number of decision trees; interaction.depth/int: number of splits in the decision tree; shrinkage: regularization penalty applied to predictions by single decision trees; n.minobsinnode: minimal size of the decision tree node._
 
 \newpage
 

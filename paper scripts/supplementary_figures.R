@@ -228,6 +228,47 @@
               caption = paste('Modeling strategy.'), 
               w = 180, 
               h = 2524/3404 * 180)
+  
+# Tuning of the models of DLCO < 80% and DLCO --------
+  
+  insert_msg('Tuning process plots')
+  
+  suppl_figs[c('class_tune', 'reg_tune')] <- 
+    list(dlco_red_tune$tuning_plots, 
+         dlco_tune$tuning_plots) %>%
+    map(~plot_grid(.x$nnet + 
+                     labs(title = paste('Tuning:', globals$algo_labs["nnet"])) + 
+                     facet_grid(.~ size) + 
+                     guides(x = guide_axis(angle = 45)) + 
+                     theme(legend.position = 'none', 
+                           axis.text.x = element_text(size = 7)) + 
+                     scale_color_manual(values = rep('steelblue4', 10)), 
+                   plot_grid(.x$ranger + 
+                               labs(title = paste('Tuning:', globals$algo_labs["ranger"])) + 
+                               theme(legend.position = 'bottom'), 
+                             .x$svmRadial + 
+                               labs(title = paste('Tuning:', globals$algo_labs["svmRadial"])), 
+                             ncol = 2, 
+                             rel_widths = c(2, 1), 
+                             align = 'hv', 
+                             axis = 'tblr'),
+                   .x$gbm + 
+                     labs(title = paste('Tuning:', globals$algo_labs["gbm"])) + 
+                     theme(legend.position = 'bottom'), 
+                   nrow = 3))
+  
+  suppl_figs[c('class_tune', 'reg_tune')]  <- 
+    suppl_figs[c('class_tune', 'reg_tune')] %>% 
+    list(label = c('tuning_classification_reduced_dlco', 
+                   'tuning_regression_dlco'),
+         ref_name = names(.),
+         caption = paste('Choice of hyper-parameters for machine learning', 
+                         c('classification', 'regression'), 'models of', 
+                         c('reduced diffusion capacity for carbon monoxide.', 
+                           'diffusion capacity for carbon monoxide.'))) %>% 
+    pmap(as_figure,
+         w = 190, 
+         h = 230)
 
 # evaluation of the models of findings in FVC and FEV ------
   

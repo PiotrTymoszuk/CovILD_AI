@@ -2,6 +2,11 @@
 # 1) Random Forests (Ranger), 
 # 2) NNet: neural network with a single hidden layer
 # 3) support vector machines with radial Kernel
+# 4) Gradient Boosted Machines
+#
+# for SVM: the optimal value of sigma (width of the Gaussian kernel) is 
+# determined via a test run of caret's train, i.e. internally by calling 
+# `kernlab::sigest()`
 
   insert_head()
   

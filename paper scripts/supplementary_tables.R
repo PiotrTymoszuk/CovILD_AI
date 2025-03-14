@@ -136,9 +136,68 @@
                            'and counts within the complete observation set.'))) %>% 
     pmap(mdtable)
   
-# Tuning of the machine learning models ---------
+# Tuning of the machine learning models, tuning grids --------
   
-  insert_msg('tuning of the machine learning models')
+  insert_msg('Tuning of the machine learning models, tuning grids')
+
+  ## stashing all conditions, algorithms, and responses into 
+  ## a single table
+  
+  suppl_tabs$tune_grids$classification <- 
+    list(DLCO_reduced = dlco_red_tune, 
+         FVC_reduced = fvc_red_tune, 
+         FEV1_reduced = fev1_red_tune) %>% 
+    map(~.x$models) %>% 
+    map(format_tune_grid, 
+        cost_name = 'J')
+  
+  suppl_tabs$tune_grids$regression <- 
+    list(DLCO = dlco_tune, 
+         FVC = fvc_tune, 
+         FEV1 = fev1_tune) %>% 
+    map(~.x$models) %>% 
+    map(format_tune_grid, 
+        cost_name = 'MAE')
+
+  ## appending with the response and algorithm labels
+  
+  suppl_tabs$tune_grids <- 
+    suppl_tabs$tune_grids %>% 
+    map(compress, names_to = 'response') %>% 
+    list(x = ., 
+         y = c("Youden's J", "Mean absolute error"), 
+         z = c('J', 'MAE')) %>% 
+    pmap(function(x, y, z) x %>% 
+           mutate(x, 
+                  Response = exchange(response, covild$lft_lexicon),
+                  Algorithm = globals$algo_labs[algorithm], 
+                  `Hyper-parameters` = grid_condition, 
+                  `Cost function name` = y, 
+                  `Cost function value` = .data[[z]])) %>% 
+    map(select, 
+        Response, Algorithm, `Hyper-parameters`, 
+        `Cost function name`, `Cost function value`) %>% 
+    compress(names_to = 'Model type') %>% 
+    relocate(`Model type`)
+  
+  ## MD table object 
+  
+  suppl_tabs$tune_grids <- suppl_tabs$tune_grids %>% 
+    as_mdtable(label = 'tune_grids', 
+               ref_name = 'tune_grids', 
+               caption =  paste('Selection of machine learning algorithm', 
+                                'hyper-parameters by cross-validation-mediated', 
+                                'tuning: the complete tuning grids.', 
+                                'The selection criteria were the maximum of', 
+                                "Youden's J statistic for the classification", 
+                                'models. and the minimum of mean absolute error', 
+                                'for the regression models.', 
+                                'The table is available as a supplementary', 
+                                'Excel file.'))
+
+# Tuning of the machine learning models, best tunes ---------
+  
+  insert_msg('Tuning of the machine learning models, best tunes')
   
   suppl_tabs$tuning <- c(bin_models$models, 
                          reg_models$models) %>% 
@@ -162,7 +221,9 @@
     mdtable(label = 'ml_tuning',
             ref_name = 'tuning', 
             caption = paste('Selection of machine learning algorithm', 
-                            'hyper-parameters by cross-validation-mediated tuning.'))
+                            'hyper-parameters by cross-validation-mediated', 
+                            'tuning: the optimal combinations of the', 
+                            'hyper-parameters.'))
   
 # Performance of the machine learning classifiers, training ------
   
