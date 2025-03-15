@@ -241,6 +241,7 @@ The tunable hyper-parameters were:
 To account for the participant matching of the observations in the cross-validated tuning of hyper-parameters, a blocked cross-validation design was applied to keep all observations obtained from a particular participant either in the training or in the test portion of the cross-validation split. 
 Construction of such 'participant-wise' blocked cross-validation folds was done with an in-house-developed wrapper around `createMultiFolds()` function (package _caret_). 
 For tuning and training of the machine learning models, the `train()` wrapper from the _caret_ package was employed; the tuning/training setting such as participant-blocked indexes for cross-validation folds and Youden's J cost function was specified by via a `trainControl()` object provided to the `train()` function [@Kuhn2008]. 
+Of note, similar tuning strategy involving cross-validation or repeated cross-validation with _caret_ was applied in other reports in the field of respiratory medicine [@Sharifi2020; @Murdaca2021; @Nikolaou2021]. 
 The complete tuning grids, i.e. all investigated combinations of the ghyper-parameters, with the corresponding values of Youden's J and MAE cost functions are listed in __Supplementary Table S\@ref(tab:tab-tune-grids)__. 
 The optimal values of the tuning parameters are listed in __Supplementary Table S\@ref(tab:tab-tuning)__. 
 

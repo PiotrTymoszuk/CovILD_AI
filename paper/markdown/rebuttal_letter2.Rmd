@@ -1,0 +1,182 @@
+---
+title: "Artificial intelligence-assisted analysis of CT abnormalities during COVID-19 recovery"
+subtitle: "Rebuttal Letter 2"
+author: "Department of Radiology, Medical University of Innsbruck"
+date: "`r format(Sys.time(), '%Y-%m-%d')`"
+
+output: 
+  bookdown::html_document2:
+    css: "style.css"
+    
+bibliography: ct.bib
+
+csl: frontiers_medical.csl
+
+header-includes:
+  \usepackage{longtable}
+  \usepackage{tabu}
+  \usepackage{caption}
+  \usepackage{makecell}
+  \usepackage{pdflscape}
+  \usepackage{array}
+  \usepackage{booktabs}
+  \usepackage{threeparttable}
+  \usepackage{threeparttablex}
+  \usepackage{wrapfig}
+  \usepackage{multirow}
+  \usepackage[normalem]{ulem}
+  \usepackage{colortbl}
+  \usepackage{xcolor}
+  \usepackage{float} \floatplacement{figure}{H} \floatplacement{table}{H}
+
+---
+
+```{r, setup, include = FALSE}
+
+library(Cairo)
+
+opts_chunk$set(echo = FALSE, 
+                      warning = FALSE, 
+                      message = FALSE, 
+                      dev = "CairoPNG", 
+                      dpi = 600)
+
+set_flextable_defaults(font.family = "Cambria", 
+                       font.size = 10)
+
+
+```
+
+\newpage
+
+_Dear Anna, Dear Gerlig, I've already adjusted the nummeration of Supplementary figures and Supplementary Tables in the second rebuttal letter._
+
+# Reviewer 1
+
+## Concern 1
+
+### Reviewer, first round
+
+The paper lacks details about hyper-parameters for machine learning models. 
+For example, what was the C and class weight value for the SVM model?
+
+### Response, first round
+
+Thanks for this point. 
+We agree that the information on hyper-parameters in the initial submission was too specific and hard to understand for many clinical readers. 
+In the revised manuscript, we briefly describe the hyper-parameters in Supplementary Methods/Multi-parameter modeling of lung function. 
+These descriptions were also added as footnotes of __Supplementary Table S7__.
+
+### Reviewer, second round 
+
+Providing only good parameters is not sufficient. 
+There is a need to demonstrate the effect of different parameters so that it can be concluded that your selected value is good.
+
+### Response, second round
+
+Thanks for this point. 
+In the revised manuscript, we provide the complete tuning grids of hyper-parameters with the corresponding values of the cost functions (Youden's J for the classification models and mean absolute error [MAE] for the regression models) as __Supplementary Table S6__. 
+Additionally, we show visualizations of the J and MAE as a function of combinations of the hyper-parameters for classification and regression models of DLCO < 80% and DLCO in __Supplementary Figures S9__ and __S10__. 
+Plots of the tuning process for FVC < 80%, FEV1 < 80%, FVC, and FEV1 are presented in __Reviewer Figures \@ref(fig:fig-class-fvc-tune)__ - __\@ref(fig:fig-reg-fev1-tune)__ attached to the rebuttal letter. 
+
+## Concern 2
+
+### Reviewer, first round
+
+Have you considered the GridSearchCV for model hyper-parameters or set it manually?
+
+### Response, first round
+
+Thanks for this question. 
+The hyper-parameters were found by searching grids of values with the maximum Youden’s J statistic for the classification models, and minimum mean absolute error (MAE) for the regression models in 10-repeats 10-fold patient-blocked cross-validation as the selection criteria. This tuning procedure was executed by calling `train()` function from caret package [@Kuhn2008], which, together with our open-source package [_caretExtra_](https://github.com/PiotrTymoszuk/caretExtra), belongs to our standard toolbox for explainable machine learning. This information is provided in Supplementary Methods/Multi-parameter modeling of lung function.
+
+### Reviewer, second round 
+
+Have you specifically considered the GridSeachCV (https://scikit-learn.org/stable/modules/generated/sklearn.model_selection.GridSearchCV.html) to find the best parameters? If yes, then which range of values (parameters grid) have you provided to find the best values? 
+
+### Response, second round
+
+Thanks for the suggestion - no, we have not considered _GridSearchCV_ for tuning of hyper-parameters in the current paper, but we may consider it for future projects. 
+Please note, that our approach to tuning via repeated cross-validation, which uses a well established and highly cited R package _caret_, does not differ from other similar works in the field of respiratory medicine [@Sharifi2020; @Murdaca2021; @Nikolaou2021] (references included in __Supplementary Methods__). 
+While, we appreciate your suggestion for _GridSearchCV_, we do not believe that the tuning process based on patient-blocked repeated cross-validation would yield substantially different or better machine learning models if we used _GridSearchCV_ instead of _caret_. 
+
+## Concern 3
+
+### Reviewer, second round
+
+Furthermore, the details of practical implication and also conclusion are not well written. 
+Please thoroughly improve the paper in terms of practicality and write-up.
+
+### Response, third round
+
+The Conclusion section has been re-written to improve structure, readability, and impact. 
+
+\newpage
+
+# Review Figures 
+
+```{r fig-class-fvc-tune, fig.width = figur::convert(rev2_figs$class_fvc_tune, to = 'in')$w, fig.height = figur::convert(rev2_figs$class_fvc_tune, to = 'in')$h, fig.cap = 'Choice of hyper-parameters for machine learning classification models of reduced forced vital capacity.'}
+
+rev2_figs$class_fvc_tune$plot
+
+```
+
+__Review Figure \@ref(fig:fig-class-fvc-tune). Choice of hyper-parameters for machine learning classification models of reduced forced vital capacity.__ 
+
+_Classification machine learning models of abnormalities of lung function testing (diffusion capacity of carbon monoxide [DLCO] < 80%, forced vital capacity [FVC] < 80%, forced expiratory volume in one second [FEV1] < 80% of the patient's reference) were constructed with the neural network, random forest, support vector machines with radial kernel (SVM), and gradient boosted machines (GBM) algorithms. The explanatory variables included demographic information, information on course of acute COVID-19, longitudinally recorded persistent symptoms, and longitudinally recorded readouts of structural lung damage via computed tomography of the chest._ 
+_Choice of the algorithms' hyper-parameters (tuning) was accomplished by maximizing Youden's J statistic ($J = sensitivity + specificity - 1$) for out-of-fold predictions in patient-blocked 10-repeats 10-fold cross-validation._ 
+_Trajectories of J values for combinations of the hyper-parameters of the models of FVC < 80% are presented in line plots. The optimal combinations of the hyper-parameters used for training of the final models are displayed in the plot captions._ 
+
+_size: number of neurons in the hidden layer of the neuronal model; decay: decay of weights in the neuronal network; mtry: number of randomly chosen explanatory variables for construction of decision trees; splitrule: rule used for splitting of explanatory variable at branches of decision trees; min.node.size: minimal size of the decision tree node;  sigma: sigma parameter that defines width of the radial kernel; C: cost/penalty applied to misclassified observations; n.tree: number of decision trees; interaction.depth/int: number of splits in the decision tree; shrinkage: regularization penalty applied to predictions by single decision trees; n.minobsinnode: minimal size of the decision tree node._
+
+\newpage
+
+```{r fig-class-fev1-tune, fig.width = figur::convert(rev2_figs$class_fev1_tune, to = 'in')$w, fig.height = figur::convert(rev2_figs$class_fev1_tune, to = 'in')$h, fig.cap = 'Choice of hyper-parameters for machine learning classification models of reduced forced expiratory volume in one second.'}
+
+rev2_figs$class_fev1_tune$plot
+
+```
+
+__Review Figure \@ref(fig:fig-class-fev1-tune). Choice of hyper-parameters for machine learning classification models of reduced forced expiratory volume in one second.__ 
+
+_Classification machine learning models of abnormalities of lung function testing (diffusion capacity of carbon monoxide [DLCO] < 80%, forced vital capacity [FVC] < 80%, forced expiratory volume in one second [FEV1] < 80% of the patient's reference) were constructed with the neural network, random forest, support vector machines with radial kernel (SVM), and gradient boosted machines (GBM) algorithms. The explanatory variables included demographic information, information on course of acute COVID-19, longitudinally recorded persistent symptoms, and longitudinally recorded readouts of structural lung damage via computed tomography of the chest._ 
+_Choice of the algorithms' hyper-parameters (tuning) was accomplished by maximizing Youden's J statistic ($J = sensitivity + specificity - 1$) for out-of-fold predictions in patient-blocked 10-repeats 10-fold cross-validation._ 
+_Trajectories of J values for combinations of the hyper-parameters of the models of FEV1 < 80% are presented in line plots. The optimal combinations of the hyper-parameters used for training of the final models are displayed in the plot captions._ 
+
+_size: number of neurons in the hidden layer of the neuronal model; decay: decay of weights in the neuronal network; mtry: number of randomly chosen explanatory variables for construction of decision trees; splitrule: rule used for splitting of explanatory variable at branches of decision trees; min.node.size: minimal size of the decision tree node;  sigma: sigma parameter that defines width of the radial kernel; C: cost/penalty applied to misclassified observations; n.tree: number of decision trees; interaction.depth/int: number of splits in the decision tree; shrinkage: regularization penalty applied to predictions by single decision trees; n.minobsinnode: minimal size of the decision tree node._
+
+\newpage
+
+```{r fig-reg-fvc-tune, fig.width = figur::convert(rev2_figs$reg_fvc_tune, to = 'in')$w, fig.height = figur::convert(rev2_figs$reg_fvc_tune, to = 'in')$h, fig.cap = 'Choice of hyper-parameters for machine learning regression models of forced vital capacity.'}
+
+rev2_figs$reg_fvc_tune$plot
+
+```
+
+__Review Figure \@ref(fig:fig-reg-fvc-tune). Choice of hyper-parameters for machine learning regression models of forced vital capacity.__ 
+
+_Regression machine learning models of parameters of lung function testing (diffusion capacity of carbon monoxide [DLCO], forced vital capacity [FVC], forced expiratory volume in one second [FEV1]) were constructed with the neural network, random forest, support vector machines with radial kernel (SVM), and gradient boosted machines (GBM) algorithms. The explanatory variables included demographic information, information on course of acute COVID-19, longitudinally recorded persistent symptoms, and longitudinally recorded readouts of structural lung damage via computed tomography of the chest._ 
+_Choice of the algorithms' hyper-parameters (tuning) was accomplished by minimizing mean absolute errors (MAE) for out-of-fold predictions in patient-blocked 10-repeats 10-fold cross-validation._ 
+_Trajectories of MAE values for combinations of the hyper-parameters of the models of FVC are presented in line plots. The optimal combinations of the hyper-parameters used for training of the final models are displayed in the plot captions._ 
+
+_size: number of neurons in the hidden layer of the neuronal model; decay: decay of weights in the neuronal network; mtry: number of randomly chosen explanatory variables for construction of decision trees; splitrule: rule used for splitting of explanatory variable at branches of decision trees; min.node.size: minimal size of the decision tree node;  sigma: sigma parameter that defines width of the radial kernel; C: cost/penalty applied to misclassified observations; n.tree: number of decision trees; interaction.depth/int: number of splits in the decision tree; shrinkage: regularization penalty applied to predictions by single decision trees; n.minobsinnode: minimal size of the decision tree node._
+
+\newpage
+
+```{r fig-reg-fev1-tune, fig.width = figur::convert(rev2_figs$reg_fev1_tune, to = 'in')$w, fig.height = figur::convert(rev2_figs$reg_fev1_tune, to = 'in')$h, fig.cap = 'Choice of hyper-parameters for machine learning regression models of forced expiratory volume in one second.'}
+
+rev2_figs$reg_fev1_tune$plot
+
+```
+
+__Figure \@ref(fig:fig-reg-fev1-tune). Choice of hyper-parameters for machine learning regression models of forced expiratory volume in one second.__ 
+
+_Regression machine learning models of parameters of lung function testing (diffusion capacity of carbon monoxide [DLCO], forced vital capacity [FVC], forced expiratory volume in one second [FEV1]) were constructed with the neural network, random forest, support vector machines with radial kernel (SVM), and gradient boosted machines (GBM) algorithms. The explanatory variables included demographic information, information on course of acute COVID-19, longitudinally recorded persistent symptoms, and longitudinally recorded readouts of structural lung damage via computed tomography of the chest._ 
+_Choice of the algorithms' hyper-parameters (tuning) was accomplished by minimizing mean absolute errors (MAE) for out-of-fold predictions in patient-blocked 10-repeats 10-fold cross-validation._ 
+_Trajectories of MAE values for combinations of the hyper-parameters of the models of FEV1 are presented in line plots. The optimal combinations of the hyper-parameters used for training of the final models are displayed in the plot captions._ 
+
+_size: number of neurons in the hidden layer of the neuronal model; decay: decay of weights in the neuronal network; mtry: number of randomly chosen explanatory variables for construction of decision trees; splitrule: rule used for splitting of explanatory variable at branches of decision trees; min.node.size: minimal size of the decision tree node;  sigma: sigma parameter that defines width of the radial kernel; C: cost/penalty applied to misclassified observations; n.tree: number of decision trees; interaction.depth/int: number of splits in the decision tree; shrinkage: regularization penalty applied to predictions by single decision trees; n.minobsinnode: minimal size of the decision tree node._
+
+\newpage
+
+# References
